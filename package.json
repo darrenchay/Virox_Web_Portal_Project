@@ -4,7 +4,9 @@
   "description": "web portal for database management",
   "main": "app.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w -sqlite3",
+    "postinstall": "install-app-deps"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,12 @@
   "bugs": {
     "url": "https://github.com/darrenchay/Virox_Web_Portal_Project/issues"
   },
-  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme"
+  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme",
+  "devDependencies": {
+    "electron": "^9.0.4",
+    "electron-rebuild": "^1.11.0",
+    "sqlite3": "^4.2.0",
+    "vue": "^2.6.11"
+  },
+  "dependencies": {}
 }

@@ -1,4 +1,24 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow } = require('electron');
+//SQLite App
+const sqlite3 = require('sqlite3').verbose();
+
+
+let db = new sqlite3.Database('test.db', sqlite3.OPEN_READWRITE, (err) => {
+    if (err) {
+        return console.error(err.message);
+    }
+    console.log("Connected to the database");
+});
+
+
+
+db.close((err) => {
+    if (err) {
+      return console.error(err.message);
+    }
+    console.log('Close the database connection.');
+});
+
 
 function createWindow () {
   // Create the browser window.
@@ -8,10 +28,13 @@ function createWindow () {
     webPreferences: {
       nodeIntegration: true
     }
-  })
+  });
 
   // and load the index.html of the app.
-  win.loadFile('public/index.html')
+  win.loadFile('public/index.html');
+
+  // Open the DevTools.
+  win.webContents.openDevTools()
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(createWindow);
