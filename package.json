@@ -1,0 +1,19 @@
+{
+  "name": "virox_web_portal_project",
+  "version": "1.0.0",
+  "description": "web portal for database management",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darrenchay/Virox_Web_Portal_Project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darrenchay/Virox_Web_Portal_Project/issues"
+  },
+  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme"
+}
