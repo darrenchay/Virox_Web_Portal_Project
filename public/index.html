@@ -17,10 +17,17 @@
         <link rel="stylesheet" type="text/css" href="style.css">
         <!-- Custom CSS End -->
         <script src="https://unpkg.com/vue"></script>
+
+        <!-- Axios -->
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     </head>
 
     <body>
-    <div id="app">
+      <div id="app">
+        {{ message }}
+      </div> 
+  
+    <!-- <div id="app">
         {{ message }}
     </div>
 
@@ -46,10 +53,15 @@
     <div id="app-5">
         <p>{{ message }}</p>
         <button v-on:click="reverseMessage">Reverse Message</button>
+      </div> -->
+    
+      <div id="app-5">
+        <p>{{ titles }}</p>
+        <button v-on:click="getData">Reverse Message</button>
       </div>
 
       <div id="app-7">
-        <ol>
+        <ul>
           <!--
             Now we provide each todo-item with the todo object
             it's representing, so that its content can be dynamic.
@@ -57,12 +69,15 @@
             which will be explained later.
           -->
           <todo-item
-            v-for="item in groceryList"
-            v-bind:todo="item"
-            v-bind:key="item.id"
+            v-for="item in titles"
+            v-bind:todo="item.project_title"
+            v-bind:key="item.record_id"
           ></todo-item>
-        </ol>
+        </ul>
       </div>
+
+
+    
     <script src="index.js"></script>
     </body>
 </html>

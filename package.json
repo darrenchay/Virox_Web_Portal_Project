@@ -24,5 +24,8 @@
     "sqlite3": "^4.2.0",
     "vue": "^2.6.11"
   },
-  "dependencies": {}
+  "dependencies": {
+    "axios": "^0.19.2",
+    "vue-axios": "^2.1.5"
+  }
 }
