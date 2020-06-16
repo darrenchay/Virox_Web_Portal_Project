@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/darrenchay/Virox_Web_Portal_Project/issues"
   },
-  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme"
+  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme",
+  "dependencies": {
+    "sqlite3": "^4.2.0",
+    "vue": "^2.6.11",
+    "wrappy": "^1.0.2"
+  },
+  "devDependencies": {}
 }
