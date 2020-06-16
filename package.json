@@ -1,12 +1,10 @@
 {
   "name": "virox_web_portal_project",
   "version": "1.0.0",
-  "description": "web portal for database management",
+  "description": "web portal virox",
   "main": "app.js",
   "scripts": {
-    "start": "electron .",
-    "rebuild": "electron-rebuild -f -w -sqlite3",
-    "postinstall": "install-app-deps"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -17,15 +15,5 @@
   "bugs": {
     "url": "https://github.com/darrenchay/Virox_Web_Portal_Project/issues"
   },
-  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme",
-  "devDependencies": {
-    "electron": "^9.0.4",
-    "electron-rebuild": "^1.11.0",
-    "sqlite3": "^4.2.0",
-    "vue": "^2.6.11"
-  },
-  "dependencies": {
-    "axios": "^0.19.2",
-    "vue-axios": "^2.1.5"
-  }
+  "homepage": "https://github.com/darrenchay/Virox_Web_Portal_Project#readme"
 }
