@@ -3,14 +3,14 @@ const { app, BrowserWindow } = require('electron');
 const sqlite3 = require('sqlite3').verbose();
 
 
-let db = new sqlite3.Database('test.db', sqlite3.OPEN_READWRITE, (err) => {
+let db = new sqlite3.Database('virox.db', sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
         return console.error(err.message);
     }
     console.log("Connected to the database");
 });
 
-
+let sql = 'CREATE TABLE'
 
 db.close((err) => {
     if (err) {
