@@ -1,18 +1,22 @@
 <template>
   <div id="app" class="card">
-    <ExperimentForm/>
+    <router-view/>
+    <!-- <ExperimentForm/> -->
   </div>
 </template>
 
 <script>
 //import HelloWorld from './components/HelloWorld.vue'
-import ExperimentForm from './components/ExperimentForm.vue'
+/* import ExperimentForm from './components/ExperimentForm.vue'
 export default {
   name: 'App',
   components: {
     ExperimentForm
   }
-}
+} */
+  export default {
+        
+    }
 </script>
 
 <style>

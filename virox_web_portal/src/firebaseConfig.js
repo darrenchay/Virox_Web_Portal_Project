@@ -12,6 +12,7 @@ const config = {
     appId: "1:11654335923:web:66b47ce8ed1c7316058fc6",
     measurementId: "G-20KFL6N8CH"
 }
+
 firebase.initializeApp(config)
 
 // firebase utils
@@ -36,7 +37,4 @@ export {
     auth,
     currentUser,
     usersCollection,
-    postsCollection,
-    commentsCollection,
-    likesCollection
 }
