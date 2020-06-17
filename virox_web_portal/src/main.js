@@ -3,6 +3,7 @@ import App from './App'
 import router from './router'
 import { store } from './store.js'
 const fb = require('./firebaseConfig.js') //Handle users
+import './assets/scss/app.scss'
 
 Vue.config.productionTip = false
 
