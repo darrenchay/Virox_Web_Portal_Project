@@ -53,7 +53,8 @@ export default {
             formulation_date: new Date('2020-12-5').toISOString().substring(0,10),
             preparation_date: new Date('2020-10-12').toISOString().substring(0,10),
             prepared_by: "Darren Chay",
-            quantity: 400
+            quantity: 400,
+            date_created = getDate()
         }
       }
   },
@@ -61,6 +62,11 @@ export default {
       submit() {
           console.log(this.record);
           alert(this.record.LOT_NO + " " + this.record.project_title + " " + this.record.formulation_date + " " + this.record.prepared_by)
+      },
+      getDate() {
+          var today = new Date()
+          var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours()  + ":" + today.getMinutes() + ":" + today.getSeconds()
+          return curDate;
       }
   }
 }
