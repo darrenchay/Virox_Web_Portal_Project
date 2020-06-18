@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import firebase from 'firebase'
 import LoginPage from '../components/LoginPage'
 import Dashboard from '../components/Dashboard'
+import RecordsLoggingPage from '../components/RecordsLoggingPage'
 
 Vue.use(Router)
 const router = new Router({
@@ -25,6 +26,14 @@ const router = new Router({
                 requiresAuth: true
             }
         },
+        {
+            path: '/records',
+            name: 'Records',
+            component: RecordsLoggingPage,
+            meta: {
+                requiresAuth: true
+            }
+        }
     ]
 
 });
