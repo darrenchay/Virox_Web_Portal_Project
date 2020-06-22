@@ -1,19 +1,14 @@
 <template>
   <div id="app" class="card">
+    <nav class="nav nav-pills">
+      <a class="nav-item nav-link active" href="/records">Experiment Records</a>
+    </nav>
     <router-view/>
     <!-- <ExperimentForm/> -->
   </div>
 </template>
 
 <script>
-//import HelloWorld from './components/HelloWorld.vue'
-/* import ExperimentForm from './components/ExperimentForm.vue'
-export default {
-  name: 'App',
-  components: {
-    ExperimentForm
-  }
-} */
   export default {
         
     }
