@@ -54,7 +54,7 @@ export default {
             preparation_date: new Date('2020-10-12').toISOString().substring(0,10),
             prepared_by: "Darren Chay",
             quantity: 400,
-            date_created = getDate()
+            date_created: this.getDate()
         }
       }
   },
