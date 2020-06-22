@@ -32,20 +32,103 @@
                     <input type="text" v-model.trim="record.quantity" class="form-control" id="inputQuantity">
                 </div>
             </div>
-            <button type="submit" @click="submit" class="btn btn-primary">Save</button>
+
+            <br>
+            <!-- Raw Materials Table -->
+            <div class="form-group">
+                <label for="rmTable"><strong>Raw Materials</strong></label>
+                <table class="table table-bordered table-hover" id="rmTable">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th v-for="(column, index) in column_name_rm" :key="index">{{column}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="record in record.raw_materials_list" :key="record.rm_id">
+                            <td v-for="(data, index) in columns_rm" :key="index">{{record[data]}}</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td><strong>Total:</strong></td>
+                            <td><strong>{{record.total_percentage_w}}</strong></td>
+                            <td></td>
+                            <td><strong>{{record.total_AR}}</strong></td>
+                            <td><strong>{{record.total_AD}}</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" @click="addRawMat" class="btn btn-primary">Add Raw Material</button>
+            </div>
+
+            <div class="form-group">
+                <label for="notesTextArea"><strong>Notes</strong></label>
+                <textarea class="form-control" id="notesTextArea" v-model.trim="record.record_notes" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="reasonPrepTextArea"><strong>Reason for Preparation</strong></label>
+                <textarea class="form-control" id="reasonPrepTextArea" v-model.trim="record.preparation_reason" rows="3"></textarea>
+            </div>
+
+            <!-- Hydrogen Peroxide Table -->
+            <div class="form-group">
+                <label for="h2O2Table"><strong>Hydrogen Peroxide</strong></label>
+                <table class="table table-bordered table-hover" id="h2O2Table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th v-for="(column, index) in columns_name_h202" :key="index">{{column}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="record in record.hydro_per_list" :key="record.hp_id">
+                            <td v-for="(data, index) in columns_h202" :key="index">{{record[data]}}</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td><strong></strong></td>
+                            <td></td>
+                            <td><strong></strong></td>
+                            <td><strong></strong></td>
+                            <td><strong>pH</strong></td>
+                            <td><strong>{{record.hydro_per_list[0].PH}}</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" @click="addH2O2Record" class="btn btn-primary">Add Hydrogen Peroxide Record</button>
+            </div>
+            
+            <!-- Hydrogen Peroxide Stability Table -->
+            <div class="form-group">
+                <label for="h2O2StabTable"><strong>Hydrogen Peroxide Stability</strong></label>
+                <table class="table table-bordered table-hover" id="h2O2StabTable">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th v-for="(column, index) in columns_name_h202" :key="index">{{column}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="record in record.hydro_per_stab_list" :key="record.hp_id">
+                            <td v-for="(data, index) in columns_h202" :key="index">{{record[data]}}</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td><strong></strong></td>
+                            <td></td>
+                            <td><strong></strong></td>
+                            <td><strong></strong></td>
+                            <td><strong>pH</strong></td>
+                            <td><strong>{{record.hydro_per_stab_list[0].PH}}</strong></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" @click="addH2O2StabRecord" class="btn btn-primary">Add Hydrogen Peroxide Stability Record</button>
+            </div>
+            
+            <button type="submit" @click="submit" class="btn btn-success">Save</button>
         </form>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th v-for="(column, index) in column_name" :key="index">{{column}}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="record in record.raw_materials_list" :key="record.rm_id">
-                    <td v-for="(data, index) in columns" :key="index">{{record[data]}}</td>
-                </tr>
-            </tbody>
-        </table>
+        
 
     </div>
 
@@ -88,10 +171,79 @@ export default {
                     time_added: new Date('2020-10-12').toISOString().substring(0,10),
                     rm_notes: "none"
                 }
+            ],
+            total_percentage_w: 100.0,
+            total_AR: 355.6,
+            total_AD: 355.84,
+            record_notes: "Take 100g and Test stability in 54C for 2 weeks\nTake 100g and Test stability in 50C for 35 days\nProvide 100g to Sean/Cesar to conduct corrosion testing on Brass.",
+            preparation_reason: "To test improved F/T performance and reduce corrosion of the RTU formula while making it fall under our newly filed patents",
+            hydro_per_list: [{
+                    hp_id: 1,
+                    experiment: "Trial 1",
+                    N: 0.1000,
+                    M: "",
+                    vol_change: "",
+                    H2O2: 0.1000,
+                    PH: 0.870,
+                    accepted_range: "~ 0.8%",
+                    date: new Date('2020-10-12').toISOString().substring(0,10),
+                    initials: "J.K"
+                },
+                {
+                    hp_id: 2,
+                    experiment: "Trial 2",
+                    N: "",
+                    M: "",
+                    vol_change: "",
+                    H2O2: 0.1000,
+                    PH: 0.870,
+                    accepted_range: "",
+                    date: new Date('2020-10-12').toISOString().substring(0,10),
+                    initials: ""
+                },
+                {
+                    hp_id: 3,
+                    experiment: "Average",
+                    N: "",
+                    M: "",
+                    vol_change: "",
+                    H2O2: 0.1000,
+                    PH: 0.870,
+                    accepted_range: "",
+                    date: "",
+                    initials: ""
+                }
+            ],
+            hydro_per_stab_list: [{
+                    hp_id: 1,
+                    experiment: "Trial 1",
+                    N: 0.1000,
+                    M: "",
+                    vol_change: "",
+                    H2O2: 0.1000,
+                    PH: 0.870,
+                    accepted_range: "~ 0.8%",
+                    date: new Date('2020-10-12').toISOString().substring(0,10),
+                    initials: "J.K"
+                },
+                {
+                    hp_id: 2,
+                    experiment: "Trial 2",
+                    N: "",
+                    M: "",
+                    vol_change: "",
+                    H2O2: 0.1000,
+                    PH: 0.870,
+                    accepted_range: "",
+                    date: new Date('2020-10-12').toISOString().substring(0,10),
+                    initials: ""
+                }
             ]
         },
-        columns: ['raw_material', 'w_w', 'raw_material_lot', 'AR', 'AD', 'time_added', 'rm_notes'],
-        column_name: ['Raw Material', '%w/w', 'Raw Material lot #', 'AR[gr]', 'AD[gr]', 'Time Added', 'Notes']
+        columns_rm: ['raw_material', 'w_w', 'raw_material_lot', 'AR', 'AD', 'time_added', 'rm_notes'],
+        column_name_rm: ['Raw Material', '%w/w', 'Raw Material lot #', 'AR[gr]', 'AD[gr]', 'Time Added', 'Notes'],
+        columns_h202: ['experiment', 'N', 'M', 'vol_change', 'H2O2', 'accepted_range', 'date', 'initials'],
+        columns_name_h202: ['Hydrogen Peroxide', 'N', 'Ms [gr]', '∆V (ml)', 'H2O2', 'Accepted Range', 'Date', 'Initials'],
       }
   },
   methods:{
@@ -103,6 +255,15 @@ export default {
           var today = new Date()
           var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours()  + ":" + today.getMinutes() + ":" + today.getSeconds()
           return curDate;
+      },
+      addRawMat() {
+
+      },
+      addH2O2Record() {
+
+      },
+      addH2O2StabRecord() {
+
       }
   }
 }
