@@ -34,6 +34,19 @@
             </div>
             <button type="submit" @click="submit" class="btn btn-primary">Save</button>
         </form>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th v-for="(column, index) in column_name" :key="index">{{column}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="record in record.raw_materials_list" :key="record.rm_id">
+                    <td v-for="(data, index) in columns" :key="index">{{record[data]}}</td>
+                </tr>
+            </tbody>
+        </table>
+
     </div>
 
 
@@ -54,8 +67,31 @@ export default {
             preparation_date: new Date('2020-10-12').toISOString().substring(0,10),
             prepared_by: "Darren Chay",
             quantity: 400,
-            date_created: this.getDate()
-        }
+            date_created: this.getDate(),
+            raw_materials_list: [{
+                    rm_id: 1,
+                    raw_material: "chemical L63",
+                    w_w: 11.11,
+                    raw_material_lot: " ",
+                    AR: 44.44,
+                    AD: 44.48,
+                    time_added: new Date('2020-10-25').toISOString().substring(0,10),
+                    rm_notes: "none"
+                },
+                {
+                    rm_id: 2,
+                    raw_material: "H2O2 50% EPA",
+                    w_w: 21.11,
+                    raw_material_lot: " ",
+                    AR: 55.44,
+                    AD: 44.48,
+                    time_added: new Date('2020-10-12').toISOString().substring(0,10),
+                    rm_notes: "none"
+                }
+            ]
+        },
+        columns: ['raw_material', 'w_w', 'raw_material_lot', 'AR', 'AD', 'time_added', 'rm_notes'],
+        column_name: ['Raw Material', '%w/w', 'Raw Material lot #', 'AR[gr]', 'AD[gr]', 'Time Added', 'Notes']
       }
   },
   methods:{
