@@ -11,7 +11,7 @@ const router = new Router({
     routes: [
         {
             path: '*',
-            redirect: 'dashboard'
+            redirect: 'records'
         },
         {
             path: '/login',
@@ -19,7 +19,7 @@ const router = new Router({
             component: LoginPage
         },
         {
-            path: '/dashboard',
+            path: '/dashboard/:recordID',
             name: 'Dashboard',
             component: Dashboard,
             meta: {
@@ -28,7 +28,7 @@ const router = new Router({
         },
         {
             path: '/records',
-            name: 'Records',
+            name: 'records',
             component: RecordsLoggingPage,
             meta: {
                 requiresAuth: true

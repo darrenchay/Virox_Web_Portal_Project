@@ -87,7 +87,7 @@
                 console.log(credential.user.uid)
                 this.$store.dispatch('fetchUserProfile')
                 this.performingRequest = false
-                this.$router.push('/dashboard')
+                this.$router.push('/records')
                 }).catch(err => {
                     console.log(err)
                     this.errorMsg = err.message

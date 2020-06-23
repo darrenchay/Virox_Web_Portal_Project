@@ -1,6 +1,6 @@
 <template>
     <div class="container card-body">
-        <img alt="Vue logo" class="my-1 mr-2 img-thumbnail" src="../assets/Virox-Logo.png">
+        <img alt="Vue logo" class="my-1 mr-2 img-thumbnail center" src="../assets/Virox-Logo.png">
         <form id="general-input-form" class="form" style="margin:0 auto; width:70%" @submit.prevent>
             <div class="form-inline form-group row ">
                 <div class="form-group col-auto">
