@@ -12,7 +12,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="record in sortedRecords" :key="record[currentSort]">
+                    <tr v-for="(record, index) in sortedRecords" :key="index">
                         <td v-for="(data) in columns" :key="data">{{record[data]}}</td>
                         <td><button type="button" @click="showRecord(record.record_id)" class="btn btn-secondary" :id="'record' + record.record_id + 'btn'">Show Record</button></td>
                     </tr>
@@ -80,24 +80,34 @@
             },
             sort:function(col) {
                 // if you click the same label twice
-                if(this.currentSort == col){
+                if(this.currentSort === col){
                     this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc'
-                }else{
+                } else{
                     this.currentSort = col
                     console.log( 'Col name: ' + col )
                 } // end if
+                //console.log(this.records)
             }
         },
         computed: {
-            sortedRecords() {
-                return this.records.slice(0).sort((a, b) => {
-                    console.log("sorting")
-                    if (this.currentSortDir === 'asc') {
-                        return a[this.currentSort] >= b[this.currentSort];      
+            sortedRecords: function() {
+                var sortedArray = this.records.slice(0)
+                console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
+                sortedArray.sort((a, b) => {
+                    let modifier = 1
+                    if(this.currentSortDir === 'desc') {
+                        modifier = -1
+                    } 
+                    if (a[this.currentSort] < b[this.currentSort]){
+                        return -1 * modifier
+                    } else if (a[this.currentSort] > b[this.currentSort]){
+                        return -1 * modifier
                     } else {
-                        return a[this.currentSort] <= b[this.currentSort];
+                        return 0
                     }
                 })
+                //console.log(sortedArray)
+                return sortedArray
             }
         }
     }
