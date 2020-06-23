@@ -4,16 +4,16 @@
         <label for="recordsTable"><strong>Experiment Records</strong></label>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover" id="recordsTable">
+            <table class="table table-bordered table-hover table-responsive" id="recordsTable">
                 <thead class="thead-dark">
                     <tr>
-                        <th v-for="(column, index) in column_name" :key="index">{{column}}</th>
+                        <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="record in records" :key="record.record_id">
-                        <td v-for="(data, index) in columns" :key="index">{{record[data]}}</td>
+                    <tr v-for="record in sortedRecords" :key="record[currentSort]">
+                        <td v-for="(data) in columns" :key="data">{{record[data]}}</td>
                         <td><button type="button" @click="showRecord(record.record_id)" class="btn btn-secondary" :id="'record' + record.record_id + 'btn'">Show Record</button></td>
                     </tr>
                 </tbody>
@@ -51,7 +51,19 @@
                     date_created: this.newDate('2020-10-12'),
                     date_updated: this.newDate('2020-10-12'),
                     },
+                    {
+                    record_id: 3,
+                    LOT_NO: 33333,
+                    project_title: "Experiment 7",
+                    formulation_date: this.newDate('2020-10-12'),
+                    preparation_date: this.newDate('2020-10-15'),
+                    prepared_by: "Alex John",
+                    date_created: this.newDate('2020-10-12'),
+                    date_updated: this.newDate('2020-10-12'),
+                    }
                 ],
+                currentSort: 'record_id',
+                currentSortDir: 'asc',
                 columns: ['record_id', 'project_title', 'LOT_NO', 'prepared_by', 'formulation_date', 'preparation_date', 'date_created', 'date_updated'],
                 column_name: ['#', 'Project Title', 'LOT NO', 'Prepared By', 'Formulation Date', 'Preparation Date', 'Date Created', 'Date Updated'],
             }
@@ -61,10 +73,31 @@
                 return new Date(date).toISOString().substring(0,10)
             },
             createNewRecord() {
-                this.$router.push({ name: 'Dashboard', params: { recordID: 123 }})
+                this.$router.push({ name: 'Dashboard', params: { recordID: '#' }})
             },
             showRecord(record_id) {
                 this.$router.push({ name: 'Dashboard', params: { recordID: record_id }})
+            },
+            sort:function(col) {
+                // if you click the same label twice
+                if(this.currentSort == col){
+                    this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc'
+                }else{
+                    this.currentSort = col
+                    console.log( 'Col name: ' + col )
+                } // end if
+            }
+        },
+        computed: {
+            sortedRecords() {
+                return this.records.slice(0).sort((a, b) => {
+                    console.log("sorting")
+                    if (this.currentSortDir === 'asc') {
+                        return a[this.currentSort] >= b[this.currentSort];      
+                    } else {
+                        return a[this.currentSort] <= b[this.currentSort];
+                    }
+                })
             }
         }
     }

@@ -1,7 +1,8 @@
 <template>
     <div class="container card-body">
-        <img alt="Vue logo" class="my-1 mr-2 img-thumbnail center" src="../assets/Virox-Logo.png">
-        <form id="general-input-form" class="form" style="margin:0 auto; width:70%" @submit.prevent>
+        <img alt="Vue logo" class="img-thumbnail rounded mx-auto d-block" src="../assets/Virox-Logo.png">
+        <br>
+        <form id="general-input-form" class="form" style="margin:0 auto; width:80%" @submit.prevent>
             <div class="form-inline form-group row ">
                 <div class="form-group col-auto">
                     <label class="my-1 mr-2" for="inputLOTNO"><strong>LOT NO: </strong></label>

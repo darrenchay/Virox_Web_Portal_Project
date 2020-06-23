@@ -1,7 +1,16 @@
 <template>
-  <div id="app" class="card">
+  <div id="app" class="container">
     <Navigation v-if="currentUser"></Navigation>
-    <router-view/>
+    <div class="card">
+      <router-view/>
+    </div>
+    <footer class="footer">
+      <div class="container">
+        <span class="text-muted">Virox Web Portal</span>
+        <br>
+        <span class="text-muted">Darren Chay Loong</span>
+      </div>
+    </footer>
   </div>
 </template>
 
