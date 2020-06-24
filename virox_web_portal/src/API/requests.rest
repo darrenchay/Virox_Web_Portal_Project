@@ -1,2 +1,3 @@
 //GET http://localhost:3000/users?page=2&limit=3
-GET http://localhost:3000/getRecords
+//GET http://localhost:3000/getRecords
+GET http://localhost:3000/getRecord?id=1
