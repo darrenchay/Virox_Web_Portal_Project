@@ -34,22 +34,103 @@ router.get('/getRecord', (req, res) => {
     
     const db = openDB()
 
-    const sql = 'SELECT * FROM EXPERIMENT_RECORDS WHERE record_id = ?'
+    let sql = 'SELECT * FROM EXPERIMENT_RECORDS WHERE record_id = ?'
+    let data = []
+    let record = {
+        experimentRecord: {},
+        rawMaterials: [],
+        HPRecords: [],
+        HPStabRecords: []
+    }
 
-    db.all(sql, id, (err, row) => {
-        //Process if sql statement gives an error
-        if (err) {
-            res.status(500).send({ "Error ": err.message })
-            return
-        } else if (row.length > 0){
-            res.send({
-                "Message": "Successfully retrieved " + row.length + " row",
-                data: row
+    //Get the data from the experiments table
+    function getExprimentTableRecord() {
+        //promise to return the data after the async call
+        return new Promise((resolve, reject) => {
+            db.all(sql, id, (err, rows) => {
+                if(err) {
+                    res.status(500).send({ "Error ": err.message })
+                    return
+                } else {
+                    data = rows
+                }
+
+                resolve(data)
             })
-        } else {
-            res.send("ERROR: Record with ID " + id + " not retrieved")
-        }
-    })
+        })
+    }
+
+    function getRawMaterials() {
+        sql = 'SELECT * FROM RAW_MATERIALS where experiment_record_id = ?'
+        //promise to return the data after the async call
+        return new Promise((resolve, reject) => {
+            db.all(sql, id, (err, rows) => {
+                if(err) {
+                    res.status(500).send({ "Error ": err.message })
+                    return
+                } else {
+                    data = []
+                    data = rows
+                    //console.log("Rows:")
+                    //console.log(rows)
+                }
+
+                resolve(data)
+            })
+        })
+    }
+
+    function getHPList() {
+        sql = 'SELECT * FROM HYDROGEN_PEROXIDE_DATA where experiment_record_id = ? AND hp_type = 1'
+        //promise to return the data after the async call
+        return new Promise((resolve, reject) => {
+            db.all(sql, id, (err, rows) => {
+                if(err) {
+                    res.status(500).send({ "Error ": err.message })
+                    return
+                } else {
+                    data = []
+                    data = rows
+                    //console.log("Rows:")
+                    //console.log(rows)
+                }
+
+                resolve(data)
+            })
+        })
+    }
+
+    function getHPStabList() {
+        sql = 'SELECT * FROM HYDROGEN_PEROXIDE_DATA where experiment_record_id = ? AND hp_type = 2'
+        //promise to return the data after the async call
+        return new Promise((resolve, reject) => {
+            db.all(sql, id, (err, rows) => {
+                if(err) {
+                    res.status(500).send({ "Error ": err.message })
+                    return
+                } else {
+                    data = []
+                    data = rows
+                    //console.log("Rows:")
+                    //console.log(rows)
+                }
+
+                resolve(data)
+            })
+        })
+    }
+
+    (async function() {
+        record.experimentRecord = await getExprimentTableRecord()
+        record.rawMaterials = await getRawMaterials()
+        record.HPRecords = await getHPList()
+        record.HPStabRecords = await getHPStabList()
+        res.send({
+            "Message": "Successfully retrieved " + record.experimentRecord.length + " row",
+            data: record
+        })
+        //console.log(record)
+    })()
 
     closeDB(db)    
 })
