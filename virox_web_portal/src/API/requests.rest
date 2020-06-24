@@ -47,7 +47,7 @@ Content-Type: application/json
             }
         ],
         "hydro_per_list": [{
-                "hp_id": 1,
+                //"hp_id": 1,
                 "experiment": "Trial 1",
                 "N": 0.1000,
                 "M": "",
@@ -59,7 +59,7 @@ Content-Type: application/json
                 "initials": "J.K"
             },
             {
-                "hp_id": 2,
+                //"hp_id": 2,
                 "experiment": "Trial 2",
                 "N": "",
                 "M": "",
@@ -71,7 +71,7 @@ Content-Type: application/json
                 "initials": ""
             },
             {
-                "hp_id": 3,
+                //"hp_id": 3,
                 "experiment": "Average",
                 "N": "",
                 "M": "",
@@ -84,7 +84,7 @@ Content-Type: application/json
             }
         ],
         "hydro_per_stab_list": [{
-                "hp_id": 1,
+                //"hp_id": 1,
                 "experiment": "Trial 1",
                 "N": 0.1000,
                 "M": "",
@@ -96,7 +96,7 @@ Content-Type: application/json
                 "initials": "J.K"
             },
             {
-                "hp_id": 2,
+                //"hp_id": 2,
                 "experiment": "Trial 2",
                 "N": "",
                 "M": "",
