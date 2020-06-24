@@ -1,7 +1,14 @@
 const express = require('express')
-const router = express.Router()
+const cors = require('cors')
+const bodyParser = require('body-parser')
+const morgan = require('morgan')
 const sqlite3 = require('sqlite3').verbose();
+const router = express.Router()
 const app = express()
+
+app.use(morgan('tiny'));
+app.use(cors());
+app.use(bodyParser.json());
 
 app.use("/", router)
 
@@ -27,11 +34,11 @@ router.get('/getRecords', (req, res) => {
 
 })
 
-//Get a single complete record data 
+//Get a single complete record data based off record id
 router.get('/getRecord', (req, res) => {
     const id = req.query.id
     console.log(id)
-    
+
     const db = openDB()
 
     let sql = 'SELECT * FROM EXPERIMENT_RECORDS WHERE record_id = ?'
@@ -48,7 +55,7 @@ router.get('/getRecord', (req, res) => {
         //promise to return the data after the async call
         return new Promise((resolve, reject) => {
             db.all(sql, id, (err, rows) => {
-                if(err) {
+                if (err) {
                     res.status(500).send({ "Error ": err.message })
                     return
                 } else {
@@ -65,7 +72,7 @@ router.get('/getRecord', (req, res) => {
         //promise to return the data after the async call
         return new Promise((resolve, reject) => {
             db.all(sql, id, (err, rows) => {
-                if(err) {
+                if (err) {
                     res.status(500).send({ "Error ": err.message })
                     return
                 } else {
@@ -85,7 +92,7 @@ router.get('/getRecord', (req, res) => {
         //promise to return the data after the async call
         return new Promise((resolve, reject) => {
             db.all(sql, id, (err, rows) => {
-                if(err) {
+                if (err) {
                     res.status(500).send({ "Error ": err.message })
                     return
                 } else {
@@ -105,7 +112,7 @@ router.get('/getRecord', (req, res) => {
         //promise to return the data after the async call
         return new Promise((resolve, reject) => {
             db.all(sql, id, (err, rows) => {
-                if(err) {
+                if (err) {
                     res.status(500).send({ "Error ": err.message })
                     return
                 } else {
@@ -120,7 +127,7 @@ router.get('/getRecord', (req, res) => {
         })
     }
 
-    (async function() {
+    (async function () {
         record.experimentRecord = await getExprimentTableRecord()
         record.rawMaterials = await getRawMaterials()
         record.HPRecords = await getHPList()
@@ -132,20 +139,60 @@ router.get('/getRecord', (req, res) => {
         //console.log(record)
     })()
 
-    closeDB(db)    
+    closeDB(db)
 })
 
-//
+//Insert a complete record in the respective tables
+router.post('/addRecord', (req, res) => {
+    let expRecord = {
+        //record_id: req.body.record.record_id,
+        LOT_NO: req.body.record.LOT_NO,
+        project_title: req.body.record.project_title,
+        formulation_date: req.body.record.formulation_date,
+        preparation_date: req.body.record.preparation_date,
+        prepared_by: req.body.record.prepared_by,
+        quantity: req.body.record.quantity,
+        notes: req.body.record.notes,
+        preparation_reason: req.body.record.preparation_reason,
+        observations: req.body.record.observations,
+        date_created: req.body.record.date_created,
+        total_percentage_w: req.body.record.total_percentage_w,
+        total_AR: req.body.record.total_AR,
+        total_AD: req.body.record.total_AD,
+    }
 
-router.get('/users', (req, res) => {
-    const page = req.query.page
-    const limit = req.query.limit
-    console.log(page)
-    const startIndex = (page - 1) * limit
-    const endIndex = page * limit
+    //let expRecord = req.body.record
+    let rawMaterialsList = req.body.record.rawMaterialsList
+    let HPList = req.body.record.HPList
+    let HPStabList = req.body.record.HPStabList
+    //console.log(req.body.record)
+    let db = openDB()
 
-    let results = records.slice(startIndex, endIndex)
-    res.json(results)
+    let queryString = 'INSERT INTO EXPERIMENT_RECORDS\
+                            ( LOT_NO, project_title, formulation_date, preparation_date, \
+                                prepared_by, quantity, notes, preparation_reason, observations, \
+                                date_created, total_percentage_w, total_AR, total_AD) \
+                                VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+
+    let data = [expRecord.LOT_NO, expRecord.project_title , expRecord.formulation_date , expRecord.preparation_date , expRecord.prepared_by , expRecord.quantity , expRecord.notes , expRecord.preparation_reason , expRecord.observations , expRecord.date_created , expRecord.total_percentage_w , expRecord.total_AR , expRecord.total_AD]    
+    console.log(data)
+    //let placeholders = data.map((data) => '?').join(',');
+
+    //queryString = queryString + placeholders + ')';
+    //console.log(queryString);
+    db.run(queryString, data, function (err) {
+        if (err) {
+            console.log(err.message);
+            res.status(500).send("Could not add record")
+        } else {
+            console.log ("Added record successfully: ")
+            res.send("Added record succesfully")
+        }
+        //console.log('Row inserted at row ID ${this.lastID}. ${this.changes} rows affected');
+    });
+
+    // close the database connection
+    closeDB(db);
 })
 
 app.listen(3000)
@@ -162,7 +209,7 @@ function openDB() {
     return db
 }
 
-function closeDB (db) {
+function closeDB(db) {
     db.close((err) => {
         if (err) {
             console.error(err.message);

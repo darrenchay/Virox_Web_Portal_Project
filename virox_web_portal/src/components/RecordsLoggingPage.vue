@@ -81,7 +81,7 @@
             sort:function(col) {
                 // if you click the same label twice
                 if(this.currentSort === col){
-                    this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc'
+                    this.currentSortDir = this.currentSortDir === 'desc' ? 'asc' : 'desc'
                 } else{
                     this.currentSort = col
                     console.log( 'Col name: ' + col )
@@ -95,7 +95,7 @@
                 console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
                 sortedArray.sort((a, b) => {
                     let modifier = 1
-                    if(this.currentSortDir === 'desc') {
+                    if(this.currentSortDir === 'asc') {
                         modifier = -1
                     } 
                     if (a[this.currentSort] < b[this.currentSort]){
