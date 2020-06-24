@@ -162,37 +162,87 @@ router.post('/addRecord', (req, res) => {
     }
 
     //let expRecord = req.body.record
-    let rawMaterialsList = req.body.record.rawMaterialsList
+    let rawMaterialsList = req.body.record.raw_materials_list
     let HPList = req.body.record.HPList
     let HPStabList = req.body.record.HPStabList
     //console.log(req.body.record)
     let db = openDB()
 
-    let queryString = 'INSERT INTO EXPERIMENT_RECORDS\
+    //Query string for inserting to experiment records
+    let insertRecordString = 'INSERT INTO EXPERIMENT_RECORDS\
                             ( LOT_NO, project_title, formulation_date, preparation_date, \
                                 prepared_by, quantity, notes, preparation_reason, observations, \
                                 date_created, total_percentage_w, total_AR, total_AD) \
                                 VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
 
-    let data = [expRecord.LOT_NO, expRecord.project_title , expRecord.formulation_date , expRecord.preparation_date , expRecord.prepared_by , expRecord.quantity , expRecord.notes , expRecord.preparation_reason , expRecord.observations , expRecord.date_created , expRecord.total_percentage_w , expRecord.total_AR , expRecord.total_AD]    
-    console.log(data)
-    //let placeholders = data.map((data) => '?').join(',');
+    let data = [expRecord.LOT_NO, expRecord.project_title, expRecord.formulation_date, expRecord.preparation_date, expRecord.prepared_by, expRecord.quantity, expRecord.notes, expRecord.preparation_reason, expRecord.observations, expRecord.date_created, expRecord.total_percentage_w, expRecord.total_AR, expRecord.total_AD]
 
-    //queryString = queryString + placeholders + ')';
-    //console.log(queryString);
-    db.run(queryString, data, function (err) {
-        if (err) {
-            console.log(err.message);
-            res.status(500).send("Could not add record")
-        } else {
-            console.log ("Added record successfully: ")
-            res.send("Added record succesfully")
-        }
-        //console.log('Row inserted at row ID ${this.lastID}. ${this.changes} rows affected');
-    });
+    //Query string for inserting into RM table
+    let RMplaceholders
+
+    let insertRMString = 'INSERT INTO RAW_MATERIALS ( experiment_record_id, raw_material_name, percentage_w, raw_material_lot, AR, AD, time_added, notes) VALUES '
+
+    let flatRMList = []
+    let temp = []
+
+    //Executing db calls
+    let currRecID
+    db.serialize(() => {
+        db.run(insertRecordString, data, function (err) {
+            if (err) {
+                console.log(err.message);
+                res.status(500).send("Could not add record in Experiment records table")
+            } else {
+                console.log(`Added record successfully in experiment records at ID: ${this.lastID}. ${this.changes} rows affected`)
+                currRecID = this.lastID
+                //console.log("CURRENT ID IS:" + currRecID)
+            }
+            db.serialize(() => {
+                //Creating values array to be inserted into raw materials table
+                rawMaterialsList.forEach((arr) => {
+                    //console.log(arr)
+                    var values = Object.values(arr)
+                    values.unshift(currRecID)
+                    temp.push(values)
+
+                    values.forEach((item) => {
+                        flatRMList.push(item)
+                    })
+                })
+
+                //console.log("temp: ")
+                //console.log(temp)
+                //console.log("flat")
+                console.log(flatRMList)
+
+                RMplaceholders = temp.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+
+                insertRMString += RMplaceholders
+                console.log(insertRMString)
+                console.log("Finished adding to record at: " + currRecID)
+
+                //console.log(insertRMString)
+                db.run(insertRMString, flatRMList, function (err) {
+                    if (err) {
+                        //console.log(err.message);
+                        res.status(500).send("Could not add record in RM table")
+                    } else {
+                        console.log(`Added record successfully in RM table at ID: ${this.lastID}. ${this.changes} rows affected`)
+                        res.send(`Added record in RM successfully at ID: ${this.lastID}. ${this.changes} rows affected`)
+                        //currRecID = this.lastID
+                        //console.log("CURRENT ID IS:" + currRecID)
+                        closeDB(db)
+                    }
+                })
+            })
+            //console.log(insertRMString)
+
+        })
+    })
+
+    //res.send('Added record successfully at ID: ' + currRecID + ' rows affected.')
 
     // close the database connection
-    closeDB(db);
 })
 
 app.listen(3000)
