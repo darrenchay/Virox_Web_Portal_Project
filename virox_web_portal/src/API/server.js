@@ -322,122 +322,197 @@ router.post('/updateRecord', (req, res) => {
     //Query string for inserting to experiment records
     let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET LOT_NO = ?, project_title = ?, formulation_date = ?, preparation_date = ?, prepared_by = ?, quantity = ?, notes = ?, preparation_reason = ?, observations = ?, date_created = ?, total_percentage_w = ?, total_AR = ?, total_AD = ? WHERE record_id = ${id};`
 
-    let data = [expRecord.LOT_NO, expRecord.project_title, expRecord.formulation_date, expRecord.preparation_date, expRecord.prepared_by, expRecord.quantity, expRecord.notes, expRecord.preparation_reason, expRecord.observations, expRecord.date_created, expRecord.total_percentage_w, expRecord.total_AR, expRecord.total_AD]
-
-    console.log(updateRecordString)
+    let record_values = Object.values(expRecord) 
+    //console.log(record_values)
+    //console.log(updateRecordString)
 
     //Creating query string for inserting into RM table
-    let RMplaceholders
     let updateRMString = 'UPDATE RAW_MATERIALS SET '
     var keys = Object.keys(rawMaterialsList[0])
     keys.forEach((key) => {
         if (key != 'rm_id') {
-            updateRMString += key + " = ?, "
+            if(key != 'notes') {
+                updateRMString += key + " = ?, "
+            } else {
+                updateRMString += key + " = ? "
+            }
         }
     })
 
     updateRMString += `WHERE experiment_record_id = ${id} AND raw_material_id = ?`
-
     //console.log(updateRMString)
 
     //Creating parameter list for updating raw materials
-    let flatRMList = []
-    let temp = []
+    let RM_values = []
     rawMaterialsList.forEach((arr) => {
         //Convert each raw material into a list of object values only
         var values = Object.values(arr)
-        temp.push(values)
-
-        //Remove the rm_id from array 
-        let rm_id = values.shift()
-
-        //push each value into flat array
-        values.forEach((item) => {
-            flatRMList.push(item)
-        })
-
-        //add rm_id at the end of that array
-        flatRMList.push(rm_id)
+        values.push(values.shift())
+        RM_values.push(values)
     })
-
-    //console.log(temp)
-    //console.log(flatRMList)
-
-    //console.log("FOR UPDATE HP TABLE")
+    //console.log(RM_values)
 
     //Creating query String for updating HP table
     let updateHPString = 'UPDATE HYDROGEN_PEROXIDE_DATA SET '
     keys = Object.keys(HPList[0])
-    updateHPString += "hp_type = ?, "
+    updateHPString += "hp_type = ?"
     keys.forEach((key) => {
         if (key != 'hp_id') {
-            updateHPString += key + " = ?, "
+            updateHPString += ", " + key + " = ?"
         }
     })
 
-    updateHPString += `WHERE experiment_record_id = ${id} AND hp_id = ?`
-
+    updateHPString += ` WHERE experiment_record_id = ${id} AND hp_id = ?`
     //console.log(updateHPString)
 
     //Creating parameter list for update of HP table
-    let tempHPList = []
-    let flatHPList = []
+    let HP_values = []
     HPList.forEach((arr) => {
-        
         var values = Object.values(arr) //Convert array into object values only
-        tempHPList.push(values)
         let hp_id = values.shift() //Remove the id from values list
         values.unshift(1) //Add the type as the first element of the values
-
-        //Add each item to the flat array
-        values.forEach((item) => {
-            flatHPList.push(item)
-        })
-        //Add the id as the last elemt of the array
-        flatHPList.push(hp_id)
+        values.push(hp_id) //Re insert id as the last element of the array
+        HP_values.push(values)
     })
-
-    //console.log("After adding HP list temp: ")
-    //console.log(tempHPList)
-    //console.log("flat HP List")
-    //console.log(flatHPList)
 
     HPStabList.forEach((arr) => {
         var values = Object.values(arr) //Convert array into object values only
-        tempHPList.push(values)
         let hp_id = values.shift() //Remove the id from values list
         values.unshift(2) //Add the type as the first element of the values
-
-        //Add each item to the flat array
-        values.forEach((item) => {
-            flatHPList.push(item)
-        })
-        //Add the id as the last elemt of the array
-        flatHPList.push(hp_id)
+        values.push(hp_id) //Re insert id as the last element of the array
+        HP_values.push(values)
     })
 
-    //console.log("After adding stability HP list temp: ")
-    //console.log(tempHPList)
-    //console.log("flat HP List")
-    //console.log(flatHPList)
+    //console.log(HP_values)
 
 
     //Executing db calls
-    let message
+    let message = []
     let db = openDB()
-    db.serialize(() => {
-        db.run(updateRecordString, data, function (err) {
-            if (err) {
+    db.run(updateRecordString, record_values, function (err) {
+        if (err) {
+            console.log(err.message);
+            res.status(500).send("Could not update record in Experiment records table")
+        } else {
+            console.log(`Updated ${this.changes} record(s) successfully in experiment records`)
+            //console.log(this)
+            message += `Updated ${this.changes} record(s) successfully in experiment records`
+        }
+    })
+
+    RM_values.forEach((row) => {
+        db.run(updateRMString, row, function (err) {
+            if(err) {
                 console.log(err.message);
-                res.status(500).send("Could not update record in Experiment records table")
+                res.status(500).send("Could not update record in Raw Materials table")
             } else {
-                console.log(`Updated record successfully in experiment records`)
-                console.log(this)
-                message = `Updated record successfully in experiment records ${this}`
-                //currRecID = this.lastID
-                //console.log("CURRENT ID IS:" + currRecID)
+                console.log(`Successfully updated ${this.changes} record(s) from Raw Materials Table`)
+                //console.log(this)
+                message += `\nSuccessfully updated ${this.changes} record(s) from Raw Materials Table`
             }
-            /* db.serialize(() => {
+        })
+    })
+
+    HP_values.forEach((row) => {
+        db.run(updateHPString, row, function (err) {
+            if(err) {
+                console.log(err.message)
+                res.status(500).send("Could not update record in HYdrogen Peroxide table")
+            } else {
+                console.log(`Successfully updated ${this.changes} record(s) from HP Table`)
+                message += `\nSuccessfully updated ${this.changes} record(s) from HP Table`
+            }
+        })
+    })
+    /* function updateExperimentRecords() {
+        message = []
+        return new Promise((resolve, reject) => {
+            db.run(updateRecordString, record_values, function (err) {
+                if (err) {
+                    console.log(err.message);
+                    res.status(500).send("Could not update record in Experiment records table")
+                } else {
+                    console.log(`Updated ${this.changes} record(s) successfully in experiment records`)
+                    //console.log(this)
+                    message += `Updated ${this.changes} record(s) successfully in experiment records`
+                }
+            })
+            resolve(message)
+        })
+    }
+
+    function updateRawMaterials() {
+        message = []
+        return new Promise ((resolve, reject) => {
+            RM_values.forEach((row) => {
+                db.run(updateRMString, row, function (err) {
+                    if(err) {
+                        console.log(err.message);
+                        res.status(500).send("Could not update record in Raw Materials table")
+                    } else {
+                        console.log(`Successfully updated ${this.changes} record(s) from Raw Materials Table`)
+                        //console.log(this)
+                        message += `\nSuccessfully updated ${this.changes} record(s) from Raw Materials Table`
+                    }
+                })
+            })
+            resolve(message)
+        })
+    }
+
+    function updateHP() {
+        message = []
+        return new Promise((resolve, reject) => {
+            HP_values.forEach((row) => {
+                db.run(updateHPString, row, function (err) {
+                    if(err) {
+                        console.log(err.message)
+                        res.status(500).send("Could not update record in HYdrogen Peroxide table")
+                    } else {
+                        console.log(`Successfully updated ${this.changes} record(s) from HP Table`)
+                        message += `\nSuccessfully updated ${this.changes} record(s) from HP Table`
+                    }
+                })
+            })
+            resolve(message)
+        })
+    }
+    
+    (async function () {
+        let returnMessage = await updateRecords()
+        returnMessage += await updateRawMaterials()
+        returnMessage += await updateHP()
+        
+    }) */
+    res.send({
+        returnMessage: "Finished updating records" + message
+    })
+    closeDB(db)
+})
+app.listen(3000)
+
+function openDB() {
+    // open the database
+    const db = new sqlite3.Database('./ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
+        if (err) {
+            console.error(err.message)
+        }
+        console.log('Connected to the virox database.')
+    })
+
+    return db
+}
+
+function closeDB(db) {
+    db.close((err) => {
+        if (err) {
+            console.error(err.message);
+        }
+        console.log('Close the database connection.')
+    })
+}
+
+ /* db.serialize(() => {
                 //Creating values array to be inserted into raw materials table
                 rawMaterialsList.forEach((arr) => {
                     //console.log(arr)
@@ -527,30 +602,3 @@ router.post('/updateRecord', (req, res) => {
                     })
                 })
             }) */
-            res.send(message)
-            closeDB(db)
-        })
-    })
-})
-app.listen(3000)
-
-function openDB() {
-    // open the database
-    const db = new sqlite3.Database('./ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
-        if (err) {
-            console.error(err.message)
-        }
-        console.log('Connected to the virox database.')
-    })
-
-    return db
-}
-
-function closeDB(db) {
-    db.close((err) => {
-        if (err) {
-            console.error(err.message);
-        }
-        console.log('Close the database connection.')
-    })
-}
