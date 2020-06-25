@@ -105,9 +105,9 @@ Content-Type: application/json
     
 }
 
-### Updating a record
+### Updating experiment record
 
-POST http://localhost:3000/updateRecord HTTP/1.1
+POST http://localhost:3000/updateExperimentRecord HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -148,6 +148,114 @@ Content-Type: application/json
                 "notes": "this is another update"
             }
         ],
+        "hydro_per_list": [{
+                "hp_id": 12,
+                "experiment_name": "Trial 1",
+                "N": 0.1000,
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "~ 0.8%",
+                "date": "2020-12-5",
+                "initials": "D.C"
+            },
+            {
+                "hp_id": 13,
+                "experiment_name": "Trial 2",
+                "N": "",
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "new range",
+                "date": "2020-12-5",
+                "initials": ""
+            },
+            {
+                "hp_id": 14,
+                "experiment_name": "Average (Updated)",
+                "N": "",
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "",
+                "date": "",
+                "initials": "D.C"
+            }
+        ],
+        "hydro_per_stab_list": [{
+                "hp_id": 15,
+                "experiment_name": "Trial 1",
+                "N": 0.1000,
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "~ 0.75%",
+                "date": "2020-12-5",
+                "initials": "J.K"
+            },
+            {
+                "hp_id": 16,
+                "experiment_name": "Trial 2",
+                "N": "",
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "",
+                "date": "2020-12-5",
+                "initials": "D.C"
+            }
+        ]
+    }
+    
+}
+
+### Updating Raw materials 
+
+POST http://localhost:3000/updateRawMaterial HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "record": {
+        "record_id": 41,
+        "raw_materials_list": [{
+                "rm_id": 24,
+                "raw_material_name": "chemical L63",
+                "percentage_w": 11.11,
+                "raw_material_lot": " ",
+                "AR": 44.44,
+                "AD": 44.48,
+                "time_added": "2020-12-5",
+                "notes": "this is an update"
+            },
+            {
+                "rm_id": 25,
+                "raw_material_name": "H2O2 50% EPA",
+                "percentage_w": 21.11,
+                "raw_material_lot": " ",
+                "AR": 55.44,
+                "AD": 44.48,
+                "time_added": "2020-12-5",
+                "notes": "this is another update"
+            }
+        ]
+    }
+}
+
+### Updating experiment record
+
+POST http://localhost:3000/updateHP HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "record": {
+        "record_id": 41,
         "hydro_per_list": [{
                 "hp_id": 12,
                 "experiment_name": "Trial 1",

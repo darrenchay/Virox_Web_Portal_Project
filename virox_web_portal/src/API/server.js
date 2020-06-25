@@ -295,9 +295,9 @@ router.post('/addRecord', (req, res) => {
 })
 
 //Update a record 
-router.post('/updateRecord', (req, res) => {
+router.post('/updateExperimentRecord', (req, res) => {
     let id = req.body.record.record_id
-    
+
     let expRecord = {
         LOT_NO: req.body.record.LOT_NO,
         project_title: req.body.record.project_title,
@@ -314,24 +314,38 @@ router.post('/updateRecord', (req, res) => {
         total_AD: req.body.record.total_AD,
     }
 
-    //let expRecord = req.body.record
-    let rawMaterialsList = req.body.record.raw_materials_list
-    let HPList = req.body.record.hydro_per_list
-    let HPStabList = req.body.record.hydro_per_stab_list
-
     //Query string for inserting to experiment records
     let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET LOT_NO = ?, project_title = ?, formulation_date = ?, preparation_date = ?, prepared_by = ?, quantity = ?, notes = ?, preparation_reason = ?, observations = ?, date_created = ?, total_percentage_w = ?, total_AR = ?, total_AD = ? WHERE record_id = ${id};`
 
-    let record_values = Object.values(expRecord) 
+    let record_values = Object.values(expRecord)
     //console.log(record_values)
     //console.log(updateRecordString)
+
+    //Executing db call
+    let db = openDB()
+    db.run(updateRecordString, record_values, function (err) {
+        if (err) {
+            console.log(err.message);
+            res.status(500).send("Could not update record in Experiment records table")
+        } else {
+            console.log(`Updated ${this.changes} record(s) successfully in experiment records`)
+            res.send(`Updated ${this.changes} record(s) successfully in experiment records`)
+        }
+    })
+    closeDB(db)
+})
+
+//Update Raw Material Table
+router.post('/updateRawMaterial', (req, res) => {
+    let id = req.body.record.record_id
+    let rawMaterialsList = req.body.record.raw_materials_list
 
     //Creating query string for inserting into RM table
     let updateRMString = 'UPDATE RAW_MATERIALS SET '
     var keys = Object.keys(rawMaterialsList[0])
     keys.forEach((key) => {
         if (key != 'rm_id') {
-            if(key != 'notes') {
+            if (key != 'notes') {
                 updateRMString += key + " = ?, "
             } else {
                 updateRMString += key + " = ? "
@@ -351,6 +365,36 @@ router.post('/updateRecord', (req, res) => {
         RM_values.push(values)
     })
     //console.log(RM_values)
+
+    //Executing db call
+    let message = []
+    let db = openDB()
+    RM_values.forEach((row) => {
+        db.run(updateRMString, row, function (err) {
+            if (err) {
+                console.log(err.message);
+                res.status(500).send("Could not update record in Raw Materials table")
+            } else {
+                console.log(`Successfully updated ${this.changes} record(s) from Raw Materials Table`)
+                //console.log(this)
+                message.push(`\nSuccessfully updated ${this.changes} record(s) from Raw Materials Table`)
+            }
+        })
+    })
+    res.send({
+        returnMessage: "Finished updating records" + message
+    })
+
+
+    closeDB(db)
+
+})
+
+//Update Hydro Perox Table 
+router.post('/updateHP', (req, res) => {
+    let id = req.body.record.record_id
+    let HPList = req.body.record.hydro_per_list
+    let HPStabList = req.body.record.hydro_per_stab_list
 
     //Creating query String for updating HP table
     let updateHPString = 'UPDATE HYDROGEN_PEROXIDE_DATA SET '
@@ -383,39 +427,11 @@ router.post('/updateRecord', (req, res) => {
         HP_values.push(values)
     })
 
-    //console.log(HP_values)
-
-
-    //Executing db calls
     let message = []
     let db = openDB()
-    db.run(updateRecordString, record_values, function (err) {
-        if (err) {
-            console.log(err.message);
-            res.status(500).send("Could not update record in Experiment records table")
-        } else {
-            console.log(`Updated ${this.changes} record(s) successfully in experiment records`)
-            //console.log(this)
-            message += `Updated ${this.changes} record(s) successfully in experiment records`
-        }
-    })
-
-    RM_values.forEach((row) => {
-        db.run(updateRMString, row, function (err) {
-            if(err) {
-                console.log(err.message);
-                res.status(500).send("Could not update record in Raw Materials table")
-            } else {
-                console.log(`Successfully updated ${this.changes} record(s) from Raw Materials Table`)
-                //console.log(this)
-                message += `\nSuccessfully updated ${this.changes} record(s) from Raw Materials Table`
-            }
-        })
-    })
-
     HP_values.forEach((row) => {
         db.run(updateHPString, row, function (err) {
-            if(err) {
+            if (err) {
                 console.log(err.message)
                 res.status(500).send("Could not update record in HYdrogen Peroxide table")
             } else {
@@ -424,71 +440,15 @@ router.post('/updateRecord', (req, res) => {
             }
         })
     })
-    /* function updateExperimentRecords() {
-        message = []
-        return new Promise((resolve, reject) => {
-            db.run(updateRecordString, record_values, function (err) {
-                if (err) {
-                    console.log(err.message);
-                    res.status(500).send("Could not update record in Experiment records table")
-                } else {
-                    console.log(`Updated ${this.changes} record(s) successfully in experiment records`)
-                    //console.log(this)
-                    message += `Updated ${this.changes} record(s) successfully in experiment records`
-                }
-            })
-            resolve(message)
-        })
-    }
 
-    function updateRawMaterials() {
-        message = []
-        return new Promise ((resolve, reject) => {
-            RM_values.forEach((row) => {
-                db.run(updateRMString, row, function (err) {
-                    if(err) {
-                        console.log(err.message);
-                        res.status(500).send("Could not update record in Raw Materials table")
-                    } else {
-                        console.log(`Successfully updated ${this.changes} record(s) from Raw Materials Table`)
-                        //console.log(this)
-                        message += `\nSuccessfully updated ${this.changes} record(s) from Raw Materials Table`
-                    }
-                })
-            })
-            resolve(message)
-        })
-    }
-
-    function updateHP() {
-        message = []
-        return new Promise((resolve, reject) => {
-            HP_values.forEach((row) => {
-                db.run(updateHPString, row, function (err) {
-                    if(err) {
-                        console.log(err.message)
-                        res.status(500).send("Could not update record in HYdrogen Peroxide table")
-                    } else {
-                        console.log(`Successfully updated ${this.changes} record(s) from HP Table`)
-                        message += `\nSuccessfully updated ${this.changes} record(s) from HP Table`
-                    }
-                })
-            })
-            resolve(message)
-        })
-    }
-    
-    (async function () {
-        let returnMessage = await updateRecords()
-        returnMessage += await updateRawMaterials()
-        returnMessage += await updateHP()
-        
-    }) */
     res.send({
-        returnMessage: "Finished updating records" + message
+        returnMessage: "Finished updating records " + message
     })
     closeDB(db)
 })
+
+
+
 app.listen(3000)
 
 function openDB() {
@@ -512,93 +472,93 @@ function closeDB(db) {
     })
 }
 
- /* db.serialize(() => {
-                //Creating values array to be inserted into raw materials table
-                rawMaterialsList.forEach((arr) => {
-                    //console.log(arr)
-                    var values = Object.values(arr)
-                    values.unshift(currRecID)
-                    temp.push(values)
+/* db.serialize(() => {
+               //Creating values array to be inserted into raw materials table
+               rawMaterialsList.forEach((arr) => {
+                   //console.log(arr)
+                   var values = Object.values(arr)
+                   values.unshift(currRecID)
+                   temp.push(values)
 
-                    values.forEach((item) => {
-                        flatRMList.push(item)
-                    })
-                })
+                   values.forEach((item) => {
+                       flatRMList.push(item)
+                   })
+               })
 
-                //console.log("temp: ")
-                //console.log(temp)
-                //console.log("flat")
-                console.log(flatRMList)
+               //console.log("temp: ")
+               //console.log(temp)
+               //console.log("flat")
+               console.log(flatRMList)
 
-                RMplaceholders = temp.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+               RMplaceholders = temp.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
 
-                insertRMString += RMplaceholders
-                console.log(insertRMString)
-                console.log("Finished adding to record at: " + currRecID)
+               insertRMString += RMplaceholders
+               console.log(insertRMString)
+               console.log("Finished adding to record at: " + currRecID)
 
-                //console.log(insertRMString)
-                db.run(insertRMString, flatRMList, function (err) {
-                    if (err) {
-                        //console.log(err.message);
-                        res.status(500).send("Could not add record in RM table")
-                    } else {
-                        console.log(`Added record successfully in RM table at ID: ${this.lastID}. ${this.changes} rows affected`)
-                        message += '\n' + `Added record successfully in RM table with last ID: ${this.lastID}. ${this.changes} rows affected`
-                        //res.send(`Added record in RM successfully at ID: ${this.lastID}. ${this.changes} rows affected`)
-                        //currRecID = this.lastID
-                        //console.log("CURRENT ID IS:" + currRecID)
-                    }
-                    db.serialize(() => {
-                        //Creating values array to be inserted into raw materials table
-                        let tempHPList = []
-                        let flatHPList = []
-                        HPList.forEach((arr) => {
-                            //console.log(arr)
-                            var values = Object.values(arr)
-                            values.unshift(1)
-                            values.unshift(currRecID)
-                            tempHPList.push(values)
+               //console.log(insertRMString)
+               db.run(insertRMString, flatRMList, function (err) {
+                   if (err) {
+                       //console.log(err.message);
+                       res.status(500).send("Could not add record in RM table")
+                   } else {
+                       console.log(`Added record successfully in RM table at ID: ${this.lastID}. ${this.changes} rows affected`)
+                       message += '\n' + `Added record successfully in RM table with last ID: ${this.lastID}. ${this.changes} rows affected`
+                       //res.send(`Added record in RM successfully at ID: ${this.lastID}. ${this.changes} rows affected`)
+                       //currRecID = this.lastID
+                       //console.log("CURRENT ID IS:" + currRecID)
+                   }
+                   db.serialize(() => {
+                       //Creating values array to be inserted into raw materials table
+                       let tempHPList = []
+                       let flatHPList = []
+                       HPList.forEach((arr) => {
+                           //console.log(arr)
+                           var values = Object.values(arr)
+                           values.unshift(1)
+                           values.unshift(currRecID)
+                           tempHPList.push(values)
 
-                            values.forEach((item) => {
-                                flatHPList.push(item)
-                            })
-                        })
-                        console.log("After adding HP list temp: ")
-                        console.log(tempHPList)
-                        console.log("flat HP List")
-                        console.log(flatHPList)
+                           values.forEach((item) => {
+                               flatHPList.push(item)
+                           })
+                       })
+                       console.log("After adding HP list temp: ")
+                       console.log(tempHPList)
+                       console.log("flat HP List")
+                       console.log(flatHPList)
 
-                        HPStabList.forEach((arr) => {
-                            //console.log(arr)
-                            var values = Object.values(arr)
-                            values.unshift(2)
-                            values.unshift(currRecID)
-                            tempHPList.push(values)
+                       HPStabList.forEach((arr) => {
+                           //console.log(arr)
+                           var values = Object.values(arr)
+                           values.unshift(2)
+                           values.unshift(currRecID)
+                           tempHPList.push(values)
 
-                            values.forEach((item) => {
-                                flatHPList.push(item)
-                            })
-                        })
+                           values.forEach((item) => {
+                               flatHPList.push(item)
+                           })
+                       })
 
-                        console.log("After adding stability HP list temp: ")
-                        console.log(tempHPList)
-                        console.log("flat HP List")
-                        console.log(flatHPList)
+                       console.log("After adding stability HP list temp: ")
+                       console.log(tempHPList)
+                       console.log("flat HP List")
+                       console.log(flatHPList)
 
-                        let HPplaceholders = tempHPList.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+                       let HPplaceholders = tempHPList.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
 
-                        insertHPString += HPplaceholders
-                        console.log(insertHPString)
-                        db.run(insertHPString, flatHPList, function (err) {
-                            if (err) {
-                                //console.log(err.message);
-                                res.status(500).send("Could not add record in HP table")
-                            } else {
-                                console.log(`Added record successfully in HP table at ID: ${this.lastID}. ${this.changes} rows affected`)
-                                res.send(message + '\n' + `Added record in HP table successfully with last ID: ${this.lastID}. ${this.changes} rows affected`)
-                            }
-                            closeDB(db)
-                        })
-                    })
-                })
-            }) */
+                       insertHPString += HPplaceholders
+                       console.log(insertHPString)
+                       db.run(insertHPString, flatHPList, function (err) {
+                           if (err) {
+                               //console.log(err.message);
+                               res.status(500).send("Could not add record in HP table")
+                           } else {
+                               console.log(`Added record successfully in HP table at ID: ${this.lastID}. ${this.changes} rows affected`)
+                               res.send(message + '\n' + `Added record in HP table successfully with last ID: ${this.lastID}. ${this.changes} rows affected`)
+                           }
+                           closeDB(db)
+                       })
+                   })
+               })
+           }) */
