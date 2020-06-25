@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import firebase from 'firebase'
 import LoginPage from '../components/LoginPage'
-import Dashboard from '../components/Dashboard'
+import RecordDetails from '../components/RecordDetails'
 import RecordsLoggingPage from '../components/RecordsLoggingPage'
 
 Vue.use(Router)
@@ -19,9 +19,9 @@ const router = new Router({
             component: LoginPage
         },
         {
-            path: '/dashboard/?id=:recordID',
-            name: 'Dashboard',
-            component: Dashboard,
+            path: '/recordDetails',
+            name: 'recordDetails',
+            component: RecordDetails,
             meta: {
                 requiresAuth: true
             }

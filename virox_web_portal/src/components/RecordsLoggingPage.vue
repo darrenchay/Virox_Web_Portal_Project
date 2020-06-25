@@ -46,11 +46,11 @@
             },
             createNewRecord() {
                 this.$store.commit('setCurrentRecordID', -1)
-                this.$router.push({ name: 'Dashboard', params: { recordID: -1 }})
+                this.$router.push({ name: 'recordDetails' })
             },
             showRecord(record_id) {
                 this.$store.commit('setCurrentRecordID', record_id)
-                this.$router.push({ name: 'Dashboard', params: { recordID: record_id }})
+                this.$router.push({ name: 'recordDetails'})
             },
             sort:function(col) {
                 // if you click the same label twice

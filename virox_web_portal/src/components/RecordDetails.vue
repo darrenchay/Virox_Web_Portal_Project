@@ -514,18 +514,7 @@ export default {
     },
     getDate() {
       var today = new Date();
-      var curDate =
-        today.getDate() +
-        "/" +
-        (today.getMonth() + 1) +
-        "/" +
-        today.getFullYear() +
-        " " +
-        today.getHours() +
-        ":" +
-        today.getMinutes() +
-        ":" +
-        today.getSeconds();
+      var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
       return curDate;
     },
     newDate(date) {
@@ -636,22 +625,24 @@ export default {
       let expRecValues = Object.keys(this.record.experimentRecord);
       expRecValues.forEach(key => {
         if (key.includes("date")) {
-          console.log(key)
-          this.record.experimentRecord[key] = this.newDate(this.record.experimentRecord[key]);
+          console.log(key);
+          this.record.experimentRecord[key] = this.newDate(
+            this.record.experimentRecord[key]
+          );
         }
       });
 
       this.record.raw_materials_list.forEach(element => {
-          if(element.time_added != null) {
-              element.time_added = this.newDate(element.time_added)
-              console.log(element.time_added)
-          }
+        if (element.time_added != null) {
+          element.time_added = this.newDate(element.time_added);
+          console.log(element.time_added);
+        }
       });
-      this.record.hydro_per_list.forEach(element => { 
-          if(element.date !== null) {
-              element.date = this.newDate(element.date)
-              console.log(element.date)
-          }
+      this.record.hydro_per_list.forEach(element => {
+        if (element.date !== null) {
+          element.date = this.newDate(element.date);
+          console.log(element.date);
+        }
       });
       /* this.record.hydro_per_stab_list.forEach(element => {
           if(element.date != null) {
@@ -660,7 +651,7 @@ export default {
       }); */
     }
   },
-  mounted() {
+  beforeCreate() {
     axios
       .get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID)
       .then(response => {
@@ -670,7 +661,7 @@ export default {
         this.record.experimentRecord = response.data.record.experimentRecord[0];
         this.convertToDates();
         console.log(this.record);
-      })
+      });
   }
 };
 </script>

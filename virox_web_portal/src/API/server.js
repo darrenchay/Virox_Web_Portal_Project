@@ -37,7 +37,7 @@ router.get('/getRecords', (req, res) => {
 //Get a single complete record data based off record id
 router.get('/getRecord', (req, res) => {
     const id = req.query.id
-    console.log(id)
+    //console.log(id)
 
     const db = openDB()
 
