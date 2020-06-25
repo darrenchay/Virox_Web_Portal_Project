@@ -234,7 +234,7 @@
                 <strong>pH</strong>
               </td>
               <td>
-                <strong>{{record.hydro_per_list[0].PH}}</strong>
+                <strong>{{HP_PH}}</strong>
               </td>
               <td></td>
               <td></td>
@@ -337,7 +337,7 @@
                 <strong>pH</strong>
               </td>
               <td>
-                <strong>{{record.hydro_per_stab_list[0].PH}}</strong>
+                <strong>{{HPStab_PH}}</strong>
               </td>
               <td></td>
               <td></td>
@@ -435,7 +435,27 @@ export default {
       show_save: false,
       isDisabled: true,
       show_cancel: false,
-      record: {},
+      record: {
+        experimentRecord: {
+          LOT_NO: "",
+          project_title: "",
+          formulation_date: "",
+          preparation_date: "",
+          prepared_by: "",
+          quantity: "",
+          date_created: "",
+          total_percentage_w: 0,
+          total_AR: 0,
+          total_AD: 0,
+          notes: "",
+          preparation_reason: "",
+        },
+        raw_materials_list: [],
+        hydro_per_list: [],
+        hydro_per_stab_list: [],
+      },
+      HP_PH: 0,
+      HPStab_PH: 0,
       columns_rm: [
         "raw_material_name",
         "percentage_w",
@@ -643,24 +663,32 @@ export default {
           element.date = this.newDate(element.date);
           console.log(element.date);
         }
+        if(element.PH != null) {
+          this.HP_PH = element.PH
+        }
       });
-      /* this.record.hydro_per_stab_list.forEach(element => {
-          if(element.date != null) {
+      this.record.hydro_per_stab_list.forEach(element => {
+          if(element.date !== null) {
               element.date = this.newDate(element.date)
           }
-      }); */
+          if(element.PH != null) {
+            this.HPStab_PH = element.PH
+          }
+      });
     }
   },
   beforeCreate() {
     axios
       .get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID)
       .then(response => {
-        console.log(this.$store.state.currentRecordID);
-        console.log(response.data.message);
-        this.record = response.data.record;
-        this.record.experimentRecord = response.data.record.experimentRecord[0];
-        this.convertToDates();
-        console.log(this.record);
+        console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+        if(!response.data.isNew) {
+          this.record = response.data.record;
+          console.log(this.record)
+          this.record.experimentRecord = response.data.record.experimentRecord[0];
+          this.convertToDates();
+          console.log(this.record);
+        }
       });
   }
 };

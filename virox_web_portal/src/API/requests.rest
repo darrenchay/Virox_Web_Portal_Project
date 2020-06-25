@@ -2,7 +2,7 @@
 GET http://localhost:3000/getRecords HTTP/1.1
 
 ### Get single record with id 1
-GET http://localhost:3000/getRecord?id=41 HTTP/1.1
+GET http://localhost:3000/getRecord?id=-1 HTTP/1.1
 
 ### Adding a record
 

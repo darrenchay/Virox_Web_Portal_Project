@@ -39,12 +39,17 @@ router.get('/getRecord', (req, res) => {
     const id = req.query.id
     //console.log(id)
 
+
     const db = openDB()
+
 
     let sql = 'SELECT * FROM EXPERIMENT_RECORDS WHERE record_id = ?'
     let data = []
     let record = {
-        experimentRecord: {},
+        experimentRecord: {
+            date_created: getCurrDate(),
+            date_updated: getCurrDate()
+        },
         raw_materials_list: [],
         hydro_per_list: [],
         hydro_per_stab_list: []
@@ -128,15 +133,23 @@ router.get('/getRecord', (req, res) => {
     }
 
     (async function () {
-        record.experimentRecord = await getExprimentTableRecord()
-        record.raw_materials_list = await getRawMaterials()
-        record.hydro_per_list = await getHPList()
-        record.hydro_per_stab_list = await getHPStabList()
-        res.send({
-            "message": "Successfully retrieved " + record.experimentRecord.length + " row",
-            record: record
-        })
-        //console.log(record)
+        if (id == -1) {
+            res.send({
+                message: "Creating a new record on " + record.experimentRecord.date_created, 
+                isNew: true,
+                record: record
+            })
+        } else {
+            record.experimentRecord = await getExprimentTableRecord()
+            record.raw_materials_list = await getRawMaterials()
+            record.hydro_per_list = await getHPList()
+            record.hydro_per_stab_list = await getHPStabList()
+            res.send({
+                message: "Successfully retrieved " + record.experimentRecord.length + " row",
+                isNew: false,
+                record: record
+            })
+        }
     })()
 
     closeDB(db)
@@ -468,4 +481,10 @@ function closeDB(db) {
         }
         console.log('Closed the database connection.')
     })
+}
+
+function getCurrDate() {
+    var today = new Date();
+    var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    return curDate;
 }
