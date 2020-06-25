@@ -135,7 +135,7 @@ router.get('/getRecord', (req, res) => {
     (async function () {
         if (id == -1) {
             res.send({
-                message: "Creating a new record on " + record.experimentRecord.date_created, 
+                message: "Creating a new record on " + record.experimentRecord.date_created,
                 isNew: true,
                 record: record
             })
@@ -159,22 +159,21 @@ router.get('/getRecord', (req, res) => {
 router.post('/addRecord', (req, res) => {
     let expRecord = {
         //record_id: req.body.record.record_id,
-        LOT_NO: req.body.record.LOT_NO,
-        project_title: req.body.record.project_title,
-        formulation_date: req.body.record.formulation_date,
-        preparation_date: req.body.record.preparation_date,
-        prepared_by: req.body.record.prepared_by,
-        quantity: req.body.record.quantity,
-        notes: req.body.record.notes,
-        preparation_reason: req.body.record.preparation_reason,
-        observations: req.body.record.observations,
-        date_created: req.body.record.date_created,
-        total_percentage_w: req.body.record.total_percentage_w,
-        total_AR: req.body.record.total_AR,
-        total_AD: req.body.record.total_AD,
+        LOT_NO: req.body.record.experimentRecord.LOT_NO,
+        project_title: req.body.record.experimentRecord.project_title,
+        formulation_date: req.body.record.experimentRecord.formulation_date,
+        preparation_date: req.body.record.experimentRecord.preparation_date,
+        prepared_by: req.body.record.experimentRecord.prepared_by,
+        quantity: req.body.record.experimentRecord.quantity,
+        notes: req.body.record.experimentRecord.notes,
+        preparation_reason: req.body.record.experimentRecord.preparation_reason,
+        observations: req.body.record.experimentRecord.observations,
+        date_created: req.body.record.experimentRecord.date_created,
+        total_percentage_w: req.body.record.experimentRecord.total_percentage_w,
+        total_AR: req.body.record.experimentRecord.total_AR,
+        total_AD: req.body.record.experimentRecord.total_AD,
     }
 
-    //let expRecord = req.body.record
     let rawMaterialsList = req.body.record.raw_materials_list
     let HPList = req.body.record.hydro_per_list
     let HPStabList = req.body.record.hydro_per_stab_list
@@ -192,12 +191,26 @@ router.post('/addRecord', (req, res) => {
 
     //Query string for inserting into RM table
     let RMplaceholders
-    let insertRMString = 'INSERT INTO RAW_MATERIALS ( experiment_record_id, raw_material_name, percentage_w, raw_material_lot, AR, AD, time_added, notes) VALUES '
+    //let insertRMString = 'INSERT INTO RAW_MATERIALS ( experiment_record_id, raw_material_name, percentage_w, raw_material_lot, AR, AD, time_added, notes) VALUES '
+    let insertRMString = 'INSERT INTO RAW_MATERIALS ( experiment_record_id'
+    var keys = Object.keys(rawMaterialsList[0])
+    keys.forEach((key) => {
+        insertRMString += ", " + key
+    })
+    insertRMString += ") VALUES "
+    console.log(insertRMString)
     let flatRMList = []
     let temp = []
 
     //Query String for inserting into HP table
-    let insertHPString = 'INSERT INTO HYDROGEN_PEROXIDE_DATA ( experiment_record_id, hp_type, experiment_name, N, M, vol_change, H2O2, PH, accepted_range, date, initials) VALUES '
+    //let insertHPString = 'INSERT INTO HYDROGEN_PEROXIDE_DATA ( experiment_record_id, hp_type, experiment_name, N, M, vol_change, H2O2, PH, accepted_range, date, initials) VALUES '
+    let insertHPString = 'INSERT INTO HYDROGEN_PEROXIDE_DATA ( experiment_record_id, hp_type'
+    keys = Object.keys(HPList[0])
+    keys.forEach((key) => {
+        insertHPString += ", " + key
+    })
+    insertHPString += ") VALUES "
+    console.log(insertHPString)
 
     //Executing db calls
     let currRecID
@@ -309,9 +322,10 @@ router.post('/addRecord', (req, res) => {
 
 //Update a record 
 router.post('/updateExperimentRecord', (req, res) => {
-    let id = req.body.record.record_id
+    let id = req.body.record.experimentRecord.record_id
+    let expRecord = req.body.record.experimentRecord
 
-    let expRecord = {
+    /* let expRecord = {
         LOT_NO: req.body.record.LOT_NO,
         project_title: req.body.record.project_title,
         formulation_date: req.body.record.formulation_date,
@@ -325,14 +339,25 @@ router.post('/updateExperimentRecord', (req, res) => {
         total_percentage_w: req.body.record.total_percentage_w,
         total_AR: req.body.record.total_AR,
         total_AD: req.body.record.total_AD,
-    }
+    } */
 
     //Query string for inserting to experiment records
-    let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET LOT_NO = ?, project_title = ?, formulation_date = ?, preparation_date = ?, prepared_by = ?, quantity = ?, notes = ?, preparation_reason = ?, observations = ?, date_created = ?, total_percentage_w = ?, total_AR = ?, total_AD = ? WHERE record_id = ${id};`
-
+    //let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET LOT_NO = ?, project_title = ?, formulation_date = ?, preparation_date = ?, prepared_by = ?, quantity = ?, notes = ?, preparation_reason = ?, observations = ?, date_created = ?, total_percentage_w = ?, total_AR = ?, total_AD = ? WHERE record_id = ${id};`
+    let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET `
+    var keys = Object.keys(expRecord)
+    keys.forEach((key) => {
+        if (key != 'record_id') {
+            if(key == 'total_AD') {
+                updateRecordString += key + " = ? "
+            } else {
+                updateRecordString += key + " = ?, "
+            }
+        }
+    })
+    updateRecordString += ` WHERE record_id = ${id};`
+    console.log(updateRecordString)
     let record_values = Object.values(expRecord)
     //console.log(record_values)
-    //console.log(updateRecordString)
 
     //Executing db call
     let db = openDB()
@@ -350,7 +375,11 @@ router.post('/updateExperimentRecord', (req, res) => {
 
 //Update Raw Material Table
 router.post('/updateRawMaterial', (req, res) => {
-    let id = req.body.record.record_id
+    let id = req.body.record.experimentRecord.record_id
+    console.log(id)
+    if(req.body.record.raw_materials_list.length == 0) {
+        return
+    }
     let rawMaterialsList = req.body.record.raw_materials_list
 
     //Creating query string for inserting into RM table
@@ -358,7 +387,7 @@ router.post('/updateRawMaterial', (req, res) => {
     var keys = Object.keys(rawMaterialsList[0])
     keys.forEach((key) => {
         if (key != 'rm_id') {
-            if (key != 'notes') {
+            if (key != 'raw_material_name') {
                 updateRMString += key + " = ?, "
             } else {
                 updateRMString += key + " = ? "
@@ -367,7 +396,7 @@ router.post('/updateRawMaterial', (req, res) => {
     })
 
     updateRMString += `WHERE experiment_record_id = ${id} AND raw_material_id = ?`
-    //console.log(updateRMString)
+    console.log(updateRMString)
 
     //Creating parameter list for updating raw materials
     let RM_values = []
@@ -405,9 +434,13 @@ router.post('/updateRawMaterial', (req, res) => {
 
 //Update Hydro Perox Table 
 router.post('/updateHP', (req, res) => {
-    let id = req.body.record.record_id
+    let id = req.body.record.experimentRecord.record_id
     let HPList = req.body.record.hydro_per_list
     let HPStabList = req.body.record.hydro_per_stab_list
+
+    if(req.body.record.hydro_per_list.length == 0 && req.body.record.hydro_per_stab_list.length == 0) {
+        return
+    }
 
     //Creating query String for updating HP table
     let updateHPString = 'UPDATE HYDROGEN_PEROXIDE_DATA SET '

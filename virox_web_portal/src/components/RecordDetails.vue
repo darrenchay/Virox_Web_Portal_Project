@@ -123,13 +123,13 @@
               <td>
                 <input
                   type="text"
-                  v-model.trim="new_rm.raw_material"
+                  v-model.trim="new_rm.raw_material_name"
                   class="form-control"
                   id="inputRawMat"
                 />
               </td>
               <td>
-                <input type="text" v-model.trim="new_rm.w_w" class="form-control" id="inputw_w" />
+                <input type="text" v-model.trim="new_rm.percentage_w" class="form-control" id="inputw_w" />
               </td>
               <td>
                 <input
@@ -496,7 +496,7 @@ export default {
       ],
       new_rm: {
         rm_id: "",
-        raw_material: "",
+        raw_material_name: "",
         w_w: "",
         raw_material_lot: "",
         AR: "",
@@ -508,7 +508,7 @@ export default {
         saveRMbtn: false
       },
       newH2O2: {
-        experiment: "",
+        experiment_name: "",
         N: "",
         M: "",
         vol_change: "",
@@ -528,7 +528,46 @@ export default {
   methods: {
     submit() {
       console.log(this.record);
-      //alert(this.record.experimentRecord.LOT_NO + " " + this.record.experimentRecord.project_title + " " + this.record.experimentRecord.formulation_date + " " + this.record.experimentRecord.prepared_by)
+      if(this.$store.state.currentRecordID == -1) {
+        axios({
+          method: 'post',
+          url: baseURL + '/addRecord',
+          data: {
+            record: this.record
+          }
+        }).then((response) => {
+          console.log(response)
+        })
+      } else {
+        axios({
+          method: 'post',
+          url: baseURL + '/updateExperimentRecord',
+          data: {
+            record: this.record
+          }
+        }).then((response) => {
+          console.log(response)
+        })
+        axios({
+          method: 'post',
+          url: baseURL + '/updateRawMaterial',
+          data: {
+            record: this.record
+          }
+        }).then((response) => {
+          console.log(response)
+        })
+        axios({
+          method: 'post',
+          url: baseURL + '/updateHP',
+          data: {
+            record: this.record
+          }
+        }).then((response) => {
+          console.log(response)
+        })
+      }
+      
       this.show_edit = true;
       this.show_cancel = false;
     },
@@ -538,7 +577,11 @@ export default {
       return curDate;
     },
     newDate(date) {
-      return new Date(date).toISOString().substring(0, 10);
+      if(date != "") {
+        return new Date(date).toISOString().substring(0, 10);
+      } else {
+        return ""
+      }
     },
     addRawMat() {
       this.new_rm.show = true;
@@ -546,20 +589,20 @@ export default {
       this.new_rm.saveRMbtn = true;
     },
     saveRawMat() {
-      if (this.new_rm.raw_material.length > 0) {
+      if (this.new_rm.raw_material_name.length > 0) {
         this.record.raw_materials_list.push({
-          raw_material: this.new_rm.raw_material,
-          w_w: this.new_rm.w_w,
+          raw_material_name: this.new_rm.raw_material_name,
+          percentage_w: this.new_rm.percentage_w,
           raw_material_lot: this.new_rm.raw_material_lot,
           AR: this.new_rm.AR,
           AD: this.new_rm.AD,
           time_added: this.new_rm.time_added,
-          rm_notes: this.new_rm.rm_notes
+          notes: this.new_rm.rm_notes
         });
       }
       this.new_rm.rm_id = "";
-      this.new_rm.raw_material = "";
-      this.new_rm.w_w = "";
+      this.new_rm.raw_material_name = "";
+      this.new_rm.percentage_w = "";
       this.new_rm.raw_material_lot = "";
       this.new_rm.AR = "";
       this.new_rm.AD = "";
@@ -577,7 +620,7 @@ export default {
     saveH2O2Record() {
       if (this.newH2O2.experiment.length > 0) {
         this.record.hydro_per_list.push({
-          experiment: this.newH2O2.experiment,
+          experiment_name: this.newH2O2.experiment,
           N: this.newH2O2.N,
           M: this.newH2O2.M,
           vol_change: this.newH2O2.vol_change,
@@ -607,7 +650,7 @@ export default {
     saveH2O2StabRecord() {
       if (this.newH2O2.experiment.length > 0) {
         this.record.hydro_per_stab_list.push({
-          experiment: this.newH2O2.experiment,
+          experiment_name: this.newH2O2.experiment,
           N: this.newH2O2.N,
           M: this.newH2O2.M,
           vol_change: this.newH2O2.vol_change,
@@ -642,26 +685,17 @@ export default {
       this.isDisabled = true;
     },
     convertToDates() {
-      let expRecValues = Object.keys(this.record.experimentRecord);
-      expRecValues.forEach(key => {
-        if (key.includes("date")) {
-          console.log(key);
-          this.record.experimentRecord[key] = this.newDate(
-            this.record.experimentRecord[key]
-          );
-        }
-      });
+      this.record.experimentRecord.formulation_date = this.newDate(this.record.experimentRecord.formulation_date)
+      this.record.experimentRecord.preparation_date = this.newDate(this.record.experimentRecord.preparation_date)
 
       this.record.raw_materials_list.forEach(element => {
         if (element.time_added != null) {
           element.time_added = this.newDate(element.time_added);
-          console.log(element.time_added);
         }
       });
       this.record.hydro_per_list.forEach(element => {
         if (element.date !== null) {
           element.date = this.newDate(element.date);
-          console.log(element.date);
         }
         if(element.PH != null) {
           this.HP_PH = element.PH
@@ -684,10 +718,13 @@ export default {
         console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
         if(!response.data.isNew) {
           this.record = response.data.record;
-          console.log(this.record)
           this.record.experimentRecord = response.data.record.experimentRecord[0];
+          //console.log(this.record);
           this.convertToDates();
-          console.log(this.record);
+        } else {
+          //console.log(response.data.record.experimentRecord.date_created)
+          this.record.experimentRecord.date_created = response.data.record.experimentRecord.date_created
+          this.record.experimentRecord.date_updated = response.data.record.experimentRecord.date_updated
         }
       });
   }
