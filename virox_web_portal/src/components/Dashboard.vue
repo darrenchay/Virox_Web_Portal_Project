@@ -423,185 +423,254 @@
 </template>
 
 <script>
-const axios = require('axios')
-const baseURL = "http://localhost:3000"
+const axios = require("axios");
+const baseURL = "http://localhost:3000";
 export default {
-  name: 'ExperimentForm',
-  template: '#general-input-form',
-  props: {
+  name: "ExperimentForm",
+  template: "#general-input-form",
+  props: {},
+  data() {
+    return {
+      show_edit: true,
+      show_save: false,
+      isDisabled: true,
+      show_cancel: false,
+      record: {},
+      columns_rm: [
+        "raw_material_name",
+        "percentage_w",
+        "raw_material_lot",
+        "AR",
+        "AD",
+        "time_added",
+        "rm_notes"
+      ],
+      column_name_rm: [
+        "Raw Material",
+        "%w/w",
+        "Raw Material lot #",
+        "AR[gr]",
+        "AD[gr]",
+        "Time Added",
+        "Notes"
+      ],
+      columns_h202: [
+        "experiment_name",
+        "N",
+        "M",
+        "vol_change",
+        "H2O2",
+        "accepted_range",
+        "date",
+        "initials"
+      ],
+      columns_name_h202: [
+        "Hydrogen Peroxide",
+        "N",
+        "Ms [gr]",
+        "∆V (ml)",
+        "H2O2",
+        "Accepted Range",
+        "Date",
+        "Initials"
+      ],
+      new_rm: {
+        rm_id: "",
+        raw_material: "",
+        w_w: "",
+        raw_material_lot: "",
+        AR: "",
+        AD: "",
+        time_added: "",
+        rm_notes: "",
+        show: false,
+        addRMbtn: true,
+        saveRMbtn: false
+      },
+      newH2O2: {
+        experiment: "",
+        N: "",
+        M: "",
+        vol_change: "",
+        H2O2: "",
+        accepted_range: "",
+        date: "",
+        initials: "",
+        show: false,
+        addHPbtn: true,
+        saveHPbtn: false,
+        showHPStab: false,
+        addHPStabbtn: true,
+        saveHPStabbtn: false
+      }
+    };
   },
-  data(){
-      return {
-        show_edit: true,
-        show_save: false,
-        isDisabled: true,
-        show_cancel: false,
-        record: {},
-        columns_rm: ['raw_material_name', 'percentage_w', 'raw_material_lot', 'AR', 'AD', 'time_added', 'rm_notes'],
-        column_name_rm: ['Raw Material', '%w/w', 'Raw Material lot #', 'AR[gr]', 'AD[gr]', 'Time Added', 'Notes'],
-        columns_h202: ['experiment_name', 'N', 'M', 'vol_change', 'H2O2', 'accepted_range', 'date', 'initials'],
-        columns_name_h202: ['Hydrogen Peroxide', 'N', 'Ms [gr]', '∆V (ml)', 'H2O2', 'Accepted Range', 'Date', 'Initials'],
-        new_rm: {
-            rm_id: '',
-            raw_material: '',
-            w_w: '',
-            raw_material_lot: '',
-            AR: '',
-            AD: '',
-            time_added: '',
-            rm_notes: '',
-            show: false,
-            addRMbtn: true,
-            saveRMbtn: false,
-        },
-        newH2O2: {
-            experiment: '',
-            N: '',
-            M: '',
-            vol_change: '',
-            H2O2: '',
-            accepted_range: '',
-            date: '',
-            initials: '',
-            show: false,
-            addHPbtn: true,
-            saveHPbtn: false,
-            showHPStab: false,
-            addHPStabbtn: true,
-            saveHPStabbtn: false
+  methods: {
+    submit() {
+      console.log(this.record);
+      //alert(this.record.experimentRecord.LOT_NO + " " + this.record.experimentRecord.project_title + " " + this.record.experimentRecord.formulation_date + " " + this.record.experimentRecord.prepared_by)
+      this.show_edit = true;
+      this.show_cancel = false;
+    },
+    getDate() {
+      var today = new Date();
+      var curDate =
+        today.getDate() +
+        "/" +
+        (today.getMonth() + 1) +
+        "/" +
+        today.getFullYear() +
+        " " +
+        today.getHours() +
+        ":" +
+        today.getMinutes() +
+        ":" +
+        today.getSeconds();
+      return curDate;
+    },
+    newDate(date) {
+      return new Date(date).toISOString().substring(0, 10);
+    },
+    addRawMat() {
+      this.new_rm.show = true;
+      this.new_rm.addRMbtn = false;
+      this.new_rm.saveRMbtn = true;
+    },
+    saveRawMat() {
+      if (this.new_rm.raw_material.length > 0) {
+        this.record.raw_materials_list.push({
+          raw_material: this.new_rm.raw_material,
+          w_w: this.new_rm.w_w,
+          raw_material_lot: this.new_rm.raw_material_lot,
+          AR: this.new_rm.AR,
+          AD: this.new_rm.AD,
+          time_added: this.new_rm.time_added,
+          rm_notes: this.new_rm.rm_notes
+        });
+      }
+      this.new_rm.rm_id = "";
+      this.new_rm.raw_material = "";
+      this.new_rm.w_w = "";
+      this.new_rm.raw_material_lot = "";
+      this.new_rm.AR = "";
+      this.new_rm.AD = "";
+      this.new_rm.time_added = "";
+      this.new_rm.rm_notes = "";
+      this.new_rm.show = false;
+      this.new_rm.addRMbtn = true;
+      this.new_rm.saveRMbtn = false;
+    },
+    addH2O2Record() {
+      this.newH2O2.show = true;
+      this.newH2O2.addHPbtn = false;
+      this.newH2O2.saveHPbtn = true;
+    },
+    saveH2O2Record() {
+      if (this.newH2O2.experiment.length > 0) {
+        this.record.hydro_per_list.push({
+          experiment: this.newH2O2.experiment,
+          N: this.newH2O2.N,
+          M: this.newH2O2.M,
+          vol_change: this.newH2O2.vol_change,
+          H2O2: this.newH2O2.H2O2,
+          accepted_range: this.newH2O2.accepted_range,
+          date: this.newH2O2.date,
+          initials: this.newH2O2.initials
+        });
+      }
+      this.newH2O2.experiment = "";
+      this.newH2O2.N = "";
+      this.newH2O2.M = "";
+      this.newH2O2.vol_change = "";
+      this.newH2O2.H2O2 = "";
+      this.newH2O2.accepted_range = "";
+      this.newH2O2.date = "";
+      this.newH2O2.initials = "";
+      this.newH2O2.show = false;
+      this.newH2O2.addHPbtn = true;
+      this.newH2O2.saveHPbtn = false;
+    },
+    addH2O2StabRecord() {
+      this.newH2O2.showHPStab = true;
+      this.newH2O2.addHPStabbtn = false;
+      this.newH2O2.saveHPStabbtn = true;
+    },
+    saveH2O2StabRecord() {
+      if (this.newH2O2.experiment.length > 0) {
+        this.record.hydro_per_stab_list.push({
+          experiment: this.newH2O2.experiment,
+          N: this.newH2O2.N,
+          M: this.newH2O2.M,
+          vol_change: this.newH2O2.vol_change,
+          H2O2: this.newH2O2.H2O2,
+          accepted_range: this.newH2O2.accepted_range,
+          date: this.newH2O2.date,
+          initials: this.newH2O2.initials
+        });
+      }
+      this.newH2O2.experiment = "";
+      this.newH2O2.N = "";
+      this.newH2O2.M = "";
+      this.newH2O2.vol_change = "";
+      this.newH2O2.H2O2 = "";
+      this.newH2O2.accepted_range = "";
+      this.newH2O2.date = "";
+      this.newH2O2.initials = "";
+      this.newH2O2.showHPStab = false;
+      this.newH2O2.addHPStabbtn = true;
+      this.newH2O2.saveHPStabbtn = false;
+    },
+    edit() {
+      this.show_save = true;
+      this.show_edit = false;
+      this.isDisabled = false;
+      this.show_cancel = true;
+    },
+    cancel() {
+      this.show_save = false;
+      this.show_edit = true;
+      this.show_cancel = false;
+      this.isDisabled = true;
+    },
+    convertToDates() {
+      let expRecValues = Object.keys(this.record.experimentRecord);
+      expRecValues.forEach(key => {
+        if (key.includes("date")) {
+          console.log(key)
+          this.record.experimentRecord[key] = this.newDate(this.record.experimentRecord[key]);
         }
-      }
-  },
-  methods:{
-      submit() {
-          console.log(this.record);
-          alert(this.record.experimentRecord.LOT_NO + " " + this.record.experimentRecord.project_title + " " + this.record.experimentRecord.formulation_date + " " + this.record.experimentRecord.prepared_by)
-          this.show_edit = true
-          this.show_cancel = false
-      },
-      getDate() {
-          var today = new Date()
-          var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours()  + ":" + today.getMinutes() + ":" + today.getSeconds()
-          return curDate;
-      },
-      newDate(date) {
-          return new Date(date).toISOString().substring(0,10)
-      },
-      addRawMat() {
-          this.new_rm.show = true
-          this.new_rm.addRMbtn = false
-          this.new_rm.saveRMbtn = true
-      },
-      saveRawMat() {
-          if (this.new_rm.raw_material.length > 0) {
-                this.record.raw_materials_list.push({
-                raw_material: this.new_rm.raw_material,
-                w_w: this.new_rm.w_w,
-                raw_material_lot: this.new_rm.raw_material_lot,
-                AR: this.new_rm.AR,
-                AD: this.new_rm.AD,
-                time_added: this.new_rm.time_added,
-                rm_notes: this.new_rm.rm_notes
-            })
+      });
+
+      this.record.raw_materials_list.forEach(element => {
+          if(element.time_added != null) {
+              element.time_added = this.newDate(element.time_added)
+              console.log(element.time_added)
           }
-          this.new_rm.rm_id = ''
-          this.new_rm.raw_material = ''
-          this.new_rm.w_w = ''
-          this.new_rm.raw_material_lot = ''
-          this.new_rm.AR = ''
-          this.new_rm.AD = ''
-          this.new_rm.time_added = ''
-          this.new_rm.rm_notes = ''
-          this.new_rm.show = false
-          this.new_rm.addRMbtn = true
-          this.new_rm.saveRMbtn = false
-      },
-      addH2O2Record() {
-        this.newH2O2.show = true
-        this.newH2O2.addHPbtn = false
-        this.newH2O2.saveHPbtn = true
-      },
-      saveH2O2Record() {
-         if (this.newH2O2.experiment.length > 0) {
-                this.record.hydro_per_list.push({
-                experiment: this.newH2O2.experiment,
-                N: this.newH2O2.N,
-                M: this.newH2O2.M,
-                vol_change: this.newH2O2.vol_change,
-                H2O2: this.newH2O2.H2O2,
-                accepted_range: this.newH2O2.accepted_range,
-                date: this.newH2O2.date,
-                initials: this.newH2O2.initials
-            })
+      });
+      this.record.hydro_per_list.forEach(element => { 
+          if(element.date !== null) {
+              element.date = this.newDate(element.date)
+              console.log(element.date)
           }
-          this.newH2O2.experiment = ''
-          this.newH2O2.N = ''
-          this.newH2O2.M = ''
-          this.newH2O2.vol_change = ''
-          this.newH2O2.H2O2 = ''
-          this.newH2O2.accepted_range = ''
-          this.newH2O2.date = ''
-          this.newH2O2.initials = ''
-        this.newH2O2.show = false
-        this.newH2O2.addHPbtn = true
-        this.newH2O2.saveHPbtn = false
-      },
-      addH2O2StabRecord() {
-        this.newH2O2.showHPStab = true
-        this.newH2O2.addHPStabbtn = false
-        this.newH2O2.saveHPStabbtn = true
-      },
-      saveH2O2StabRecord() {
-         if (this.newH2O2.experiment.length > 0) {
-                this.record.hydro_per_stab_list.push({
-                experiment: this.newH2O2.experiment,
-                N: this.newH2O2.N,
-                M: this.newH2O2.M,
-                vol_change: this.newH2O2.vol_change,
-                H2O2: this.newH2O2.H2O2,
-                accepted_range: this.newH2O2.accepted_range,
-                date: this.newH2O2.date,
-                initials: this.newH2O2.initials
-            })
+      });
+      /* this.record.hydro_per_stab_list.forEach(element => {
+          if(element.date != null) {
+              element.date = this.newDate(element.date)
           }
-          this.newH2O2.experiment = ''
-          this.newH2O2.N = ''
-          this.newH2O2.M = ''
-          this.newH2O2.vol_change = ''
-          this.newH2O2.H2O2 = ''
-          this.newH2O2.accepted_range = ''
-          this.newH2O2.date = ''
-          this.newH2O2.initials = ''
-        this.newH2O2.showHPStab = false
-        this.newH2O2.addHPStabbtn = true
-        this.newH2O2.saveHPStabbtn = false
-      },
-      edit() {
-          this.show_save = true
-          this.show_edit = false
-          this.isDisabled = false
-          this.show_cancel = true
-      },
-      cancel() {
-          this.show_save = false
-          this.show_edit = true
-          this.show_cancel = false
-          this.isDisabled = true
-      }
+      }); */
+    }
   },
   mounted() {
-      axios.get(baseURL + '/getRecord?id=' + this.$store.state.currentRecordID).then(response => {
-                console.log(this.$store.state.currentRecordID)
-                console.log(response.data.message)
-                //console.log(response.data.record)
-                console.log("Retrieved successfully")
-                this.record = response.data.record
-                this.record.experimentRecord = response.data.record.experimentRecord[0]
-                console.log(this.record)
-            }).catch(e => {
-                this.errors.push(e)
-            })
+    axios
+      .get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID)
+      .then(response => {
+        console.log(this.$store.state.currentRecordID);
+        console.log(response.data.message);
+        this.record = response.data.record;
+        this.record.experimentRecord = response.data.record.experimentRecord[0];
+        this.convertToDates();
+        console.log(this.record);
+      })
   }
-}
-
+};
 </script>

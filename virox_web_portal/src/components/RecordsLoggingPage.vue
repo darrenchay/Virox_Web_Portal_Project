@@ -45,7 +45,8 @@
                 return new Date(date).toISOString().substring(0,10)
             },
             createNewRecord() {
-                this.$router.push({ name: 'Dashboard', params: { recordID: '#' }})
+                this.$store.commit('setCurrentRecordID', -1)
+                this.$router.push({ name: 'Dashboard', params: { recordID: -1 }})
             },
             showRecord(record_id) {
                 this.$store.commit('setCurrentRecordID', record_id)
@@ -57,7 +58,7 @@
                     this.currentSortDir = this.currentSortDir === 'desc' ? 'asc' : 'desc'
                 } else{
                     this.currentSort = col
-                    console.log( 'Col name: ' + col )
+                    //console.log( 'Col name: ' + col )
                 } // end if
                 //console.log(this.records)
             }
@@ -65,7 +66,7 @@
         computed: {
             sortedRecords: function() {
                 var sortedArray = this.records.slice(0)
-                console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
+                //console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
                 sortedArray.sort((a, b) => {
                     let modifier = 1
                     if(this.currentSortDir === 'asc') {
@@ -87,7 +88,7 @@
             axios.get(baseURL + '/getRecords').then(response => {
                 // JSON responses are automatically parsed.
                 console.log(response.data.message)
-                console.log(response.data.records)
+                //console.log(response.data.records)
                 this.records = response.data.records
             }).catch(e => {
                 this.errors.push(e)

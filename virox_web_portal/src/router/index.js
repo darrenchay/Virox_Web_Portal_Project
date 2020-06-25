@@ -45,15 +45,14 @@ router.beforeEach((to, from, next) => {
 
     //Not authenticated
     if (requiresAuth && !currentUser) {
-        console.log(requiresAuth)
-        console.log("not autheticated")
+        //console.log(requiresAuth)
+        //console.log("not autheticated")
         next('/login')
     } else if (requiresAuth && currentUser) {
-        console.log(requiresAuth)
+        //console.log(requiresAuth)
         console.log("autheticated")
         next()
     } else {
-        console.log("wat")
         next()
     }
 })
