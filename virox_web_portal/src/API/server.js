@@ -447,8 +447,6 @@ router.post('/updateHP', (req, res) => {
     closeDB(db)
 })
 
-
-
 app.listen(3000)
 
 function openDB() {
@@ -468,97 +466,6 @@ function closeDB(db) {
         if (err) {
             console.error(err.message);
         }
-        console.log('Close the database connection.')
+        console.log('Closed the database connection.')
     })
 }
-
-/* db.serialize(() => {
-               //Creating values array to be inserted into raw materials table
-               rawMaterialsList.forEach((arr) => {
-                   //console.log(arr)
-                   var values = Object.values(arr)
-                   values.unshift(currRecID)
-                   temp.push(values)
-
-                   values.forEach((item) => {
-                       flatRMList.push(item)
-                   })
-               })
-
-               //console.log("temp: ")
-               //console.log(temp)
-               //console.log("flat")
-               console.log(flatRMList)
-
-               RMplaceholders = temp.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
-
-               insertRMString += RMplaceholders
-               console.log(insertRMString)
-               console.log("Finished adding to record at: " + currRecID)
-
-               //console.log(insertRMString)
-               db.run(insertRMString, flatRMList, function (err) {
-                   if (err) {
-                       //console.log(err.message);
-                       res.status(500).send("Could not add record in RM table")
-                   } else {
-                       console.log(`Added record successfully in RM table at ID: ${this.lastID}. ${this.changes} rows affected`)
-                       message += '\n' + `Added record successfully in RM table with last ID: ${this.lastID}. ${this.changes} rows affected`
-                       //res.send(`Added record in RM successfully at ID: ${this.lastID}. ${this.changes} rows affected`)
-                       //currRecID = this.lastID
-                       //console.log("CURRENT ID IS:" + currRecID)
-                   }
-                   db.serialize(() => {
-                       //Creating values array to be inserted into raw materials table
-                       let tempHPList = []
-                       let flatHPList = []
-                       HPList.forEach((arr) => {
-                           //console.log(arr)
-                           var values = Object.values(arr)
-                           values.unshift(1)
-                           values.unshift(currRecID)
-                           tempHPList.push(values)
-
-                           values.forEach((item) => {
-                               flatHPList.push(item)
-                           })
-                       })
-                       console.log("After adding HP list temp: ")
-                       console.log(tempHPList)
-                       console.log("flat HP List")
-                       console.log(flatHPList)
-
-                       HPStabList.forEach((arr) => {
-                           //console.log(arr)
-                           var values = Object.values(arr)
-                           values.unshift(2)
-                           values.unshift(currRecID)
-                           tempHPList.push(values)
-
-                           values.forEach((item) => {
-                               flatHPList.push(item)
-                           })
-                       })
-
-                       console.log("After adding stability HP list temp: ")
-                       console.log(tempHPList)
-                       console.log("flat HP List")
-                       console.log(flatHPList)
-
-                       let HPplaceholders = tempHPList.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
-
-                       insertHPString += HPplaceholders
-                       console.log(insertHPString)
-                       db.run(insertHPString, flatHPList, function (err) {
-                           if (err) {
-                               //console.log(err.message);
-                               res.status(500).send("Could not add record in HP table")
-                           } else {
-                               console.log(`Added record successfully in HP table at ID: ${this.lastID}. ${this.changes} rows affected`)
-                               res.send(message + '\n' + `Added record in HP table successfully with last ID: ${this.lastID}. ${this.changes} rows affected`)
-                           }
-                           closeDB(db)
-                       })
-                   })
-               })
-           }) */
