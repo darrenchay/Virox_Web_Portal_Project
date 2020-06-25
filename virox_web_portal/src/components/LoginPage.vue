@@ -111,7 +111,7 @@
                         console.log("Rerouting")
                         this.$store.dispatch('fetchUserProfile') //set that user's profile in store
                         this.performingRequest = false
-                        this.$router.push('/dashboard')
+                        this.$router.push('/records')
                     }).catch(err => {
                         console.log("SETTING ERROR")
                         console.log(err.message)

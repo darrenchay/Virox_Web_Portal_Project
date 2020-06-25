@@ -26,7 +26,7 @@ router.get('/getRecords', (req, res) => {
         }
         res.send({
             "message": "successfully retrieved " + rows.length + " records",
-            "data": rows
+            "records": rows
         })
     });
 
@@ -45,9 +45,9 @@ router.get('/getRecord', (req, res) => {
     let data = []
     let record = {
         experimentRecord: {},
-        rawMaterials: [],
-        HPRecords: [],
-        HPStabRecords: []
+        raw_materials_list: [],
+        hydro_per_list: [],
+        hydro_per_stab_list: []
     }
 
     //Get the data from the experiments table
@@ -129,12 +129,12 @@ router.get('/getRecord', (req, res) => {
 
     (async function () {
         record.experimentRecord = await getExprimentTableRecord()
-        record.rawMaterials = await getRawMaterials()
-        record.HPRecords = await getHPList()
-        record.HPStabRecords = await getHPStabList()
+        record.raw_materials_list = await getRawMaterials()
+        record.hydro_per_list = await getHPList()
+        record.hydro_per_stab_list = await getHPStabList()
         res.send({
-            "Message": "Successfully retrieved " + record.experimentRecord.length + " row",
-            data: record
+            "message": "Successfully retrieved " + record.experimentRecord.length + " row",
+            record: record
         })
         //console.log(record)
     })()

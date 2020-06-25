@@ -16,7 +16,8 @@ fb.auth.onAuthStateChanged(user => {
 export const store = new Vuex.Store({
     state: {
         currentUser: null,
-        userProfile: {}
+        userProfile: {},
+        currentRecordID: null
     },
     actions: {
         clearData({ commit }) {
@@ -26,21 +27,23 @@ export const store = new Vuex.Store({
         fetchUserProfile({ commit, state }) {
             fb.usersCollection.doc(state.currentUser.uid).get().then(res => {
                 commit('setUserProfile', res.data)
-                console.log("data")
                 //console.log(res.data())
             }).catch(err => {
                 console.log(err)
             })
-        }
+        },
     }, 
     mutations: {
         setCurrentUser(state, val) {
             state.currentUser = val
-            console.log(state.currentUser)
+            //console.log(state.currentUser.email)
         },
         setUserProfile(state, val) {
             //console.log("the val" + val)
             state.userProfile = val
+        },
+        setCurrentRecordID(state, ID) {
+            state.currentRecordID = ID
         }
     }
 })

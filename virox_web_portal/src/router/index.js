@@ -19,7 +19,7 @@ const router = new Router({
             component: LoginPage
         },
         {
-            path: '/dashboard/:recordID',
+            path: '/dashboard/?id=:recordID',
             name: 'Dashboard',
             component: Dashboard,
             meta: {

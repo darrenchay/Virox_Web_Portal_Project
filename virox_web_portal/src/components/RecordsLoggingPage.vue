@@ -24,6 +24,8 @@
 </template>
 
 <script>
+    const axios = require('axios')
+    const baseURL = "http://localhost:3000"
     export default {
         name: 'Records',
         template: '#recordsPage',
@@ -31,37 +33,7 @@
         },
         data(){
             return {
-                records: [{
-                    record_id: 1,
-                    LOT_NO: 11111,
-                    project_title: "Experiment 5",
-                    formulation_date: this.newDate('2020-12-5'),
-                    preparation_date: this.newDate('2020-12-15'),
-                    prepared_by: "Darren Chay",
-                    date_created: this.newDate('2020-10-12'),
-                    date_updated: this.newDate('2020-10-12'),
-                    },
-                    {
-                    record_id: 2,
-                    LOT_NO: 12345,
-                    project_title: "Experiment 2",
-                    formulation_date: this.newDate('2020-10-12'),
-                    preparation_date: this.newDate('2020-12-15'),
-                    prepared_by: "John Doe",
-                    date_created: this.newDate('2020-10-12'),
-                    date_updated: this.newDate('2020-10-12'),
-                    },
-                    {
-                    record_id: 3,
-                    LOT_NO: 33333,
-                    project_title: "Experiment 7",
-                    formulation_date: this.newDate('2020-10-12'),
-                    preparation_date: this.newDate('2020-10-15'),
-                    prepared_by: "Alex John",
-                    date_created: this.newDate('2020-10-12'),
-                    date_updated: this.newDate('2020-10-12'),
-                    }
-                ],
+                records: [],
                 currentSort: 'record_id',
                 currentSortDir: 'asc',
                 columns: ['record_id', 'project_title', 'LOT_NO', 'prepared_by', 'formulation_date', 'preparation_date', 'date_created', 'date_updated'],
@@ -76,6 +48,7 @@
                 this.$router.push({ name: 'Dashboard', params: { recordID: '#' }})
             },
             showRecord(record_id) {
+                this.$store.commit('setCurrentRecordID', record_id)
                 this.$router.push({ name: 'Dashboard', params: { recordID: record_id }})
             },
             sort:function(col) {
@@ -109,6 +82,16 @@
                 //console.log(sortedArray)
                 return sortedArray
             }
-        }
+        },
+        mounted() {
+            axios.get(baseURL + '/getRecords').then(response => {
+                // JSON responses are automatically parsed.
+                console.log(response.data.message)
+                console.log(response.data.records)
+                this.records = response.data.records
+            }).catch(e => {
+                this.errors.push(e)
+            })
+        } 
     }
 </script>
