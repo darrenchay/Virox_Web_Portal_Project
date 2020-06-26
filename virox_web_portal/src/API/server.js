@@ -37,7 +37,7 @@ router.get('/getRecord', (req, res) => {
     };
 
     (async function () {
-        if(id == -1) {
+        if (id == -1) {
             res.send({
                 message: "Creating a new record on " + record.experimentRecord.date_created,
                 isNew: true,
@@ -85,7 +85,7 @@ router.post('/addRawMaterial', (req, res) => {
 
         record.raw_materials_list.forEach((arr) => {
             var values = Object.values(arr);
-            values.unshift(record.record_id);
+            values.unshift(record.experimentRecord.record_id);
 
             values.forEach((item) => {
                 flatRMList.push(item);
@@ -109,9 +109,11 @@ router.post('/addRawMaterial', (req, res) => {
 //Add all the hydrogen peroxide data to the database
 router.post('/addHP', (req, res) => {
     let record = req.body.record;
-    if(record.hydro_per_list.length != 0 && record.hydro_per_stab_list.length != 0) {
+    //Check if there are records to add
+    if (record.hydro_per_list.length != 0 || record.hydro_per_stab_list.length != 0) {
+        //Creating list of keys
         let HPKeys;
-        if(record.hydro_per_list.length != 0 ) {
+        if (record.hydro_per_list.length != 0) {
             HPKeys = Object.keys(record.hydro_per_list[0]);
         } else {
             HPKeys = Object.keys(record.hydro_per_stab_list[0]);
@@ -119,12 +121,13 @@ router.post('/addHP', (req, res) => {
         HPKeys.unshift('hp_type');
         HPKeys.unshift('experiment_record_id');
 
+        //Creating list of values and paramters
         let flatHPList = [];
         let fullHPList = [];
         record.hydro_per_list.forEach((arr) => {
             var values = Object.values(arr);
-            values.unshift(1);
-            values.unshift(record.record_id);
+            values.unshift(1); //Set hp_type to 1 for HP record
+            values.unshift(record.experimentRecord.record_id);
             fullHPList.push(values);
             values.forEach((item) => {
                 flatHPList.push(item);
@@ -132,8 +135,8 @@ router.post('/addHP', (req, res) => {
         });
         record.hydro_per_stab_list.forEach((arr) => {
             var values = Object.values(arr);
-            values.unshift(2);
-            values.unshift(record.record_id);
+            values.unshift(2); //Set hp_type to 2 for HP stability record 
+            values.unshift(record.experimentRecord.record_id);
             fullHPList.push(values);
 
             values.forEach((item) => {
@@ -141,7 +144,7 @@ router.post('/addHP', (req, res) => {
             });
         });
 
-        console.log(fullHPList);
+        //console.log(fullHPList);
         (async function () {
             let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', fullHPList, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', flatHPList, 'db.run', res);
             res.send({
@@ -156,180 +159,87 @@ router.post('/addHP', (req, res) => {
     };
 });
 
-//Update a record 
+//Update an experiment record
 router.post('/updateExperimentRecord', (req, res) => {
-    let id = req.body.record.experimentRecord.record_id
-    let expRecord = req.body.record.experimentRecord
+    let id = req.body.record.experimentRecord.record_id;
+    let record = req.body.record;
+    record.experimentRecord.date_updated = getCurrDate();
 
-    /* let expRecord = {
-        LOT_NO: req.body.record.LOT_NO,
-        project_title: req.body.record.project_title,
-        formulation_date: req.body.record.formulation_date,
-        preparation_date: req.body.record.preparation_date,
-        prepared_by: req.body.record.prepared_by,
-        quantity: req.body.record.quantity,
-        notes: req.body.record.notes,
-        preparation_reason: req.body.record.preparation_reason,
-        observations: req.body.record.observations,
-        date_created: req.body.record.date_created,
-        total_percentage_w: req.body.record.total_percentage_w,
-        total_AR: req.body.record.total_AR,
-        total_AD: req.body.record.total_AD,
-    } */
+    (async function () {
+        let returnData = await DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', id, [], Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', Object.values(record.experimentRecord), 'db.run', res);
+        res.send({
+            message: returnData.message
+        });
+    })();
+});
 
-    //Query string for inserting to experiment records
-    //let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET LOT_NO = ?, project_title = ?, formulation_date = ?, preparation_date = ?, prepared_by = ?, quantity = ?, notes = ?, preparation_reason = ?, observations = ?, date_created = ?, total_percentage_w = ?, total_AR = ?, total_AD = ? WHERE record_id = ${id};`
-    let updateRecordString = `UPDATE EXPERIMENT_RECORDS SET `
-    var keys = Object.keys(expRecord)
-    keys.forEach((key) => {
-        if (key != 'record_id') {
-            if (key == 'total_AD') {
-                updateRecordString += key + " = ? "
-            } else {
-                updateRecordString += key + " = ?, "
-            }
-        }
-    })
-    updateRecordString += ` WHERE record_id = ${id};`
-    console.log(updateRecordString)
-    let record_values = Object.values(expRecord)
-    //console.log(record_values)
-
-    //Executing db call
-    let db = openDB()
-    db.run(updateRecordString, record_values, function (err) {
-        if (err) {
-            console.log(err.message);
-            res.status(500).send("Could not update record in Experiment records table")
-        } else {
-            console.log(`Updated ${this.changes} record(s) successfully in experiment records`)
-            res.send(`Updated ${this.changes} record(s) successfully in experiment records`)
-        }
-    })
-    closeDB(db)
-})
-
-//Update Raw Material Table
+//Update raw materials 
 router.post('/updateRawMaterial', (req, res) => {
-    let id = req.body.record.experimentRecord.record_id
-    console.log(id)
-    if (req.body.record.raw_materials_list.length == 0) {
-        return
+    let record = req.body.record;
+
+    if (record.raw_materials_list.length > 0) {
+        let RMKeys = Object.keys(record.raw_materials_list[0]); //Getting keys to create the query string
+        RMKeys.shift();
+
+        //Updating record for each raw material
+        (async function () {
+            let message = '';
+            //Updating each record in raw materials list
+            for (var i = 0; i < record.raw_materials_list.length; i++) {
+                var values = Object.values(record.raw_materials_list[i]);
+                values.shift(); //removing rm_id
+
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.raw_materials_list[i].rm_id, [], RMKeys), 'RAW_MATERIALS', values, 'db.run', res);
+                message += returnData.message + '\n';
+            }
+            res.send({
+                returnMessage: message
+            });
+        })();
+
     }
-    let rawMaterialsList = req.body.record.raw_materials_list
+});
 
-    //Creating query string for inserting into RM table
-    let updateRMString = 'UPDATE RAW_MATERIALS SET '
-    var keys = Object.keys(rawMaterialsList[0])
-    keys.forEach((key) => {
-        if (key != 'rm_id') {
-            if (key != 'raw_material_name') {
-                updateRMString += key + " = ?, "
-            } else {
-                updateRMString += key + " = ? "
-            }
-        }
-    })
-
-    updateRMString += `WHERE experiment_record_id = ${id} AND raw_material_id = ?`
-    console.log(updateRMString)
-
-    //Creating parameter list for updating raw materials
-    let RM_values = []
-    rawMaterialsList.forEach((arr) => {
-        //Convert each raw material into a list of object values only
-        var values = Object.values(arr)
-        values.push(values.shift())
-        RM_values.push(values)
-    })
-    //console.log(RM_values)
-
-    //Executing db call
-    let message = []
-    let db = openDB()
-    RM_values.forEach((row) => {
-        db.run(updateRMString, row, function (err) {
-            if (err) {
-                console.log(err.message);
-                res.status(500).send("Could not update record in Raw Materials table")
-            } else {
-                console.log(`Successfully updated ${this.changes} record(s) from Raw Materials Table`)
-                //console.log(this)
-                message.push(`\nSuccessfully updated ${this.changes} record(s) from Raw Materials Table`)
-            }
-        })
-    })
-    res.send({
-        returnMessage: "Finished updating records" + message
-    })
-
-
-    closeDB(db)
-
-})
 
 //Update Hydro Perox Table 
 router.post('/updateHP', (req, res) => {
-    let id = req.body.record.experimentRecord.record_id
-    let HPList = req.body.record.hydro_per_list
-    let HPStabList = req.body.record.hydro_per_stab_list
+    let record = req.body.record;
 
-    if (req.body.record.hydro_per_list.length == 0 && req.body.record.hydro_per_stab_list.length == 0) {
-        return
+    if (record.hydro_per_list.length != 0 || record.hydro_per_stab_list != 0) {
+        let HPKeys;
+        if (record.hydro_per_list.length != 0) {
+            HPKeys = Object.keys(record.hydro_per_list[0]); //Getting keys to create the query string
+        } else {
+            HPKeys = Object.keys(record.hydro_per_stab_list[0]); //Getting keys to create the query string
+        };
+        HPKeys.shift();
+
+        //Updating record for each HP
+        (async function () {
+            let message = '';
+            for (var i = 0; i < record.hydro_per_list.length; i++) {
+                var values = Object.values(record.hydro_per_list[i]);
+                values.shift(); //removing hp_id
+
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.hydro_per_list[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
+                message += returnData.message + '\n';
+            };
+            for (var i = 0; i < record.hydro_per_stab_list.length; i++) {
+                var values = Object.values(record.hydro_per_stab_list[i]);
+                values.shift(); //removing hp_id
+
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.hydro_per_stab_list[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
+                message += returnData.message + '\n';
+            };
+            res.send({
+                returnMessage: message
+            });
+        })();
     }
 
-    //Creating query String for updating HP table
-    let updateHPString = 'UPDATE HYDROGEN_PEROXIDE_DATA SET '
-    keys = Object.keys(HPList[0])
-    updateHPString += "hp_type = ?"
-    keys.forEach((key) => {
-        if (key != 'hp_id') {
-            updateHPString += ", " + key + " = ?"
-        }
-    })
+});
 
-    updateHPString += ` WHERE experiment_record_id = ${id} AND hp_id = ?`
-    //console.log(updateHPString)
-
-    //Creating parameter list for update of HP table
-    let HP_values = []
-    HPList.forEach((arr) => {
-        var values = Object.values(arr) //Convert array into object values only
-        let hp_id = values.shift() //Remove the id from values list
-        values.unshift(1) //Add the type as the first element of the values
-        values.push(hp_id) //Re insert id as the last element of the array
-        HP_values.push(values)
-    })
-
-    HPStabList.forEach((arr) => {
-        var values = Object.values(arr) //Convert array into object values only
-        let hp_id = values.shift() //Remove the id from values list
-        values.unshift(2) //Add the type as the first element of the values
-        values.push(hp_id) //Re insert id as the last element of the array
-        HP_values.push(values)
-    })
-
-    let message = []
-    let db = openDB()
-    HP_values.forEach((row) => {
-        db.run(updateHPString, row, function (err) {
-            if (err) {
-                console.log(err.message)
-                res.status(500).send("Could not update record in HYdrogen Peroxide table")
-            } else {
-                console.log(`Successfully updated ${this.changes} record(s) from HP Table`)
-                message += `\nSuccessfully updated ${this.changes} record(s) from HP Table`
-            }
-        })
-    })
-
-    res.send({
-        returnMessage: "Finished updating records " + message
-    })
-    closeDB(db)
-})
-
-app.listen(3000)
+app.listen(3000);
 
 function openDB() {
     // open the database
@@ -360,38 +270,55 @@ function getCurrDate() {
 
 //Dynamic sqlite query string builder
 function queryStringBuilder(operation, tableName, data, parameters, parameterNames) {
-    let queryString = ""
+    let queryString = "";
     if (operation == 'SELECT') {
-        queryString = 'SELECT * FROM '
+        queryString = 'SELECT * FROM ';
         if (parameters.length == 0) { //Create querySrting for getRecords
-            queryString += 'EXPERIMENT_RECORDS ORDER BY record_id'
+            queryString += 'EXPERIMENT_RECORDS ORDER BY record_id';
         } else if (parameters.length == 1) {//Create queryString for getting an experiment record or raw materials
-            //console.log(tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0])
-            console.log('HERE')
-            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0]
+            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0];
         } else if (parameters.length == 2) {//Create queryString for getting the HP records
-            console.log('HERE2')
-            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0] + ' AND ' + parameterNames[1] + ' = ' + parameters[1]
+            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0] + ' AND ' + parameterNames[1] + ' = ' + parameters[1];
+        };
+    } else if (operation == 'INSERT') {
+        queryString = 'INSERT INTO ' + tableName + ' (';
+        for (let index = 0; index < parameterNames.length; index++) { //Creating list of column names to insert into
+            if (index == 0) {
+                queryString += parameterNames[index];
+            } else {
+                queryString += ', ' + parameterNames[index];
+            };
+        };
+        queryString += ') VALUES ';
+        if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
+            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        } else if (tableName == 'RAW_MATERIALS') {
+            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+        } else {
+            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
         }
-    }
-    if (operation == 'INSERT') {
-        queryString = 'INSERT INTO ' + tableName + ' ('
+    } else if (operation == 'UPDATE') {
+        queryString = 'UPDATE ' + tableName + ' SET ';
+
+        //Creating list of columns to update
         for (let index = 0; index < parameterNames.length; index++) {
             if (index == 0) {
-                queryString += parameterNames[index]
+                queryString += parameterNames[index] + ' = ?';
             } else {
-                queryString += ', ' + parameterNames[index]
-            }
-        }
-        queryString += ') VALUES '
+                queryString += ', ' + parameterNames[index] + ' = ?';
+            };
+        };
+
+        //Adding identifier to know which row to update
         if (tableName == 'EXPERIMENT_RECORDS') {
-            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            queryString += ' WHERE record_id = ' + data;
         } else if (tableName == 'RAW_MATERIALS') {
-            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',')
+            queryString += ' WHERE raw_material_id = ' + data;
         } else {
-            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',')
-        }
+            queryString += ' WHERE hp_id = ' + data;
+        };
     }
+
     console.log(queryString)
     return queryString
 }
@@ -419,10 +346,11 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
                     return
                 } else {
                     data = {
-                        message: 'Added record successfully in ' + tableName + ` table at ID: ${this.lastID}\n ${this.changes} row(s) affected`,
-                        id: this.lastID
+                        message: 'Added/Updated record successfully in ' + tableName + ` table, ${this.changes} row(s) affected`,
+                        id: this.lastID,
+                        changes: this.changes
                     }
-                    console.log(data)
+                    //console.log(data)
                 }
                 resolve(data)
             })
