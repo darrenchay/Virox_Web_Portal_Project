@@ -27,32 +27,21 @@ router.get('/getRecords', (req, res) => {
 router.get('/getRecord', (req, res) => {
     const id = req.query.id;
     let record = {
-        experimentRecord: {
-            date_created: getCurrDate(),
-            date_updated: getCurrDate()
-        },
+        experimentRecord: {},
         raw_materials_list: [],
         hydro_per_list: [],
         hydro_per_stab_list: []
     };
 
     (async function () {
-        if (id == -1) {
-            res.send({
-                message: "Creating a new record on " + record.experimentRecord.date_created,
-                isNew: true,
-                records: record
-            });
-        } else {
-            record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
-            record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
-            record.hydro_per_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-            record.hydro_per_stab_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-            res.send({
-                message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
-                records: record
-            });
-        }
+        record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
+        record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
+        record.hydro_per_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+        record.hydro_per_stab_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+        res.send({
+            message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+            records: record
+        });
     })();
 });
 
@@ -244,6 +233,49 @@ router.post('/updateHP', (req, res) => {
 
 });
 
+//Delete a full record from all tables
+router.get('/deleteRecord', (req, res) => {
+    let id = req.query.id;
+    (async function () {
+        let changes;
+        let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'experiment_record_id'), '', [], 'db.run', res);
+        changes += returnData.changes;
+        returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'experiment_record_id'), '', [], 'db.run', res);
+        changes += returnData.changes;
+        returnData = await DBRunner(queryStringBuilder('DELETE', 'EXPERIMENT_RECORDS', [], id, 'record_id'), '', [], 'db.run', res);
+        changes += returnData.changes;
+        res.send({
+            message: "successfully deleted " + changes + " record(s)",
+        });
+    })();
+});
+
+//Delete a raw material record
+router.post('/deleteRawMaterial', (req, res) => {
+    let id = req.body.id;
+    (async function () {
+        let changes;
+        let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'), '', [], 'db.run', res);
+        changes += returnData.changes;
+        res.send({
+            message: "successfully deleted " + changes + " record(s)",
+        });
+    })();
+});
+
+//Delete an HP record
+router.post('/deleteHP', (req, res) => {
+    let id = req.body.id;
+    (async function () {
+        let changes;
+        let returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'hp_id'), '', [], 'db.run', res);
+        changes += returnData.changes;
+        res.send({
+            message: "successfully deleted " + changes + " record(s)",
+        });
+    })();
+});
+
 app.listen(3000);
 
 function getCurrDate() {
@@ -304,6 +336,8 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
         } else {
             queryString += ' WHERE hp_id = ' + data;
         };
+    } else {
+        queryString = 'DELETE FROM ' + tableName + ' WHERE ' + parameterNames + ' = ' + parameters;
     }
 
     console.log(queryString);

@@ -342,6 +342,7 @@
 
       <button type="submit" v-show="show_save" @click="submit" class="btn btn-success">Save</button>
       <button type="button" v-show="show_cancel" @click="cancel" class="btn btn-secondary">Cancel</button>
+      <button type="button" v-show="show_delete" @click="deleteRecord" class="btn btn-danger">Delete</button>
       <button type="button" v-show="show_edit" @click="edit" class="btn btn-secondary">Edit</button>
     </form>
   </div>
@@ -360,6 +361,7 @@ export default {
       show_save: false,
       isDisabled: true,
       show_cancel: false,
+      show_delete: true,
       record: {
         experimentRecord: {
           LOT_NO: "",
@@ -428,6 +430,7 @@ export default {
       }
       
       this.isDisabled = true;
+      this.show_delete = true;
       this.show_edit = true;
       this.show_cancel = false;
       this.show_save = false;
@@ -565,15 +568,28 @@ export default {
     },
     edit() {
       this.show_save = true;
+      this.show_delete = false;
       this.show_edit = false;
       this.isDisabled = false;
       this.show_cancel = true;
     },
     cancel() {
       this.show_save = false;
+      this.show_delete = true;
       this.show_edit = true;
       this.show_cancel = false;
       this.isDisabled = true;
+    },
+    deleteRecord() {
+      let resp = confirm("Are you sure you want to delete this record?"); 
+      if(resp == true) {
+        axios.get(baseURL + "/deleteRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          alert('The record has been successfully deleted');
+          console.log(response);
+          this.$router.push({ name: 'records'});
+        });
+      } 
+      
     },
     convertToDates() {
       this.record.experimentRecord.formulation_date = this.newDate(this.record.experimentRecord.formulation_date)
@@ -610,6 +626,11 @@ export default {
           this.record.experimentRecord = response.data.records.experimentRecord[0];
           //console.log(this.record);
           this.convertToDates();
+          if(this.record.experimentRecord.LOT_NO == '') {
+            this.isDisabled = false;
+            this.show_edit = false;
+            this.show_save = true;
+          }
         } else {
           this.record.experimentRecord.date_created = response.data.records.experimentRecord.date_created
           this.record.experimentRecord.date_updated = response.data.records.experimentRecord.date_updated
@@ -628,7 +649,7 @@ function postRequest(url, record) {
       record: record
     }
   }).then((response) => {
-    console.log(response)
+    console.log(response.data.message)
   });
 }
 </script>

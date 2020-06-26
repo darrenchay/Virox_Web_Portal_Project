@@ -345,3 +345,24 @@ Content-Type: application/json
     }
     
 }
+
+### Delete an experiment record
+GET http://localhost:3000/deleteRecord?id=44 HTTP/1.1
+
+### Delete a raw material record
+POST http://localhost:3000/deleteRawMaterial HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "id": 32
+}
+
+### Delete an HP record
+POST http://localhost:3000/deleteHP HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "id": 30
+}

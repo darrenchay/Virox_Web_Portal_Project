@@ -45,8 +45,35 @@
                 return new Date(date).toISOString().substring(0,10)
             },
             createNewRecord() {
-                this.$store.commit('setCurrentRecordID', -1)
-                this.$router.push({ name: 'recordDetails' })
+                let record = {
+                    experimentRecord: {
+                        LOT_NO: "",
+                        project_title: "",
+                        formulation_date: "",
+                        preparation_date: "",
+                        prepared_by: "",
+                        quantity: "",
+                        date_created: "",
+                        date_updated: "",
+                        total_percentage_w: 0,
+                        total_AR: 0,
+                        total_AD: 0,
+                        notes: "",
+                        preparation_reason: "",
+                        observations: ""
+                    }
+                };
+                axios({
+                    method: 'post',
+                    url: baseURL + '/addExperimentRecord',
+                    data: {
+                        record: record
+                    }
+                }).then((response) => {
+                    this.$store.commit('setCurrentRecordID', response.data.id)
+                    this.$router.push({ name: 'recordDetails'})
+                    console.log(response.data.message)
+                });
             },
             showRecord(record_id) {
                 this.$store.commit('setCurrentRecordID', record_id)
@@ -86,9 +113,7 @@
         },
         mounted() {
             axios.get(baseURL + '/getRecords').then(response => {
-                // JSON responses are automatically parsed.
                 console.log(response.data.message)
-                //console.log(response.data.records)
                 this.records = response.data.records
             }).catch(e => {
                 this.errors.push(e)
