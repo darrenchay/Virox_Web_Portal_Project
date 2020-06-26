@@ -6,7 +6,7 @@ GET http://localhost:3000/getRecord?id=44 HTTP/1.1
 
 ### Adding a record
 
-POST http://localhost:3000/addRecord HTTP/1.1
+POST http://localhost:3000/addExperimentRecord HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -106,6 +106,38 @@ Content-Type: application/json
     }
     
 }
+
+### Adding Raw materials 
+
+POST http://localhost:3000/addRawMaterial HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "record": {
+        "record_id": 41,
+        "raw_materials_list": [{
+                "raw_material_name": "chemical L63",
+                "percentage_w": 11.11,
+                "raw_material_lot": " ",
+                "AR": 44.44,
+                "AD": 44.48,
+                "time_added": "2020-12-5",
+                "notes": "this is an update"
+            },
+            {
+                "raw_material_name": "H2O2 50% EPA",
+                "percentage_w": 21.11,
+                "raw_material_lot": " ",
+                "AR": 55.44,
+                "AD": 44.48,
+                "time_added": "2020-12-5",
+                "notes": "this is another update"
+            }
+        ]
+    }
+}
+
 
 ### Updating experiment record
 
