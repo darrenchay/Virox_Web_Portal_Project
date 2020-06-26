@@ -41,7 +41,7 @@ router.get('/getRecord', (req, res) => {
             res.send({
                 message: "Creating a new record on " + record.experimentRecord.date_created,
                 isNew: true,
-                record: record
+                records: record
             });
         } else {
             record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
@@ -82,7 +82,6 @@ router.post('/addRawMaterial', (req, res) => {
 
         //Creating the flat array for db.run execution
         let flatRMList = [];
-
         record.raw_materials_list.forEach((arr) => {
             var values = Object.values(arr);
             values.unshift(record.experimentRecord.record_id);
@@ -124,27 +123,33 @@ router.post('/addHP', (req, res) => {
         //Creating list of values and paramters
         let flatHPList = [];
         let fullHPList = [];
-        record.hydro_per_list.forEach((arr) => {
-            var values = Object.values(arr);
-            values.unshift(1); //Set hp_type to 1 for HP record
-            values.unshift(record.experimentRecord.record_id);
-            fullHPList.push(values);
-            values.forEach((item) => {
-                flatHPList.push(item);
+        if (record.hydro_per_list.length != 0) {
+            record.hydro_per_list.forEach((arr) => {
+                var values = Object.values(arr);
+                values.unshift(1); //Set hp_type to 1 for HP record
+                values.unshift(record.experimentRecord.record_id);
+                fullHPList.push(values);
+                values.forEach((item) => {
+                    flatHPList.push(item);
+                });
             });
-        });
-        record.hydro_per_stab_list.forEach((arr) => {
-            var values = Object.values(arr);
-            values.unshift(2); //Set hp_type to 2 for HP stability record 
-            values.unshift(record.experimentRecord.record_id);
-            fullHPList.push(values);
+        };
 
-            values.forEach((item) => {
-                flatHPList.push(item);
+        if (record.hydro_per_stab_list.length != 0) {
+            record.hydro_per_stab_list.forEach((arr) => {
+                var values = Object.values(arr);
+                values.unshift(2); //Set hp_type to 2 for HP stability record 
+                values.unshift(record.experimentRecord.record_id);
+                fullHPList.push(values);
+
+                values.forEach((item) => {
+                    flatHPList.push(item);
+                });
             });
-        });
+        };
 
         //console.log(fullHPList);
+        //console.log(flatHPList);
         (async function () {
             let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', fullHPList, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', flatHPList, 'db.run', res);
             res.send({
@@ -241,27 +246,6 @@ router.post('/updateHP', (req, res) => {
 
 app.listen(3000);
 
-function openDB() {
-    // open the database
-    const db = new sqlite3.Database('./ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
-        if (err) {
-            console.error(err.message)
-        }
-        console.log('Connected to the virox database.')
-    })
-
-    return db
-}
-
-function closeDB(db) {
-    db.close((err) => {
-        if (err) {
-            console.error(err.message);
-        }
-        console.log('Closed the database connection.')
-    })
-}
-
 function getCurrDate() {
     var today = new Date();
     var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -273,6 +257,7 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
     let queryString = "";
     if (operation == 'SELECT') {
         queryString = 'SELECT * FROM ';
+
         if (parameters.length == 0) { //Create querySrting for getRecords
             queryString += 'EXPERIMENT_RECORDS ORDER BY record_id';
         } else if (parameters.length == 1) {//Create queryString for getting an experiment record or raw materials
@@ -281,6 +266,7 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
             queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0] + ' AND ' + parameterNames[1] + ' = ' + parameters[1];
         };
     } else if (operation == 'INSERT') {
+
         queryString = 'INSERT INTO ' + tableName + ' (';
         for (let index = 0; index < parameterNames.length; index++) { //Creating list of column names to insert into
             if (index == 0) {
@@ -289,7 +275,9 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
                 queryString += ', ' + parameterNames[index];
             };
         };
+
         queryString += ') VALUES ';
+
         if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
             queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         } else if (tableName == 'RAW_MATERIALS') {
@@ -299,7 +287,6 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
         }
     } else if (operation == 'UPDATE') {
         queryString = 'UPDATE ' + tableName + ' SET ';
-
         //Creating list of columns to update
         for (let index = 0; index < parameterNames.length; index++) {
             if (index == 0) {
@@ -319,43 +306,55 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
         };
     }
 
-    console.log(queryString)
-    return queryString
+    console.log(queryString);
+    return queryString;
 }
 
 //Dynamic DB runner which handles all db calls
 async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     return new Promise((resolve, reject) => {
-        let db = openDB()
+        //Open DB
+        const db = new sqlite3.Database('./ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
+            if (err) {
+                console.error(err.message);
+            }
+            console.log('Connected to the virox database.');
+        });
+        //Run DB call 
         if (sqliteMethod == 'db.all') {
             db.all(queryString, parameters, (err, rows) => {
                 if (err) {
-                    res.status(500).send({ "Error ": err.message })
-                    return
+                    res.status(500).send({ "Error ": err.message });
+                    return;
                 } else {
-                    data = rows
-                    console.log("Rows:")
-                    console.log(data)
+                    data = rows;
+                    //console.log("Rows:");
+                    console.log(data.length);
                 }
-                resolve(data)
+                resolve(data);
             })
         } else if (sqliteMethod == 'db.run') {
             db.run(queryString, parameters, function (err) {
                 if (err) {
-                    res.status(500).send({ "Error ": err.message })
-                    return
+                    res.status(500).send({ "Error ": err.message });
+                    console.log(err.message);
+                    return;
                 } else {
                     data = {
                         message: 'Added/Updated record successfully in ' + tableName + ` table, ${this.changes} row(s) affected`,
                         id: this.lastID,
                         changes: this.changes
                     }
-                    //console.log(data)
                 }
-                resolve(data)
+                resolve(data);
             })
         }
-        closeDB(db)
+        db.close((err) => {
+            if (err) {
+                console.error(err.message);
+            }
+            console.log('Closed the database connection.');
+        })
     })
 
 }
