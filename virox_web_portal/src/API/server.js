@@ -1,107 +1,160 @@
-const express = require('express')
-const cors = require('cors')
-const bodyParser = require('body-parser')
-const morgan = require('morgan')
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const sqlite3 = require('sqlite3').verbose();
-const router = express.Router()
-const app = express()
+const router = express.Router();
+const app = express();
 
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use("/", router)
+app.use("/", router);
 
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
-
-    let sql = queryStringBuilder('SELECT', [], [], [], []);
-
     (async function () {
-        let returnData = await DBRunner(sql, '', [], 'db.all', res)
+        let returnData = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
         res.send({
             message: "successfully retrieved " + returnData.length + " record(s)",
             records: returnData
-        })
-    })()
-})
+        });
+    })();
+});
 
 //Get a single complete record data based off record id
 router.get('/getRecord', (req, res) => {
-    const id = req.query.id
+    const id = req.query.id;
     let record = {
-        experimentRecord: {},
+        experimentRecord: {
+            date_created: getCurrDate(),
+            date_updated: getCurrDate()
+        },
         raw_materials_list: [],
         hydro_per_list: [],
         hydro_per_stab_list: []
     };
 
-
     (async function () {
-        record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '' , [], 'db.all', res)
-        record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res)
-        record.hydro_per_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res)
-        record.hydro_per_stab_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res)
-        res.send({
-            message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
-            records: record
-        })
-    })()
-
-})
+        if(id == -1) {
+            res.send({
+                message: "Creating a new record on " + record.experimentRecord.date_created,
+                isNew: true,
+                record: record
+            });
+        } else {
+            record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
+            record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
+            record.hydro_per_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+            record.hydro_per_stab_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+            res.send({
+                message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+                records: record
+            });
+        }
+    })();
+});
 
 //Add an experiment record to the database
-router.post('/addExperimentRecord', (req,res) => {
-    let record = req.body.record
-    let experimentRecordKeys = Object.keys(record.experimentRecord)
-    let experimentRecordValues = Object.values(record.experimentRecord)
+router.post('/addExperimentRecord', (req, res) => {
+    let record = req.body.record;
+    record.experimentRecord.date_created = getCurrDate();
+    record.experimentRecord.date_updated = getCurrDate();
+    let experimentRecordValues = Object.values(record.experimentRecord);
 
     (async function () {
-        let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, experimentRecordKeys), 'EXPERIMENT_RECORDS', experimentRecordValues, 'db.run', res)
-        console.log(returnData.id)
+        let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', experimentRecordValues, 'db.run', res);
+        console.log(returnData.id);
         res.send({
             message: returnData.message,
             id: returnData.id
-        })
-    })()
-
-})
+        });
+    })();
+});
 
 //Add all the raw materials to the database
 router.post('/addRawMaterial', (req, res) => {
-    let record = req.body.record
-    if(record.raw_materials_list.length > 0) {
-        let RMKeys = Object.keys(record.raw_materials_list[0]) //Getting keys to create the query string
-        RMKeys.unshift('experiment_record_id')
-        
+    let record = req.body.record;
+    if (record.raw_materials_list.length > 0) {
+        let RMKeys = Object.keys(record.raw_materials_list[0]); //Getting keys to create the query string
+        RMKeys.unshift('experiment_record_id');
 
         //Creating the flat array for db.run execution
-        let flatRMList = []
+        let flatRMList = [];
 
         record.raw_materials_list.forEach((arr) => {
-            var values = Object.values(arr)
-            values.unshift(record.record_id)
+            var values = Object.values(arr);
+            values.unshift(record.record_id);
 
             values.forEach((item) => {
-                flatRMList.push(item)
-            })
-        })
-
-        console.log(RMKeys)
-        console.log(flatRMList);
-
+                flatRMList.push(item);
+            });
+        });
+        /* console.log(RMKeys);
+        console.log(flatRMList); */
         (async function () {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', record.raw_materials_list, [], RMKeys), 'RAW_MATERIALS', flatRMList, 'db.run', res)
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', record.raw_materials_list, [], RMKeys), 'RAW_MATERIALS', flatRMList, 'db.run', res);
             res.send({
                 message: returnData.message
-                //id: returnData.id
-            })
-        })()
-    }
-})
+            });
+        })();
+    } else {
+        res.send({
+            message: 'No data to add'
+        });
+    };
+});
 
-//Insert a complete record in the respective tables
+//Add all the hydrogen peroxide data to the database
+router.post('/addHP', (req, res) => {
+    let record = req.body.record;
+    if(record.hydro_per_list.length != 0 && record.hydro_per_stab_list.length != 0) {
+        let HPKeys;
+        if(record.hydro_per_list.length != 0 ) {
+            HPKeys = Object.keys(record.hydro_per_list[0]);
+        } else {
+            HPKeys = Object.keys(record.hydro_per_stab_list[0]);
+        };
+        HPKeys.unshift('hp_type');
+        HPKeys.unshift('experiment_record_id');
 
+        let flatHPList = [];
+        let fullHPList = [];
+        record.hydro_per_list.forEach((arr) => {
+            var values = Object.values(arr);
+            values.unshift(1);
+            values.unshift(record.record_id);
+            fullHPList.push(values);
+            values.forEach((item) => {
+                flatHPList.push(item);
+            });
+        });
+        record.hydro_per_stab_list.forEach((arr) => {
+            var values = Object.values(arr);
+            values.unshift(2);
+            values.unshift(record.record_id);
+            fullHPList.push(values);
+
+            values.forEach((item) => {
+                flatHPList.push(item);
+            });
+        });
+
+        console.log(fullHPList);
+        (async function () {
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', fullHPList, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', flatHPList, 'db.run', res);
+            res.send({
+                message: returnData.message
+            });
+        })();
+
+    } else {
+        res.send({
+            message: 'No data to add'
+        });
+    };
+});
 
 //Update a record 
 router.post('/updateExperimentRecord', (req, res) => {
@@ -323,18 +376,20 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
     }
     if (operation == 'INSERT') {
         queryString = 'INSERT INTO ' + tableName + ' ('
-        for(let index = 0; index < parameterNames.length; index++) {
-            if(index == 0) {
+        for (let index = 0; index < parameterNames.length; index++) {
+            if (index == 0) {
                 queryString += parameterNames[index]
             } else {
                 queryString += ', ' + parameterNames[index]
             }
         }
         queryString += ') VALUES '
-        if(tableName == 'EXPERIMENT_RECORDS') {
-            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        if (tableName == 'EXPERIMENT_RECORDS') {
+            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         } else if (tableName == 'RAW_MATERIALS') {
             queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',')
+        } else {
+            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',')
         }
     }
     console.log(queryString)
@@ -358,7 +413,7 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
                 resolve(data)
             })
         } else if (sqliteMethod == 'db.run') {
-            db.run(queryString, parameters, function(err) {
+            db.run(queryString, parameters, function (err) {
                 if (err) {
                     res.status(500).send({ "Error ": err.message })
                     return

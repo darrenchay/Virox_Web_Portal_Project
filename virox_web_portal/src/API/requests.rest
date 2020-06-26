@@ -1,11 +1,11 @@
-//GET http://localhost:3000/users?page=2&limit=3
 GET http://localhost:3000/getRecords HTTP/1.1
 
-### Get single record with id 1
+
+### Get single record with an ID
 GET http://localhost:3000/getRecord?id=44 HTTP/1.1
 
-### Adding a record
 
+### Adding a record
 POST http://localhost:3000/addExperimentRecord HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
@@ -108,7 +108,6 @@ Content-Type: application/json
 }
 
 ### Adding Raw materials 
-
 POST http://localhost:3000/addRawMaterial HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
@@ -138,9 +137,76 @@ Content-Type: application/json
     }
 }
 
+### Adding Hydrogen Peroxide data
+POST http://localhost:3000/addHP HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "record": {
+        "record_id": 41,
+        "hydro_per_list": [{
+                "experiment_name": "Trial 1",
+                "N": 0.1000,
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "~ 0.8%",
+                "date": "2020-12-5",
+                "initials": "D.C"
+            },
+            {
+                "experiment_name": "Trial 2",
+                "N": "",
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "new range",
+                "date": "2020-12-5",
+                "initials": ""
+            },
+            {
+                "experiment_name": "Average (Updated)",
+                "N": "",
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "",
+                "date": null,
+                "initials": "D.C"
+            }
+        ],
+        "hydro_per_stab_list": [{
+                "experiment_name": "Trial 1",
+                "N": 0.1000,
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "~ 0.75%",
+                "date": "2020-12-5",
+                "initials": "J.K"
+            },
+            {
+                "experiment_name": "Trial 2",
+                "N": "",
+                "M": "",
+                "vol_change": "",
+                "H2O2": 0.1000,
+                "PH": 0.870,
+                "accepted_range": "",
+                "date": "2020-12-5",
+                "initials": "D.C"
+            }
+        ]
+    }
+    
+}
 
 ### Updating experiment record
-
 POST http://localhost:3000/updateExperimentRecord HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
@@ -166,7 +232,6 @@ Content-Type: application/json
 }
 
 ### Updating Raw materials 
-
 POST http://localhost:3000/updateRawMaterial HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
@@ -199,7 +264,6 @@ Content-Type: application/json
 }
 
 ### Updating experiment record
-
 POST http://localhost:3000/updateHP HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
