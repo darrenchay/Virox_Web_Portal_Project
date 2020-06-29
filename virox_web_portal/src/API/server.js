@@ -230,7 +230,7 @@ router.post('/updateRawMaterial', (req, res) => {
                 var values = Object.values(record.RMList[i]);
                 values.shift(); //removing rm_id
 
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.RMList[i].rm_id, [], RMKeys), 'RAW_MATERIALS', values, 'db.run', res);
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.RMList[i].raw_material_id, [], RMKeys), 'RAW_MATERIALS', values, 'db.run', res);
                 message += returnData.message + '\n';
             }
             res.send({
@@ -299,7 +299,7 @@ router.get('/deleteRecord', (req, res) => {
 
 //Delete a raw material record
 router.post('/deleteRawMaterial', (req, res) => {
-    let id = req.body.id;
+    let id = req.body.record;
     (async function () {
         let changes;
         let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'), '', [], 'db.run', res);

@@ -93,7 +93,7 @@
         </table>
         <div>
           <button type="button" :disabled="isEditingDisabled" v-show="showAddRM" @click="addRM" class="btn btn-primary mr-2">Add Raw Material</button>
-          <button type="button" :disabled="isEditingDisabled" v-show="showEditRMBtn" @click="editRM" class="btn btn-primary">Edit Raw Materials</button>
+          <button type="button" :disabled="isEditingDisabled" v-show="showEditRMBtn" @click="editRM" class="btn btn-info">Edit Raw Materials</button>
           <button type="button" v-show="showUpdateRMBtn" @click="updateRM" class="btn btn-success mr-2">Update Raw Materials</button>
           <button type="button" v-show="showSaveRM" @click="saveRM" class="btn btn-success mr-2">Save Raw Material</button>
           <button type="button" v-show="showCancelRM" @click="cancelRM" class="btn btn-secondary">Cancel</button>
@@ -197,7 +197,8 @@ export default {
           notes: "",
         },
         showRMTemplate: false,
-      }
+      },
+      tempRMList: [],
     };
   },
   methods: {
@@ -259,13 +260,11 @@ export default {
         //Updating RMList
         axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
           console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          //this.record = response.data.records;
           this.record.RMList = response.data.records.RMList;
           this.formatRecord();
           //console.log(this.record);
         });
       }
-      
       this.cancelRM();
     },
     cancelRM() {
@@ -278,6 +277,7 @@ export default {
       this.isRMRowDisabled = true;
       this.showEditRMBtn = true;
       this.showUpdateRMBtn = false;
+      this.record.RMList = this.tempRMList; //TOFIX
     },
     editRM() {
       this.isRMRowDisabled = false;
@@ -285,11 +285,22 @@ export default {
       this.showAddRM = false,
       this.showUpdateRMBtn = true;
       this.showCancelRM = true;
+      this.record.RMList.forEach(rawMat => {//TO FIX
+        this.tempRMList.push(rawMat);
+      })
+      console.log(this.tempRMList);
     },
     deleteRM: function(rawMat) {
-      console.log(rawMat);
+      let resp = confirm("Are you sure you want to delete this record?"); 
+      let id = rawMat.raw_material_id;
+      if(resp == true) {
+        postRequest(baseURL + '/deleteRawMaterial', id);
+      } 
+      //NOT UPDATING CHANGES
+      //console.log(rawMat);
     },
     updateRM(){
+      postRequest(baseURL + '/updateRawMaterial', this.record);
       this.cancelRM();
     },
 
@@ -301,23 +312,16 @@ export default {
         if (element.time_added !== null) {
           element.time_added = newDate(element.time_added);
         }
-        element.isRowDisabled = true;
-        element.editRMBtn = true;
-        element.deleteRMBtn = true;
-        element.updateRMBtn = false;
-        element.cancelRMBtn = false;
       });
       this.record.HPList.forEach(element => {
         if (element.date !== null) {
           element.date = newDate(element.date);
         }
-        element.isRowDisabled = true;
       });
       this.record.HPStabilityList.forEach(element => {
         if (element.date !== null) {
           element.date = newDate(element.date);
         }
-        element.isRowDisabled = true;
       });
     },
   },
