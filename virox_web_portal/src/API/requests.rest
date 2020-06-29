@@ -2,7 +2,7 @@ GET http://localhost:3000/getRecords HTTP/1.1
 
 
 ### Get single record with an ID
-GET http://localhost:3000/getRecord?id=52 HTTP/1.1
+GET http://localhost:3000/getRecord?id=45 HTTP/1.1
 
 
 ### Get single record with an ID
@@ -33,7 +33,7 @@ Content-Type: application/json
             "total_AD": "35.84",
             "date_created": "2020-06-25"
         },
-        "raw_materials_list": [{
+        "RMList": [{
                 "raw_material_name": "chemical L63",
                 "percentage_w": 11.11,
                 "raw_material_lot": " ",
@@ -52,7 +52,7 @@ Content-Type: application/json
                 "notes": "none"
             }
         ],
-        "hydro_per_list": [{
+        "HPList": [{
                 "experiment_name": "Trial 1",
                 "N": 0.1000,
                 "M": "",
@@ -86,7 +86,7 @@ Content-Type: application/json
                 "initials": ""
             }
         ],
-        "hydro_per_stab_list": [{
+        "HPStabilityList": [{
                 "experiment_name": "Trial 1",
                 "N": 0.1000,
                 "M": "",
@@ -121,9 +121,9 @@ Content-Type: application/json
 {
     "record": {
         "experimentRecord": {
-            "record_id": 45
+            "record_id": 52
         },
-        "raw_materials_list": [{
+        "RMList": [{
                 "raw_material_name": "chemical L63",
                 "percentage_w": 11.11,
                 "raw_material_lot": " ",
@@ -153,9 +153,9 @@ Content-Type: application/json
 {
     "record": {
         "experimentRecord": {
-            "record_id": 45
+            "record_id": 52
         },
-        "hydro_per_list": [{
+        "HPList": [{
                 "experiment_name": "Trial 1",
                 "N": 0.1000,
                 "M": "",
@@ -189,7 +189,7 @@ Content-Type: application/json
                 "initials": "D.C"
             }
         ],
-        "hydro_per_stab_list": [{
+        "HPStabilityList": [{
                 "experiment_name": "Trial 1",
                 "N": 0.1000,
                 "M": "",
@@ -252,7 +252,7 @@ Content-Type: application/json
         "experimentRecord": {
             "record_id": 45
         },
-        "raw_materials_list": [{
+        "RMList": [{
                 "rm_id": 32,
                 "raw_material_name": "chemical L63",
                 "percentage_w": 11.11,
@@ -286,7 +286,7 @@ Content-Type: application/json
         "experimentRecord": {
             "record_id": 45
         },
-        "hydro_per_list": [{
+        "HPList": [{
                 "hp_id": 12,
                 "experiment_name": "Trial 1",
                 "N": 0.1000,
@@ -323,7 +323,7 @@ Content-Type: application/json
                 "initials": "D.C"
             }
         ],
-        "hydro_per_stab_list": [{
+        "HPStabilityList": [{
                 "hp_id": 15,
                 "experiment_name": "Trial 1",
                 "N": 0.1000,

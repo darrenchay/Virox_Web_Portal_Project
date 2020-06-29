@@ -29,16 +29,16 @@ router.get('/getRecord', (req, res) => {
     const id = req.query.id;
     let record = {
         experimentRecord: {},
-        raw_materials_list: [],
-        hydro_per_list: [],
-        hydro_per_stab_list: []
+        RMList: [],
+        HPList: [],
+        HPStabilityList: []
     };
 
     (async function () {
         record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
-        record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
-        record.hydro_per_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-        record.hydro_per_stab_list = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+        record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
+        record.HPList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+        record.HPStabilityList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
             records: record
@@ -50,18 +50,18 @@ router.get('/getRecord', (req, res) => {
 router.get('/getRawMaterial', (req, res) => {
     const id = req.query.id;
     let record = {
-        raw_materials_list: [],
+        RMList: [],
     };
 
     console.log(id);
 
     (async function() {
         console.log("running")
-        record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
+        record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
         console.log("done ");
         res.send({
-            message: 'Successfully retrieved ' + record.raw_materials_list.length + ' raw materials',
-            raw_materials_list: record.raw_materials_list
+            message: 'Successfully retrieved ' + record.RMList.length + ' raw materials',
+            RMList: record.RMList
         });
     })
 });
@@ -74,7 +74,7 @@ router.get('/getHP', (req, res) =>  {
         let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
-            hydro_per_list: HP
+            HPList: HP
         });
     });
 });
@@ -87,7 +87,7 @@ router.get('/getHPStab', (req, res) =>  {
         let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide stability records',
-            hydro_per_stab_list: HP
+            HPStabilityList: HP
         });
     })
 });
@@ -112,13 +112,13 @@ router.post('/addExperimentRecord', (req, res) => {
 //Add all the raw materials to the database
 router.post('/addRawMaterial', (req, res) => {
     let record = req.body.record;
-    if (record.raw_materials_list.length > 0) {
-        let RMKeys = Object.keys(record.raw_materials_list[0]); //Getting keys to create the query string
+    if (record.RMList.length > 0) {
+        let RMKeys = Object.keys(record.RMList[0]); //Getting keys to create the query string
         RMKeys.unshift('experiment_record_id');
 
         //Creating the flat array for db.run execution
         let flatRMList = [];
-        record.raw_materials_list.forEach((arr) => {
+        record.RMList.forEach((arr) => {
             var values = Object.values(arr);
             values.unshift(record.experimentRecord.record_id);
 
@@ -129,7 +129,7 @@ router.post('/addRawMaterial', (req, res) => {
         /* console.log(RMKeys);
         console.log(flatRMList); */
         (async function () {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', record.raw_materials_list, [], RMKeys), 'RAW_MATERIALS', flatRMList, 'db.run', res);
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', record.RMList, [], RMKeys), 'RAW_MATERIALS', flatRMList, 'db.run', res);
             res.send({
                 message: returnData.message
             });
@@ -145,13 +145,13 @@ router.post('/addRawMaterial', (req, res) => {
 router.post('/addHP', (req, res) => {
     let record = req.body.record;
     //Check if there are records to add
-    if (record.hydro_per_list.length != 0 || record.hydro_per_stab_list.length != 0) {
+    if (record.HPList.length != 0 || record.HPStabilityList.length != 0) {
         //Creating list of keys
         let HPKeys;
-        if (record.hydro_per_list.length != 0) {
-            HPKeys = Object.keys(record.hydro_per_list[0]);
+        if (record.HPList.length != 0) {
+            HPKeys = Object.keys(record.HPList[0]);
         } else {
-            HPKeys = Object.keys(record.hydro_per_stab_list[0]);
+            HPKeys = Object.keys(record.HPStabilityList[0]);
         };
         HPKeys.unshift('hp_type');
         HPKeys.unshift('experiment_record_id');
@@ -159,8 +159,8 @@ router.post('/addHP', (req, res) => {
         //Creating list of values and paramters
         let flatHPList = [];
         let fullHPList = [];
-        if (record.hydro_per_list.length != 0) {
-            record.hydro_per_list.forEach((arr) => {
+        if (record.HPList.length != 0) {
+            record.HPList.forEach((arr) => {
                 var values = Object.values(arr);
                 values.unshift(1); //Set hp_type to 1 for HP record
                 values.unshift(record.experimentRecord.record_id);
@@ -171,8 +171,8 @@ router.post('/addHP', (req, res) => {
             });
         };
 
-        if (record.hydro_per_stab_list.length != 0) {
-            record.hydro_per_stab_list.forEach((arr) => {
+        if (record.HPStabilityList.length != 0) {
+            record.HPStabilityList.forEach((arr) => {
                 var values = Object.values(arr);
                 values.unshift(2); //Set hp_type to 2 for HP stability record 
                 values.unshift(record.experimentRecord.record_id);
@@ -218,19 +218,19 @@ router.post('/updateExperimentRecord', (req, res) => {
 router.post('/updateRawMaterial', (req, res) => {
     let record = req.body.record;
 
-    if (record.raw_materials_list.length > 0) {
-        let RMKeys = Object.keys(record.raw_materials_list[0]); //Getting keys to create the query string
+    if (record.RMList.length > 0) {
+        let RMKeys = Object.keys(record.RMList[0]); //Getting keys to create the query string
         RMKeys.shift();
 
         //Updating record for each raw material
         (async function () {
             let message = '';
             //Updating each record in raw materials list
-            for (var i = 0; i < record.raw_materials_list.length; i++) {
-                var values = Object.values(record.raw_materials_list[i]);
+            for (var i = 0; i < record.RMList.length; i++) {
+                var values = Object.values(record.RMList[i]);
                 values.shift(); //removing rm_id
 
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.raw_materials_list[i].rm_id, [], RMKeys), 'RAW_MATERIALS', values, 'db.run', res);
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.RMList[i].rm_id, [], RMKeys), 'RAW_MATERIALS', values, 'db.run', res);
                 message += returnData.message + '\n';
             }
             res.send({
@@ -246,30 +246,30 @@ router.post('/updateRawMaterial', (req, res) => {
 router.post('/updateHP', (req, res) => {
     let record = req.body.record;
 
-    if (record.hydro_per_list.length != 0 || record.hydro_per_stab_list != 0) {
+    if (record.HPList.length != 0 || record.HPStabilityList != 0) {
         let HPKeys;
-        if (record.hydro_per_list.length != 0) {
-            HPKeys = Object.keys(record.hydro_per_list[0]); //Getting keys to create the query string
+        if (record.HPList.length != 0) {
+            HPKeys = Object.keys(record.HPList[0]); //Getting keys to create the query string
         } else {
-            HPKeys = Object.keys(record.hydro_per_stab_list[0]); //Getting keys to create the query string
+            HPKeys = Object.keys(record.HPStabilityList[0]); //Getting keys to create the query string
         };
         HPKeys.shift();
 
         //Updating record for each HP
         (async function () {
             let message = '';
-            for (var i = 0; i < record.hydro_per_list.length; i++) {
-                var values = Object.values(record.hydro_per_list[i]);
+            for (var i = 0; i < record.HPList.length; i++) {
+                var values = Object.values(record.HPList[i]);
                 values.shift(); //removing hp_id
 
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.hydro_per_list[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.HPList[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
                 message += returnData.message + '\n';
             };
-            for (var i = 0; i < record.hydro_per_stab_list.length; i++) {
-                var values = Object.values(record.hydro_per_stab_list[i]);
+            for (var i = 0; i < record.HPStabilityList.length; i++) {
+                var values = Object.values(record.HPStabilityList[i]);
                 values.shift(); //removing hp_id
 
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.hydro_per_stab_list[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
+                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.HPStabilityList[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
                 message += returnData.message + '\n';
             };
             res.send({
@@ -327,7 +327,7 @@ app.listen(3000);
 
 function getCurrDate() {
     var today = new Date();
-    var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes()
     return curDate;
 }
 
@@ -458,9 +458,9 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
         total_AD: req.body.record.experimentRecord.total_AD,
     }
 
-    let rawMaterialsList = req.body.record.raw_materials_list
-    let HPList = req.body.record.hydro_per_list
-    let HPStabList = req.body.record.hydro_per_stab_list
+    let rawMaterialsList = req.body.record.RMList
+    let HPList = req.body.record.HPList
+    let HPStabList = req.body.record.HPStabilityList
     //console.log(req.body.record)
     let db = openDB()
 
