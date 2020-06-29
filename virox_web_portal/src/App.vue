@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="container">
+  <div id="app" class="container-fluid" style="width: 90%;">
     <Navigation v-if="currentUser"></Navigation>
     <div class="card">
       <router-view/>

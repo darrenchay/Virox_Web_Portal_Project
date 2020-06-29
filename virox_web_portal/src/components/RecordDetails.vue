@@ -1,9 +1,9 @@
 <template>
-  <div class="container card-body">
+  <div class="card-body container">
     <img alt="Vue logo" class="img-thumbnail rounded mx-auto d-block" src="../assets/Virox-Logo.png"/>
     <br />
-    <form id="general-input-form" class="form" style="margin:0 auto; width:90%" @submit.prevent>
-      <div class="form-inline form-group row">
+    <form id="general-input-form" class="form" @submit.prevent>
+      <div class="form-inline form-group">
         <div class="form-group col-auto">
           <label class="my-1 mr-2" for="inputLOTNO"><strong>LOT NO:</strong></label>
           <input type="input" :disabled="isDisabled" v-model.trim="record.experimentRecord.LOT_NO" class="form-control" id="inputLOTNO"/>
@@ -48,15 +48,22 @@
       <!-- Raw Materials Table -->
       <div class="form-group">
         <label for="rmTable"><strong>Raw Materials</strong></label>
-        <table class="table table-bordered table-hover" id="rmTable">
+        <table class="table table-bordered table-hover table-responsive" id="rmTable">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in column_name_rm" :key="index">{{column}}</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="record in record.raw_materials_list" :key="record.rm_id">
-              <td v-for="(data, index) in columns_rm" :key="index">{{record[data]}}</td>
+              <td v-for="(data, index) in columns_rm" :key="index"><input type="text" :disabled="isDisabled" v-model.trim="record[data]" class="form-control"/></td>
+              <td>
+                <button type="button" :disabled="isDisabled" v-show="rm_template.editRMBtn" @click="editRawMat" class="btn btn-primary">Edit</button>
+                <button type="button" :disabled="isDisabled" v-show="rm_template.deleteRMBtn" @click="deleteRawMat" class="btn btn-danger">Delete</button>
+                <button type="button" :disabled="isDisabled" v-show="rm_template.updateRMBtn" @click="updateRawMat" class="btn btn-success">Update</button>
+                <button type="button" :disabled="isDisabled" v-show="rm_template.cancelRMBtn" @click="cancelRawMat" class="btn btn-secondary">Cancel</button>
+              </td>
             </tr>
             <tr class="table-secondary">
               <td>
@@ -74,59 +81,49 @@
               </td>
               <td></td>
               <td></td>
+              <td></td>
             </tr>
-            <tr v-show="new_rm.show">
+            <tr v-show="rm_template.show">
               <td>
-                <input type="text" v-model.trim="new_rm.raw_material_name" class="form-control" id="inputRawMat"/>
+                <input type="text" v-model.trim="rm_template.data.raw_material_name" class="form-control" id="inputRawMat"/>
               </td>
               <td>
-                <input type="text" v-model.trim="new_rm.percentage_w" class="form-control" id="inputw_w"/>
+                <input type="text" v-model.trim="rm_template.data.percentage_w" class="form-control" id="inputw_w"/>
               </td>
               <td>
-                <input type="text" v-model.trim="new_rm.raw_material_lot" class="form-control" id="inputRMlot"/>
+                <input type="text" v-model.trim="rm_template.data.raw_material_lot" class="form-control" id="inputRMlot"/>
               </td>
               <td>
-                <input type="text" v-model.trim="new_rm.AR" class="form-control" id="inputAR"/>
+                <input type="text" v-model.trim="rm_template.data.AR" class="form-control" id="inputAR"/>
               </td>
               <td>
-                <input type="text" v-model.trim="new_rm.AD" class="form-control" id="inputAD"/>
+                <input type="text" v-model.trim="rm_template.data.AD" class="form-control" id="inputAD"/>
               </td>
               <td>
-                <input type="date" v-model.trim="new_rm.time_added" class="form-control" id="inputTimeAdded"/>
+                <input type="date" v-model.trim="rm_template.data.time_added" class="form-control" id="inputTimeAdded"/>
               </td>
               <td>
-                <input type="text" v-model.trim="new_rm.rm_notes" class="form-control" id="inputRMnotes"/>
+                <input type="text" v-model.trim="rm_template.data.notes" class="form-control" id="inputRMnotes"/>
               </td>
+              <td></td>
             </tr>
           </tbody>
         </table>
-        <button type="button" :disabled="isDisabled" v-show="new_rm.addRMbtn" @click="addRawMat" class="btn btn-primary">Add Raw Material</button>
-        <button type="button" v-show="new_rm.saveRMbtn" @click="saveRawMat" class="btn btn-success">Save Raw Material</button>
+        <button type="button" :disabled="isDisabled" v-show="rm_template.addRMbtn" @click="addRawMat" class="btn btn-primary">Add Raw Material</button>
+        <button type="button" v-show="rm_template.saveRMbtn" @click="saveRawMat" class="btn btn-success">Save Raw Material</button>
       </div>
 
       <div class="form-group">
         <label for="notesTextArea">
           <strong>Notes</strong>
         </label>
-        <textarea
-          class="form-control"
-          :disabled="isDisabled"
-          id="notesTextArea"
-          v-model.trim="record.experimentRecord.notes"
-          rows="3"
-        ></textarea>
+        <textarea class="form-control" :disabled="isDisabled" id="notesTextArea" v-model.trim="record.experimentRecord.notes" rows="3" ></textarea>
       </div>
       <div class="form-group">
         <label for="reasonPrepTextArea">
           <strong>Reason for Preparation</strong>
         </label>
-        <textarea
-          class="form-control"
-          :disabled="isDisabled"
-          id="reasonPrepTextArea"
-          v-model.trim="record.experimentRecord.preparation_reason"
-          rows="3"
-        ></textarea>
+        <textarea class="form-control" :disabled="isDisabled" id="reasonPrepTextArea" v-model.trim="record.experimentRecord.preparation_reason" rows="3" ></textarea>
       </div>
 
       <!-- Hydrogen Peroxide Table -->
@@ -134,7 +131,7 @@
         <label for="h2O2Table">
           <strong>Hydrogen Peroxide</strong>
         </label>
-        <table class="table table-bordered table-hover" id="h2O2Table">
+        <table class="table table-bordered table-hover table-responsive" id="h2O2Table">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in columns_name_h202" :key="index">{{column}}</th>
@@ -142,36 +139,21 @@
           </thead>
           <tbody>
             <tr v-for="record in record.hydro_per_list" :key="record.hp_id">
-              <td v-for="(data, index) in columns_h202" :key="index">{{record[data]}}</td>
+              <td v-for="(data, index) in columns_h202" :key="index"><input type="text" :disabled="isDisabled" v-model.trim="record[data]" class="form-control"/></td>
             </tr>
             <tr class="table-secondary">
-              <td>
-                <strong></strong>
-              </td>
+              <td> <strong></strong> </td>
               <td></td>
-              <td>
-                <strong></strong>
-              </td>
-              <td>
-                <strong></strong>
-              </td>
-              <td>
-                <strong>pH</strong>
-              </td>
-              <td>
-                <strong>{{HP_PH}}</strong>
-              </td>
+              <td> <strong></strong> </td>
+              <td><strong></strong></td>
+              <td><strong>pH</strong></td>
+              <td><strong>{{HP_PH}}</strong></td>
               <td></td>
               <td></td>
             </tr>
             <tr v-show="newH2O2.show">
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.experiment"
-                  class="form-control"
-                  id="inputHPExp"
-                />
+                <input type="text" v-model.trim="newH2O2.experiment_name" class="form-control" id="inputHPExp"/>
               </td>
               <td>
                 <input type="text" v-model.trim="newH2O2.N" class="form-control" id="inputHPN" />
@@ -180,56 +162,25 @@
                 <input type="text" v-model.trim="newH2O2.M" class="form-control" id="inputHPM" />
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.vol_change"
-                  class="form-control"
-                  id="inputHPVol"
-                />
+                <input type="text" v-model.trim="newH2O2.vol_change" class="form-control" id="inputHPVol"/>
               </td>
               <td>
-                <input type="text" v-model.trim="newH2O2.H2O2" class="form-control" id="inputHPHP" />
+                <input type="text" v-model.trim="newH2O2.H2O2" class="form-control" id="inputHPHP"/>
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.accepted_range"
-                  class="form-control"
-                  id="inputHPAcceptedRange"
-                />
+                <input type="text" v-model.trim="newH2O2.accepted_range" class="form-control" id="inputHPAcceptedRange"/>
               </td>
               <td>
-                <input
-                  type="date"
-                  v-model.trim="newH2O2.date"
-                  class="form-control"
-                  id="inputHPDate"
-                />
+                <input type="date" v-model.trim="newH2O2.date" class="form-control" id="inputHPDate"/>
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.initials"
-                  class="form-control"
-                  id="inputHPInit"
-                />
+                <input type="text" v-model.trim="newH2O2.initials" class="form-control" id="inputHPInit"/>
               </td>
             </tr>
           </tbody>
         </table>
-        <button
-          type="button"
-          :disabled="isDisabled"
-          v-show="newH2O2.addHPbtn"
-          @click="addH2O2Record"
-          class="btn btn-primary"
-        >Add Hydrogen Peroxide Record</button>
-        <button
-          type="button"
-          v-show="newH2O2.saveHPbtn"
-          @click="saveH2O2Record"
-          class="btn btn-success"
-        >Save Hydrogen Peroxide Record</button>
+        <button type="button" :disabled="isDisabled" v-show="newH2O2.addHPbtn" @click="addH2O2Record" class="btn btn-primary">Add Hydrogen Peroxide </button>
+        <button type="button" v-show="newH2O2.saveHPbtn" @click="saveH2O2Record" class="btn btn-success">Save Hydrogen Peroxide Record</button>
       </div>
 
       <!-- Hydrogen Peroxide Stability Table -->
@@ -237,7 +188,7 @@
         <label for="h2O2StabTable">
           <strong>Hydrogen Peroxide Stability</strong>
         </label>
-        <table class="table table-bordered table-hover" id="h2O2StabTable">
+        <table class="table table-bordered table-hover table-responsive" id="h2O2StabTable">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in columns_name_h202" :key="index">{{column}}</th>
@@ -245,7 +196,7 @@
           </thead>
           <tbody>
             <tr v-for="record in record.hydro_per_stab_list" :key="record.hp_id">
-              <td v-for="(data, index) in columns_h202" :key="index">{{record[data]}}</td>
+              <td v-for="(data, index) in columns_h202" :key="index"><input type="text" :disabled="isDisabled" v-model.trim="record[data]" class="form-control"/></td>
             </tr>
             <tr class="table-secondary">
               <td>
@@ -269,12 +220,7 @@
             </tr>
             <tr v-show="newH2O2.showHPStab">
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.experiment"
-                  class="form-control"
-                  id="inputHPStabExp"
-                />
+                <input type="text" v-model.trim="newH2O2.experiment_name" class="form-control" id="inputHPStabExp"/>
               </td>
               <td>
                 <input type="text" v-model.trim="newH2O2.N" class="form-control" id="inputHPStabN" />
@@ -283,44 +229,19 @@
                 <input type="text" v-model.trim="newH2O2.M" class="form-control" id="inputHPStabM" />
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.vol_change"
-                  class="form-control"
-                  id="inputHPStabVol"
-                />
+                <input type="text" v-model.trim="newH2O2.vol_change" class="form-control" id="inputHPStabVol"/>
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.H2O2"
-                  class="form-control"
-                  id="inputHPStabHP"
-                />
+                <input type="text" v-model.trim="newH2O2.H2O2" class="form-control" id="inputHPStabHP"/>
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.accepted_range"
-                  class="form-control"
-                  id="inputHPStabAcceptedRange"
-                />
+                <input type="text" v-model.trim="newH2O2.accepted_range" class="form-control" id="inputHPStabAcceptedRange"/>
               </td>
               <td>
-                <input
-                  type="date"
-                  v-model.trim="newH2O2.date"
-                  class="form-control"
-                  id="inputHPStabDate"
-                />
+                <input type="date" v-model.trim="newH2O2.date" class="form-control" id="inputHPStabDate"/>
               </td>
               <td>
-                <input
-                  type="text"
-                  v-model.trim="newH2O2.initials"
-                  class="form-control"
-                  id="inputHPStabInit"
-                />
+                <input type="text" v-model.trim="newH2O2.initials" class="form-control" id="inputHPStabInit"/>
               </td>
             </tr>
           </tbody>
@@ -388,18 +309,23 @@ export default {
       column_name_rm: ["Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added", "Notes"],
       columns_h202: ["experiment_name", "N", "M", "vol_change", "H2O2", "accepted_range", "date", "initials"],
       columns_name_h202: ["Hydrogen Peroxide", "N", "Ms [gr]", "∆V (ml)", "H2O2", "Accepted Range", "Date", "Initials" ],
-      new_rm: {
-        rm_id: "",
-        raw_material_name: "",
-        w_w: "",
-        raw_material_lot: "",
-        AR: "",
-        AD: "",
-        time_added: "",
-        rm_notes: "",
+      rm_template: {
+        data: {
+          raw_material_name: "",
+          percentage_w: "",
+          raw_material_lot: "",
+          AR: "",
+          AD: "",
+          time_added: "",
+          notes: "",
+        },
         show: false,
         addRMbtn: true,
-        saveRMbtn: false
+        saveRMbtn: false,
+        editRMBtn: true,
+        updateRMBtn: false,
+        cancelRMBtn: false,
+        deleteRMBtn: true,
       },
       newH2O2: {
         experiment_name: "",
@@ -429,16 +355,7 @@ export default {
         postRequest(baseURL + '/updateExperimentRecord', this.record);        
       }
       
-      this.isDisabled = true;
-      this.show_delete = true;
-      this.show_edit = true;
-      this.show_cancel = false;
-      this.show_save = false;
-    },
-    getDate() {
-      var today = new Date();
-      var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-      return curDate;
+      this.cancel();
     },
     newDate(date) {
       if(date != "") {
@@ -448,42 +365,51 @@ export default {
       }
     },
     addRawMat() {
-      this.new_rm.show = true;
-      this.new_rm.addRMbtn = false;
-      this.new_rm.saveRMbtn = true;
+      this.rm_template.show = true;
+      this.rm_template.addRMbtn = false;
+      this.rm_template.saveRMbtn = true;
+    },
+    editRawMat() {
+      //this.rm_template.data = x; 
+    },
+    deleteRawMat() {
+
+    },
+    updateRawMat() {
+
+    },
+    cancelRawMat() {
+
     },
     saveRawMat() {
-      if (this.new_rm.raw_material_name.length > 0) {
+      if (this.rm_template.data.raw_material_name.length > 0) {
         //Building JSON object to send
         let record = {
           experimentRecord: {
             record_id: this.record.experimentRecord.record_id
           }, 
-          raw_materials_list: [{
-            raw_material_name: this.new_rm.raw_material_name,
-            percentage_w: this.new_rm.percentage_w,
-            raw_material_lot: this.new_rm.raw_material_lot,
-            AR: this.new_rm.AR,
-            AD: this.new_rm.AD,
-            time_added: this.new_rm.time_added,
-            notes: this.new_rm.rm_notes
-          }]
+          raw_materials_list: []
         };
+        record.raw_materials_list.push(this.rm_template.data);
+        console.log(record.raw_materials_list);
         postRequest(baseURL + '/addRawMaterial', record);
-        this.record.raw_materials_list.push(record.raw_materials_list[0]);     
+        axios.get(baseURL + '/getRawMaterial?=' + this.$store.state.currentRecordID).then( response => {
+          this.record.raw_materials_list = response.data.raw_materials_list;
+          console.log(response.data.message);
+        });
+        //this.record.raw_materials_list.push(record.raw_materials_list[0]);     
       }
       //Resetting the inputs
-      this.new_rm.rm_id = "";
-      this.new_rm.raw_material_name = "";
-      this.new_rm.percentage_w = "";
-      this.new_rm.raw_material_lot = "";
-      this.new_rm.AR = "";
-      this.new_rm.AD = "";
-      this.new_rm.time_added = "";
-      this.new_rm.rm_notes = "";
-      this.new_rm.show = false;
-      this.new_rm.addRMbtn = true;
-      this.new_rm.saveRMbtn = false;
+      this.rm_template.data.raw_material_name = "";
+      this.rm_template.data.percentage_w = "";
+      this.rm_template.data.raw_material_lot = "";
+      this.rm_template.data.AR = "";
+      this.rm_template.data.AD = "";
+      this.rm_template.data.time_added = "";
+      this.rm_template.data.notes = "";
+      this.rm_template.data.show = false;
+      this.rm_template.addRMbtn = true;
+      this.rm_template.saveRMbtn = false;
     },
     addH2O2Record() {
       this.newH2O2.show = true;
@@ -491,7 +417,7 @@ export default {
       this.newH2O2.saveHPbtn = true;
     },
     saveH2O2Record() {
-      if (this.newH2O2.experiment.length > 0) {
+      if (this.newH2O2.experiment_name.length > 0) {
         //Building JSON object to send
         let record = {
           experimentRecord: {
@@ -532,7 +458,7 @@ export default {
       this.newH2O2.saveHPStabbtn = true;
     },
     saveH2O2StabRecord() {
-      if (this.newH2O2.experiment.length > 0) {
+      if (this.newH2O2.experiment_name.length > 0) {
         //Building JSON object to send
         let record = {
           experimentRecord: {
@@ -540,7 +466,7 @@ export default {
           }, 
           hydro_per_list: [],
           hydro_per_stab_list: [{
-            experiment_name: this.newH2O2.experiment,
+            experiment_name: this.newH2O2.experiment_name,
             N: this.newH2O2.N,
             M: this.newH2O2.M,
             vol_change: this.newH2O2.vol_change,
@@ -652,4 +578,5 @@ function postRequest(url, record) {
     console.log(response.data.message)
   });
 }
+
 </script>

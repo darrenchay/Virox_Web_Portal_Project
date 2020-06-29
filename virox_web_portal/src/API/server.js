@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const { query } = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 const app = express();
@@ -43,6 +44,52 @@ router.get('/getRecord', (req, res) => {
             records: record
         });
     })();
+});
+
+//Gets the raw materials for a specific record
+router.get('/getRawMaterial', (req, res) => {
+    const id = req.query.id;
+    let record = {
+        raw_materials_list: [],
+    };
+
+    console.log(id);
+
+    (async function() {
+        console.log("running")
+        record.raw_materials_list = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
+        console.log("done ");
+        res.send({
+            message: 'Successfully retrieved ' + record.raw_materials_list.length + ' raw materials',
+            raw_materials_list: record.raw_materials_list
+        });
+    })
+});
+
+//Gets Hydro perox data for a specific record
+router.get('/getHP', (req, res) =>  {
+    const id = req.query.id;
+
+    (async function() {
+        let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+        res.send({
+            message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
+            hydro_per_list: HP
+        });
+    });
+});
+
+//Gets Hydro Perox stabilityh data for a specific record
+router.get('/getHPStab', (req, res) =>  {
+    const id = req.query.id;
+
+    (async function() {
+        let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+        res.send({
+            message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide stability records',
+            hydro_per_stab_list: HP
+        });
+    })
 });
 
 //Add an experiment record to the database
@@ -157,7 +204,7 @@ router.post('/addHP', (req, res) => {
 router.post('/updateExperimentRecord', (req, res) => {
     let id = req.body.record.experimentRecord.record_id;
     let record = req.body.record;
-    record.experimentRecord.date_updated = getCurrDate();
+    record.experimentRecord.date_updated = getCurrDate(); //Update the updated date of the record
 
     (async function () {
         let returnData = await DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', id, [], Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', Object.values(record.experimentRecord), 'db.run', res);
@@ -363,7 +410,7 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
                 } else {
                     data = rows;
                     //console.log("Rows:");
-                    console.log(data.length);
+                    //console.log(data);
                 }
                 resolve(data);
             })

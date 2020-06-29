@@ -2,8 +2,14 @@ GET http://localhost:3000/getRecords HTTP/1.1
 
 
 ### Get single record with an ID
-GET http://localhost:3000/getRecord?id=44 HTTP/1.1
+GET http://localhost:3000/getRecord?id=52 HTTP/1.1
 
+
+### Get single record with an ID
+GET http://localhost:3000/getRawMaterial?id=52 HTTP/1.1
+
+### Get single record with an ID
+GET http://localhost:3000/getHP?id=45 HTTP/1.1
 
 ### Adding a record
 POST http://localhost:3000/addExperimentRecord HTTP/1.1
