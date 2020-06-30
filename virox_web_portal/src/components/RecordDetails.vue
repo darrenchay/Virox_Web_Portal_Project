@@ -125,7 +125,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="HP in record.HPList" :key="HP.raw_material_id">
+            <tr v-for="HP in record.HPList" :key="HP.hp_id">
               <td v-for="(data, index) in HPColumns" :key="index">
                 <input v-if="index != 6" type="text" :disabled="isHPRowDisabled" v-model.trim="HP[data]" class="form-control"/>
                 <input v-else type="date" :disabled="isHPRowDisabled" v-model.trim="HP[data]" class="form-control"/>
@@ -181,11 +181,55 @@
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in HPColumnNames" :key="index">{{column}}</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
+            <tr v-for="HPStab in record.HPStabilityList" :key="HPStab.hp_id">
+              <td v-for="(data, index) in HPColumns" :key="index">
+                <input v-if="index != 6" type="text" :disabled="isHPStabRowDisabled" v-model.trim="HPStab[data]" class="form-control"/>
+                <input v-else type="date" :disabled="isHPStabRowDisabled" v-model.trim="HPStab[data]" class="form-control"/>
+              </td>
+              <td>
+                <button type="button" :disabled="isHPStabRowDisabled" @click="deleteHPStab(HPStab)" class="btn btn-danger">Delete</button>
+              </td>
+            </tr>
+            <tr v-show="showHPStabTemplate">
+              <td>
+                <input type="text" v-model.trim="hpTemplate.experiment_name" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.N" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.M" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.H2O2" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.accepted_range" class="form-control"/>
+              </td>
+              <td>
+                <input type="date" v-model.trim="hpTemplate.date" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.initials" class="form-control"/>
+              </td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
+        <div>
+          <button type="button" :disabled="isEditingDisabled" v-show="showAddHPStab" @click="addHPStab" class="btn btn-primary mr-2">Add Hydrogen Peroxide Stability Data</button>
+          <button type="button" :disabled="isEditingDisabled" v-show="showEditHPStabBtn" @click="editHPStab" class="btn btn-info">Edit Hydrogen Peroxide Stability Data</button>
+          <button type="button" v-show="showUpdateHPStabBtn" @click="updateHPStab" class="btn btn-success mr-2">Update Hydrogen Peroxide Stability Data</button>
+          <button type="button" v-show="showSaveHPStab" @click="saveHPStab" class="btn btn-success mr-2">Save Hydrogen Peroxide Stability Data</button>
+          <button type="button" v-show="showCancelHPStab" @click="cancelHPStab" class="btn btn-secondary">Cancel</button>
+        </div>
       </div>
       
 
@@ -227,6 +271,13 @@ export default {
       showEditHPBtn: true,
       showUpdateHPBtn: false,
 
+      isHPStabRowDisabled: true,
+      showAddHPStab: true,
+      showSaveHPStab: false,
+      showCancelHPStab: false,
+      showEditHPStabBtn: true,
+      showUpdateHPStabBtn: false,
+
       record: {
         experimentRecord: {},
         RMList: [],
@@ -262,6 +313,7 @@ export default {
         PH: "",
       },
       showHPTemplate: false,
+      showHPStabTemplate: false,
       
       cachedRecord: {},
       tempRMList: [],
@@ -352,13 +404,9 @@ export default {
       this.showUpdateRMBtn = false;
 
       this.showRMTemplate = false;
-      this.rmTemplate.raw_material_name = "";
-      this.rmTemplate.percentage_w = "";
-      this.rmTemplate.raw_material_lot = "";
-      this.rmTemplate.AR = "";
-      this.rmTemplate.AD = "";
-      this.rmTemplate.time_added = "";
-      this.rmTemplate.notes = "";
+      Object.keys(this.rmTemplate).forEach(key => {
+        this.rmTemplate[key] = "";
+      });
       /* this.record.RMList.forEach(function (RM) {
         this.tempRMList.push(Object.assign({}, RM));
       }); */
@@ -414,7 +462,6 @@ export default {
       this.showHPTemplate = true;
     },
     saveHP() {
-      console.log(this.hpTemplate);
       if(this.hpTemplate.experiment_name.length > 0) {
         //Building JSON object to send
         let record = {
@@ -425,8 +472,8 @@ export default {
           HPStabilityList: []
         };
         record.HPList.push(this.hpTemplate);
-        console.log(record);
         postRequest(baseURL + '/addHP', record);
+
         //Updating HPList
         axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
           console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
@@ -458,19 +505,110 @@ export default {
       this.showUpdateHPBtn = true;
       this.showCancelHP = true;
     },
-    deleteHP: function() {
-      
-    },
-    updateHP(){
-      postRequest(baseURL + '/updateRawMaterial', this.record);
-      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
-          this.record.RMList = response.data.records.RMList;
+    deleteHP: function(HP) {
+      let resp = confirm("Are you sure you want to delete this record?"); 
+      let id = HP.hp_id;
+      //console.log(id);
+      if(resp == true) {
+        postRequest(baseURL + '/deleteHP', id);
+        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+          this.record.HPList = response.data.records.HPList;
           this.formatRecord();
           //console.log(this.record);
         });
-      this.cancelRM();
+        this.cancelHP();
+      } 
     },
+    updateHP(){
+      postRequest(baseURL + '/updateHP', this.record);
+      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
+          this.record.HPList = response.data.records.HPList;
+          this.formatRecord();
+          //console.log(this.record);
+        });
+      this.cancelHP();
+    },
+
+    //HP stability handlers
+    addHPStab() {
+      this.showSaveHPStab = true,
+      this.showAddHPStab = false,
+      this.showCancelHPStab = true
+      this.showEditHPStabBtn = false;
+      this.showHPStabTemplate = true;
+    },
+    saveHPStab() {
+      if(this.hpTemplate.experiment_name.length > 0) {
+        //Building JSON object to send
+        let record = {
+          experimentRecord: {
+            record_id: this.record.experimentRecord.record_id
+          }, 
+          HPList: [],
+          HPStabilityList: []
+        };
+        record.HPStabilityList.push(this.hpTemplate);
+        postRequest(baseURL + '/addHP', record);
+
+        //Updating HPList
+        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+          this.record.HPStabilityList = response.data.records.HPStabilityList;
+          this.formatRecord();
+          this.cancelHPStab();            
+          //console.log(this.record.RMList);
+        });
+      }
+    },
+    cancelHPStab() {
+      this.showSaveHPStab = false,
+      this.showAddHPStab = true,
+      this.showCancelHPStab = false
+
+      this.isHPStabRowDisabled = true;
+      this.showEditHPStabBtn = true;
+      this.showUpdateHPStabBtn = false;
+
+      this.showHPStabTemplate = false;
+      Object.keys(this.hpTemplate).forEach(key => {
+        this.hpTemplate[key] = "";
+      });
+    },
+    editHPStab() {
+      this.isHPStabRowDisabled = false;
+      this.showEditHPStabBtn = false;
+      this.showAddHPStab = false,
+      this.showUpdateHPStabBtn = true;
+      this.showCancelHPStab = true;
+    },
+    deleteHPStab: function(HPStab) {
+      let resp = confirm("Are you sure you want to delete this record?"); 
+      let id = HPStab.hp_id;
+      //console.log(id);
+      if(resp == true) {
+        postRequest(baseURL + '/deleteHP', id);
+        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+          this.record.HPStabilityList = response.data.records.HPStabilityList;
+          this.formatRecord();
+          //console.log(this.record);
+        });
+        this.cancelHPStab();
+      } 
+    },
+    updateHPStab(){
+      postRequest(baseURL + '/updateHP', this.record);
+      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
+          this.record.HPStabilityList = response.data.records.HPStabilityList;
+          this.formatRecord();
+          //console.log(this.record);
+        });
+      this.cancelHPStab();
+    },
+
 
     //Converts all the dates in record from string to date format  
     formatRecord() {
@@ -499,6 +637,7 @@ export default {
         this.record = response.data.records;
         this.record.experimentRecord = response.data.records.experimentRecord[0];
         this.formatRecord();
+        console.log(this.record);
         //console.log("record:");
         //console.log(this.record.experimentRecord.preparation_reason);
         //console.log("cached:");

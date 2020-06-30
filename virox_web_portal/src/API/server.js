@@ -313,7 +313,8 @@ router.post('/deleteRawMaterial', (req, res) => {
 
 //Delete an HP record
 router.post('/deleteHP', (req, res) => {
-    let id = req.body.id;
+    let id = req.body.record;
+    //console.log(req.body)
     (async function () {
         let changes;
         let returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'hp_id'), '', [], 'db.run', res);
