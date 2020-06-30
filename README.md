@@ -1,5 +1,10 @@
 # virox_web_portal
 
+### Remote Server
+```
+Trying to run the server remotely on heroku
+```
+
 ## Project setup
 ```
 npm install
