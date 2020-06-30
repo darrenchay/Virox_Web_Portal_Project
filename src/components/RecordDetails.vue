@@ -266,7 +266,8 @@
 
 <script>
 const axios = require("axios");
-const baseURL = "http://localhost:3000";
+
+const baseURL = "";
 export default {
   name: "RecordDetails",
   template: "#general-input-form",
