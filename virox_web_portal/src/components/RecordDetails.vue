@@ -161,6 +161,17 @@
               </td>
               <td></td>
             </tr>
+            <tr class="table-secondary">
+              <td> <strong></strong> </td>
+              <td></td>
+              <td> <strong></strong> </td>
+              <td><strong></strong></td>
+              <td><strong>pH</strong></td>
+              <td><strong>{{HP_PH}}</strong></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
         <div>
@@ -174,10 +185,10 @@
 
       <!-- Hydrogen Peroxide Stability Table -->
       <div class="form-group">
-        <label for="h2O2StabTable">
+        <label for="HPStabTable">
           <strong>Hydrogen Peroxide Stability</strong>
         </label>
-        <table class="table table-bordered table-hover table-responsive" id="h2O2StabTable">
+        <table class="table table-bordered table-hover table-responsive" id="HPStabTable">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in HPColumnNames" :key="index">{{column}}</th>
@@ -219,6 +230,17 @@
               <td>
                 <input type="text" v-model.trim="hpTemplate.initials" class="form-control"/>
               </td>
+              <td></td>
+            </tr>
+            <tr class="table-secondary">
+              <td> <strong></strong> </td>
+              <td></td>
+              <td> <strong></strong> </td>
+              <td><strong></strong></td>
+              <td><strong>pH</strong></td>
+              <td><strong>{{HPStab_PH}}</strong></td>
+              <td></td>
+              <td></td>
               <td></td>
             </tr>
           </tbody>
@@ -277,6 +299,9 @@ export default {
       showCancelHPStab: false,
       showEditHPStabBtn: true,
       showUpdateHPStabBtn: false,
+
+      HP_PH: 0,
+      HPStab_PH: 0,
 
       record: {
         experimentRecord: {},
