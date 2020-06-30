@@ -6,9 +6,12 @@
     </div>
     <footer class="footer">
       <div class="container">
-        <span class="text-muted">Virox Web Portal</span>
-        <br>
-        <span class="text-muted">Darren Chay Loong</span>
+        <div class="row">
+          <span class="text-muted">Virox Web Portal </span>
+          <span></span>
+          <br>
+          <span class="text-muted">Darren Chay Loong</span>
+        </div>
       </div>
     </footer>
   </div>

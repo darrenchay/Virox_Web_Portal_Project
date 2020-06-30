@@ -144,6 +144,7 @@ router.post('/addRawMaterial', (req, res) => {
 //Add all the hydrogen peroxide data to the database
 router.post('/addHP', (req, res) => {
     let record = req.body.record;
+    console.log(record);
     //Check if there are records to add
     if (record.HPList.length != 0 || record.HPStabilityList.length != 0) {
         //Creating list of keys

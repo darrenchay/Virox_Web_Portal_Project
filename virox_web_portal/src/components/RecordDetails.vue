@@ -49,33 +49,33 @@
             <tr v-for="RawMat in record.RMList" :key="RawMat.raw_material_id">
               <td v-for="(data, index) in RMColumns" :key="index">
                 <input v-if="index != 5" type="text" :disabled="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control"/>
-                <input v-else type="date" :disabled="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control"/>
+                <input v-else type="date" :disabled="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control col-sm"/>
                 </td>
               <td>
                 <button type="button" :disabled="isRMRowDisabled" @click="deleteRM(RawMat)" class="btn btn-danger">Delete</button>
               </td>
             </tr>
-            <tr v-show="rmTemplate.showRMTemplate">
+            <tr v-show="showRMTemplate">
               <td>
-                <input type="text" v-model.trim="rmTemplate.data.raw_material_name" class="form-control" id="inputRawMat"/>
+                <input type="text" v-model.trim="rmTemplate.raw_material_name" class="form-control" id="inputRawMat"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.data.percentage_w" class="form-control" id="inputw_w"/>
+                <input type="text" v-model.trim="rmTemplate.percentage_w" class="form-control" id="inputw_w"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.data.raw_material_lot" class="form-control" id="inputRMlot"/>
+                <input type="text" v-model.trim="rmTemplate.raw_material_lot" class="form-control" id="inputRMlot"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.data.AR" class="form-control" id="inputAR"/>
+                <input type="text" v-model.trim="rmTemplate.AR" class="form-control" id="inputAR"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.data.AD" class="form-control" id="inputAD"/>
+                <input type="text" v-model.trim="rmTemplate.AD" class="form-control" id="inputAD"/>
               </td>
               <td>
-                <input type="date" v-model.trim="rmTemplate.data.time_added" class="form-control" id="inputTimeAdded"/>
+                <input type="date" v-model.trim="rmTemplate.time_added" class="form-control" id="inputTimeAdded"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.data.notes" class="form-control" id="inputRMnotes"/>
+                <input type="text" v-model.trim="rmTemplate.notes" class="form-control" id="inputRMnotes"/>
               </td>
               <td></td>
             </tr>
@@ -114,18 +114,62 @@
 
       <!-- Hydrogen Peroxide Table -->
       <div class="form-group">
-        <label for="h2O2Table">
+        <label for="HPTable">
           <strong>Hydrogen Peroxide</strong>
         </label>
-        <table class="table table-bordered table-hover table-responsive" id="h2O2Table">
+        <table class="table table-bordered table-hover table-responsive" id="HPTable">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in HPColumnNames" :key="index">{{column}}</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
+            <tr v-for="HP in record.HPList" :key="HP.raw_material_id">
+              <td v-for="(data, index) in HPColumns" :key="index">
+                <input v-if="index != 6" type="text" :disabled="isHPRowDisabled" v-model.trim="HP[data]" class="form-control"/>
+                <input v-else type="date" :disabled="isHPRowDisabled" v-model.trim="HP[data]" class="form-control"/>
+              </td>
+              <td>
+                <button type="button" :disabled="isHPRowDisabled" @click="deleteHP(HP)" class="btn btn-danger">Delete</button>
+              </td>
+            </tr>
+            <tr v-show="showHPTemplate">
+              <td>
+                <input type="text" v-model.trim="hpTemplate.experiment_name" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.N" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.M" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.H2O2" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.accepted_range" class="form-control"/>
+              </td>
+              <td>
+                <input type="date" v-model.trim="hpTemplate.date" class="form-control"/>
+              </td>
+              <td>
+                <input type="text" v-model.trim="hpTemplate.initials" class="form-control"/>
+              </td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
+        <div>
+          <button type="button" :disabled="isEditingDisabled" v-show="showAddHP" @click="addHP" class="btn btn-primary mr-2">Add Hydrogen Peroxide Data</button>
+          <button type="button" :disabled="isEditingDisabled" v-show="showEditHPBtn" @click="editHP" class="btn btn-info">Edit Hydrogen Peroxide Data</button>
+          <button type="button" v-show="showUpdateHPBtn" @click="updateHP" class="btn btn-success mr-2">Update Hydrogen Peroxide Data</button>
+          <button type="button" v-show="showSaveHP" @click="saveHP" class="btn btn-success mr-2">Save Hydrogen Peroxide Data</button>
+          <button type="button" v-show="showCancelHP" @click="cancelHP" class="btn btn-secondary">Cancel</button>
+        </div>
       </div>
 
       <!-- Hydrogen Peroxide Stability Table -->
@@ -176,28 +220,50 @@ export default {
       showEditRMBtn: true,
       showUpdateRMBtn: false,
 
+      isHPRowDisabled: true,
+      showAddHP: true,
+      showSaveHP: false,
+      showCancelHP: false,
+      showEditHPBtn: true,
+      showUpdateHPBtn: false,
+
       record: {
         experimentRecord: {},
         RMList: [],
         HPList: [],
         HPStabilityList: []
       },
+
       RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "AR", "AD", "time_added", "notes"],
       RMColumnNames: ["Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added", "Notes"],
       HPColumns: ["experiment_name", "N", "M", "vol_change", "H2O2", "accepted_range", "date", "initials"],
       HPColumnNames: ["Hydrogen Peroxide", "N", "Ms [gr]", "∆V (ml)", "H2O2", "Accepted Range", "Date", "Initials" ],
+
       rmTemplate: {
-        data: {
-          raw_material_name: "",
-          percentage_w: "",
-          raw_material_lot: "",
-          AR: "",
-          AD: "",
-          time_added: "",
-          notes: "",
-        },
-        showRMTemplate: false,
+        raw_material_name: "",
+        percentage_w: "",
+        raw_material_lot: "",
+        AR: "",
+        AD: "",
+        time_added: "",
+        notes: "",
       },
+      showRMTemplate: false,
+
+      hpTemplate: {
+        experiment_name: "",
+        N: "",
+        M: "",
+        vol_change: "",
+        H2O2: "",
+        accepted_range: "",
+        date: "",
+        initials: "",
+        PH: "",
+      },
+      showHPTemplate: false,
+      
+      cachedRecord: {},
       tempRMList: [],
     };
   },
@@ -205,7 +271,12 @@ export default {
     //Record handlers
     submit() {
       postRequest(baseURL + "/updateExperimentRecord", this.record);
-      this.cancelRecord();
+      this.isEditingDisabled = true,
+      this.showSubmit = false,
+      this.showEditRecord = true,
+      this.showCancelRecord = false,
+      this.showDeleteRecord = true
+      //this.cancelRecord();
     },
     cancelRecord() {
       this.isEditingDisabled = true,
@@ -214,6 +285,7 @@ export default {
       this.showCancelRecord = false,
       this.showDeleteRecord = true
       this.cancelRM();
+      this.record.experimentRecord = Object.assign({}, this.cachedRecord); //Revert changes
     },
     deleteRecord() {
       let resp = confirm("Are you sure you want to delete this record?"); 
@@ -231,6 +303,7 @@ export default {
       this.showEditRecord = false,
       this.showCancelRecord = true,
       this.showDeleteRecord = false
+      this.cachedRecord = { ...this.record.experimentRecord}; //Create a cached version to revert changes on cancel
     },
 
     //Raw Material handlers
@@ -239,10 +312,10 @@ export default {
       this.showAddRM = false,
       this.showCancelRM = true
       this.showEditRMBtn = false;
-      this.rmTemplate.showRMTemplate = true;
+      this.showRMTemplate = true;
     },
     saveRM() {
-      if(this.rmTemplate.data.raw_material_name.length > 0) {
+      if(this.rmTemplate.raw_material_name.length > 0) {
         //Building JSON object to send
         let record = {
           experimentRecord: {
@@ -250,34 +323,46 @@ export default {
           }, 
           RMList: []
         };
-        record.RMList.push(this.rmTemplate.data);
+        record.RMList.push(this.rmTemplate);
 
+        console.log("adding");
         postRequest(baseURL + '/addRawMaterial', record);
         /* axios.get(baseURL + '/getRawMaterial?=' + this.$store.state.currentRecordID).then( response => {
           this.record.raw_materials_list = response.data.raw_materials_list;
           console.log(response.data.message);
         }); */
+        console.log("done");
         //Updating RMList
         axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
           console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
           this.record.RMList = response.data.records.RMList;
           this.formatRecord();
-          //console.log(this.record);
+          this.cancelRM();            
+          //console.log(this.record.RMList);
         });
       }
-      this.cancelRM();
     },
     cancelRM() {
       this.showSaveRM = false,
       this.showAddRM = true,
       this.showCancelRM = false
-      this.rmTemplate.showRMTemplate = false;
-      this.rmTemplate = resetTemplate(this.rmTemplate);
-      
+
       this.isRMRowDisabled = true;
       this.showEditRMBtn = true;
       this.showUpdateRMBtn = false;
-      this.record.RMList = this.tempRMList; //TOFIX
+
+      this.showRMTemplate = false;
+      this.rmTemplate.raw_material_name = "";
+      this.rmTemplate.percentage_w = "";
+      this.rmTemplate.raw_material_lot = "";
+      this.rmTemplate.AR = "";
+      this.rmTemplate.AD = "";
+      this.rmTemplate.time_added = "";
+      this.rmTemplate.notes = "";
+      /* this.record.RMList.forEach(function (RM) {
+        this.tempRMList.push(Object.assign({}, RM));
+      }); */
+      //this.record.RMList = this.tempRMList; //TOFIX
     },
     editRM() {
       this.isRMRowDisabled = false;
@@ -285,22 +370,105 @@ export default {
       this.showAddRM = false,
       this.showUpdateRMBtn = true;
       this.showCancelRM = true;
-      this.record.RMList.forEach(rawMat => {//TO FIX
-        this.tempRMList.push(rawMat);
-      })
+      /* this.record.RMList.forEach(function (RM) {
+        this.tempRMList.push(Object.assign({}, RM));
+      });
       console.log(this.tempRMList);
+      console.log("real records: ")
+      console.log(this.record.RMList); */
     },
     deleteRM: function(rawMat) {
       let resp = confirm("Are you sure you want to delete this record?"); 
       let id = rawMat.raw_material_id;
       if(resp == true) {
         postRequest(baseURL + '/deleteRawMaterial', id);
+        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+          this.record.RMList = response.data.records.RMList;
+          this.formatRecord();
+          //console.log(this.record);
+        });
+        this.cancelRM();
+        //this.$router.go(); //BAD update status using a new get request 
       } 
       //NOT UPDATING CHANGES
       //console.log(rawMat);
     },
     updateRM(){
       postRequest(baseURL + '/updateRawMaterial', this.record);
+      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
+          this.record.RMList = response.data.records.RMList;
+          this.formatRecord();
+          //console.log(this.record);
+        });
+      this.cancelRM();
+    },
+
+    //HP handlers
+    addHP() {
+      this.showSaveHP = true,
+      this.showAddHP = false,
+      this.showCancelHP = true
+      this.showEditHPBtn = false;
+      this.showHPTemplate = true;
+    },
+    saveHP() {
+      console.log(this.hpTemplate);
+      if(this.hpTemplate.experiment_name.length > 0) {
+        //Building JSON object to send
+        let record = {
+          experimentRecord: {
+            record_id: this.record.experimentRecord.record_id
+          }, 
+          HPList: [],
+          HPStabilityList: []
+        };
+        record.HPList.push(this.hpTemplate);
+        console.log(record);
+        postRequest(baseURL + '/addHP', record);
+        //Updating HPList
+        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+          this.record.HPList = response.data.records.HPList;
+          this.formatRecord();
+          this.cancelHP();            
+          //console.log(this.record.RMList);
+        });
+      }
+    },
+    cancelHP() {
+      this.showSaveHP = false,
+      this.showAddHP = true,
+      this.showCancelHP = false
+
+      this.isHPRowDisabled = true;
+      this.showEditHPBtn = true;
+      this.showUpdateHPBtn = false;
+
+      this.showHPTemplate = false;
+      Object.keys(this.hpTemplate).forEach(key => {
+        this.hpTemplate[key] = "";
+      });
+    },
+    editHP() {
+      this.isHPRowDisabled = false;
+      this.showEditHPBtn = false;
+      this.showAddHP = false,
+      this.showUpdateHPBtn = true;
+      this.showCancelHP = true;
+    },
+    deleteHP: function() {
+      
+    },
+    updateHP(){
+      postRequest(baseURL + '/updateRawMaterial', this.record);
+      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
+          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
+          this.record.RMList = response.data.records.RMList;
+          this.formatRecord();
+          //console.log(this.record);
+        });
       this.cancelRM();
     },
 
@@ -331,7 +499,10 @@ export default {
         this.record = response.data.records;
         this.record.experimentRecord = response.data.records.experimentRecord[0];
         this.formatRecord();
-        console.log(this.record);
+        //console.log("record:");
+        //console.log(this.record.experimentRecord.preparation_reason);
+        //console.log("cached:");
+        //console.log(this.cachedRecord.preparation_reason);
 
         //Enable editing for new records
         if (this.record.experimentRecord.LOT_NO == "") {
@@ -378,12 +549,5 @@ function newDate(date) {
   } else {
     return "";
   }
-}
-
-function resetTemplate(template){
-  Object.keys(template).forEach(key => {
-    template[key] = "";
-  });
-  return template;
 }
 </script>
