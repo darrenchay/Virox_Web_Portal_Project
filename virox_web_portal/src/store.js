@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import createPersistedState from "vuex-persistedstate";
 
 const fb = require('./firebaseConfig.js')
 
@@ -45,5 +46,7 @@ export const store = new Vuex.Store({
         setCurrentRecordID(state, ID) {
             state.currentRecordID = ID
         }
-    }
+    },
+
+    plugins: [createPersistedState()]
 })
