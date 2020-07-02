@@ -63,7 +63,7 @@ router.get('/getRawMaterial', (req, res) => {
             message: 'Successfully retrieved ' + record.RMList.length + ' raw materials',
             RMList: record.RMList
         });
-    })
+    })();
 });
 
 //Gets Hydro perox data for a specific record
@@ -76,7 +76,7 @@ router.get('/getHP', (req, res) =>  {
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
             HPList: HP
         });
-    });
+    })();
 });
 
 //Gets Hydro Perox stabilityh data for a specific record
@@ -89,7 +89,7 @@ router.get('/getHPStab', (req, res) =>  {
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide stability records',
             HPStabilityList: HP
         });
-    })
+    })();
 });
 
 //Add an experiment record to the database
