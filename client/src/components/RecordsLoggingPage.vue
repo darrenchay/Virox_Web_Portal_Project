@@ -25,7 +25,8 @@
 
 <script>
     const axios = require('axios')
-    const baseURL = "/API";
+    //const baseURL = "/API";
+    const baseURL = "http://localhost:3000/API"
     export default {
         name: 'Records',
         template: '#recordsPage',

@@ -1,18 +1,18 @@
-GET http://localhost:3000/getRecords HTTP/1.1
+GET http://localhost:3000/API/getRecords HTTP/1.1
 
 
 ### Get single record with an ID
-GET http://localhost:3000/getRecord?id=45 HTTP/1.1
+GET http://localhost:3000/API/getRecord?id=45 HTTP/1.1
 
 
 ### Get single record with an ID
-GET http://localhost:3000/getRawMaterial?id=52 HTTP/1.1
+GET http://localhost:3000/API/getRawMaterial?id=45 HTTP/1.1
 
 ### Get single record with an ID
-GET http://localhost:3000/getHP?id=45 HTTP/1.1
+GET http://localhost:3000/API/getHP?id=45 HTTP/1.1
 
 ### Adding a record
-POST http://localhost:3000/addExperimentRecord HTTP/1.1
+POST http://localhost:3000/API/addExperimentRecord HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -114,7 +114,7 @@ Content-Type: application/json
 }
 
 ### Adding Raw materials 
-POST http://localhost:3000/addRawMaterial HTTP/1.1
+POST http://localhost:3000/API/addRawMaterial HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -146,7 +146,7 @@ Content-Type: application/json
 }
 
 ### Adding Hydrogen Peroxide data
-POST http://localhost:3000/addHP HTTP/1.1
+POST http://localhost:3000/API/addHP HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -217,7 +217,7 @@ Content-Type: application/json
 }
 
 ### Updating experiment record
-POST http://localhost:3000/updateExperimentRecord HTTP/1.1
+POST http://localhost:3000/API/updateExperimentRecord HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -243,7 +243,7 @@ Content-Type: application/json
 }
 
 ### Updating Raw materials 
-POST http://localhost:3000/updateRawMaterial HTTP/1.1
+POST http://localhost:3000/API/updateRawMaterial HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -277,7 +277,7 @@ Content-Type: application/json
 }
 
 ### Updating experiment record
-POST http://localhost:3000/updateHP HTTP/1.1
+POST http://localhost:3000/API/updateHP HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -353,10 +353,10 @@ Content-Type: application/json
 }
 
 ### Delete an experiment record
-GET http://localhost:3000/deleteRecord?id=44 HTTP/1.1
+GET http://localhost:3000/API/deleteRecord?id=44 HTTP/1.1
 
 ### Delete a raw material record
-POST http://localhost:3000/deleteRawMaterial HTTP/1.1
+POST http://localhost:3000/API/deleteRawMaterial HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 
@@ -365,7 +365,7 @@ Content-Type: application/json
 }
 
 ### Delete an HP record
-POST http://localhost:3000/deleteHP HTTP/1.1
+POST http://localhost:3000/API/deleteHP HTTP/1.1
 Host: localhost:3000
 Content-Type: application/json
 

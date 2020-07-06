@@ -328,6 +328,7 @@ router.post('/deleteHP', (req, res) => {
 const port = process.env.PORT || 3000
 
 app.listen(port);
+
 console.log(`app is listening on port: ${port}`);
 function getCurrDate() {
     var today = new Date();

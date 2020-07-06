@@ -267,7 +267,8 @@
 <script>
 const axios = require("axios");
 
-const baseURL = "/API";
+//const baseURL = "/API";
+const baseURL = "http://localhost:3000/API"
 export default {
   name: "RecordDetails",
   template: "#general-input-form",
@@ -403,20 +404,22 @@ export default {
         };
         record.RMList.push(this.rmTemplate);
 
-        console.log("adding");
-        postRequest(baseURL + '/addRawMaterial', record);
-        /* axios.get(baseURL + '/getRawMaterial?=' + this.$store.state.currentRecordID).then( response => {
-          this.record.raw_materials_list = response.data.raw_materials_list;
+        //Running ajax calls
+        axios({
+          method: "post",
+          url: baseURL + '/addRawMaterial',
+          data: {
+            record: record
+          }
+        }).then(response => {
           console.log(response.data.message);
-        }); */
-        console.log("done");
-        //Updating RMList
-        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          this.record.RMList = response.data.records.RMList;
-          this.formatRecord();
-          this.cancelRM();            
-          //console.log(this.record.RMList);
+          //Updating RMList
+          axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.RMList = response.data.RMList;
+            this.formatRecord();
+            this.cancelRM();  
+            console.log(response.data.message);
+          });
         });
       }
     },
@@ -455,28 +458,41 @@ export default {
       let resp = confirm("Are you sure you want to delete this record?"); 
       let id = rawMat.raw_material_id;
       if(resp == true) {
-        postRequest(baseURL + '/deleteRawMaterial', id);
-        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          this.record.RMList = response.data.records.RMList;
-          this.formatRecord();
-          //console.log(this.record);
+        axios({
+          method: "post",
+          url: baseURL + '/deleteRawMaterial',
+          data: {
+            record: id
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating RMList
+          axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.RMList = response.data.RMList;
+            this.formatRecord();
+            this.cancelRM();  
+            console.log(response.data.message);
+          });
         });
-        this.cancelRM();
-        //this.$router.go(); //BAD update status using a new get request 
-      } 
-      //NOT UPDATING CHANGES
-      //console.log(rawMat);
+      }
     },
     updateRM(){
-      postRequest(baseURL + '/updateRawMaterial', this.record);
-      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
-          this.record.RMList = response.data.records.RMList;
-          this.formatRecord();
-          //console.log(this.record);
+      axios({
+          method: "post",
+          url: baseURL + '/updateRawMaterial',
+          data: {
+            record: this.record
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating RMList
+          axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.RMList = response.data.RMList;
+            this.formatRecord();
+            this.cancelRM();  
+            console.log(response.data.message);
+          });
         });
-      this.cancelRM();
     },
 
     //HP handlers
@@ -498,15 +514,21 @@ export default {
           HPStabilityList: []
         };
         record.HPList.push(this.hpTemplate);
-        postRequest(baseURL + '/addHP', record);
-
-        //Updating HPList
-        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          this.record.HPList = response.data.records.HPList;
-          this.formatRecord();
-          this.cancelHP();            
-          //console.log(this.record.RMList);
+        axios({
+          method: "post",
+          url: baseURL + '/addHP',
+          data: {
+            record: record
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating HPList
+          axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPList = response.data.HPList;
+            this.formatRecord();
+            this.cancelHP();  
+            console.log(response.data.message);
+          });
         });
       }
     },
@@ -536,25 +558,41 @@ export default {
       let id = HP.hp_id;
       //console.log(id);
       if(resp == true) {
-        postRequest(baseURL + '/deleteHP', id);
-        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          this.record.HPList = response.data.records.HPList;
-          this.formatRecord();
-          //console.log(this.record);
+        axios({
+          method: "post",
+          url: baseURL + '/deleteHP',
+          data: {
+            record: id
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating HPList
+          axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPList = response.data.HPList;
+            this.formatRecord();
+            this.cancelHP();  
+            console.log(response.data.message);
+          });
         });
-        this.cancelHP();
       } 
     },
     updateHP(){
-      postRequest(baseURL + '/updateHP', this.record);
-      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
-          this.record.HPList = response.data.records.HPList;
-          this.formatRecord();
-          //console.log(this.record);
+      axios({
+          method: "post",
+          url: baseURL + '/updateHP',
+          data: {
+            record: this.record
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating HPList
+          axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPList = response.data.HPList;
+            this.formatRecord();
+            this.cancelHP();  
+            console.log(response.data.message);
+          });
         });
-      this.cancelHP();
     },
 
     //HP stability handlers
@@ -576,15 +614,22 @@ export default {
           HPStabilityList: []
         };
         record.HPStabilityList.push(this.hpTemplate);
-        postRequest(baseURL + '/addHP', record);
 
-        //Updating HPList
-        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          this.record.HPStabilityList = response.data.records.HPStabilityList;
-          this.formatRecord();
-          this.cancelHPStab();            
-          //console.log(this.record.RMList);
+        axios({
+          method: "post",
+          url: baseURL + '/addHP',
+          data: {
+            record: record
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating HPStabilityList
+          axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPStabilityList = response.data.HPStabilityList;
+            this.formatRecord();
+            this.cancelHPStab();  
+            console.log(response.data.message);
+          });
         });
       }
     },
@@ -614,25 +659,41 @@ export default {
       let id = HPStab.hp_id;
       //console.log(id);
       if(resp == true) {
-        postRequest(baseURL + '/deleteHP', id);
-        axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-          this.record.HPStabilityList = response.data.records.HPStabilityList;
-          this.formatRecord();
-          //console.log(this.record);
+        axios({
+          method: "post",
+          url: baseURL + '/deleteHP',
+          data: {
+            record: id
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating HPStabilityList
+          axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPStabilityList = response.data.HPStabilityList;
+            this.formatRecord();
+            this.cancelHPStab();  
+            console.log(response.data.message);
+          });
         });
-        this.cancelHPStab();
       } 
     },
     updateHPStab(){
-      postRequest(baseURL + '/updateHP', this.record);
-      axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message); //BAD, FIX WHEN RETRIEVING ONLY A SINGLE PART OF A RECORD WORKS
-          this.record.HPStabilityList = response.data.records.HPStabilityList;
-          this.formatRecord();
-          //console.log(this.record);
+      axios({
+          method: "post",
+          url: baseURL + '/updateHP',
+          data: {
+            record: this.record
+          }
+        }).then(response => {
+          console.log(response.data.message);
+          //Updating HPStabilityList
+          axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPStabilityList = response.data.HPStabilityList;
+            this.formatRecord();
+            this.cancelHPStab();  
+            console.log(response.data.message);
+          });
         });
-      this.cancelHPStab();
     },
 
 
@@ -704,6 +765,7 @@ function postRequest(url, record) {
     }
   }).then(response => {
     console.log(response.data.message);
+    return response.data;
   });
 }
 
