@@ -11,7 +11,7 @@ app.use(morgan('tiny'));
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use("/", router);
+app.use("/API", router);
 
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
