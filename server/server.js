@@ -1,16 +1,13 @@
-const express = require('express')
-const serveStatic = require('serve-static')
-const path = require('path')
+const express = require('express');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const router = require('./API/api.js');
+const app = express();
 
-const app = express()
-
-//here we are configuring dist to serve app files
-app.use('/client', serveStatic(path.join(__dirname, '/dist')))
-
-// this * route is to serve project on different page routes except root `/`
-app.get('/client/*', function (req, res) {
-	res.sendFile(path.join(__dirname, '/dist/index.html'))
-})
+app.use(morgan('short'))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
+app.use('/api', router);
 
 const port = process.env.PORT || 3000
 app.listen(port)
