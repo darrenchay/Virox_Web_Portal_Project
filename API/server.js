@@ -15,14 +15,32 @@ app.use("/API", router);
 
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
+    const page = parseInt(req.query.page);
+    const limit = 10;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    let previous, next;
+    if(startIndex > 0) {
+        previous = page - 1; 
+    }
+    
     (async function () {
         let returnData = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
+        if(endIndex < returnData.length) {
+            next = page + 1;
+        }
         res.send({
             message: "successfully retrieved " + returnData.length + " record(s)",
-            records: returnData
+            records: returnData.slice(startIndex, endIndex),
+            pageCount: Math.ceil(returnData.length/limit),
+            next: next,
+            previous: previous
         });
     })();
 });
+
 
 //Get a single complete record data based off record id
 router.get('/getRecord', (req, res) => {

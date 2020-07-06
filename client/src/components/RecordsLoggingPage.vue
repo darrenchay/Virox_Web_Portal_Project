@@ -1,10 +1,10 @@
 <template>
     <div id="recordsPage" class="card">
         <div class="card-head">
-        <label for="recordsTable"><strong>Experiment Records</strong></label>
+            <label for="recordsTable"><strong>Experiment Records</strong></label>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover table-responsive" id="recordsTable">
+            <table class="table table-bordered table-hover table-responsive" data-pagination="true"  id="recordsTable">
                 <thead class="thead-dark">
                     <tr>
                         <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
@@ -18,15 +18,29 @@
                     </tr>
                 </tbody>
             </table>
+            <nav>
+                <paginate
+                    :page-count="pageCount"
+                    :margin-pages="1"
+                    :click-handler="paginateCallback"
+                    :prev-text="'&laquo'"
+                    :next-text="'&raquo'"
+                    :container-class="'pagination'"
+                    :page-class="'page-item'">
+                </paginate>
+            </nav>
+
+
             <button type="button" @click="createNewRecord" class="btn btn-primary">Create New Record</button>
         </div>
     </div>
 </template>
 
 <script>
-    const axios = require('axios')
+    const axios = require('axios');
+    const Paginate = require('vuejs-paginate');
     //const baseURL = "/API";
-    const baseURL = "http://localhost:3000/API"
+    const baseURL = "http://localhost:3000/API";
     export default {
         name: 'Records',
         template: '#recordsPage',
@@ -34,12 +48,16 @@
         },
         data(){
             return {
+                pageCount: 0,
                 records: [],
                 currentSort: 'record_id',
                 currentSortDir: 'asc',
                 columns: ['record_id', 'project_title', 'LOT_NO', 'prepared_by', 'formulation_date', 'preparation_date', 'date_created', 'date_updated'],
                 column_name: ['#', 'Project Title', 'LOT NO', 'Prepared By', 'Formulation Date', 'Preparation Date', 'Date Created', 'Date Updated'],
             }
+        },
+        components: {
+            Paginate
         },
         methods:{
             newDate(date) {
@@ -89,6 +107,16 @@
                     //console.log( 'Col name: ' + col )
                 } // end if
                 //console.log(this.records)
+            },
+            paginateCallback(pageNum) {
+                axios.get(baseURL + '/getRecords?page=' + pageNum).then(response => {
+                console.log(response.data.message)
+                console.log(response.data);
+                this.records = response.data.records;
+                //this.pageCount = response.data.pageCount;
+            }).catch(e => {
+                this.errors.push(e)
+            });
             }
         },
         computed: {
@@ -113,9 +141,11 @@
             }
         },
         mounted() {
-            axios.get(baseURL + '/getRecords').then(response => {
+            axios.get(baseURL + '/getRecords?page=1').then(response => {
                 console.log(response.data.message)
-                this.records = response.data.records
+                console.log(response.data);
+                this.records = response.data.records;
+                this.pageCount = response.data.pageCount;
             }).catch(e => {
                 this.errors.push(e)
             })

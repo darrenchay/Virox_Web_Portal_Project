@@ -1,4 +1,7 @@
-GET http://localhost:3000/API/getRecords HTTP/1.1
+GET http://localhost:3000/API/getRecords?page=2 HTTP/1.1
+
+###
+GET http://localhost:3000/API/getRecordsTest?page=1 HTTP/1.1
 
 
 ### Get single record with an ID

@@ -356,7 +356,7 @@ export default {
       this.showEditRecord = true,
       this.showCancelRecord = false,
       this.showDeleteRecord = true
-      this.cancelRecord();
+      //this.cancelRecord();
     },
     cancelRecord() {
       this.isEditingDisabled = true,
