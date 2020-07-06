@@ -7,10 +7,10 @@
     <footer class="footer">
       <div class="container">
         <div class="row">
-          <span class="text-muted">Virox Web Portal </span>
+          <span class="text-muted">Virox Web Portal - </span>
           <span></span>
           <br>
-          <span class="text-muted">Darren Chay Loong</span>
+          <span class="text-muted"> Darren Chay Loong</span>
         </div>
       </div>
     </footer>

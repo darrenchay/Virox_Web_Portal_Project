@@ -419,6 +419,7 @@ export default {
             this.formatRecord();
             this.cancelRM();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
       }
@@ -472,6 +473,7 @@ export default {
             this.formatRecord();
             this.cancelRM();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
       }
@@ -491,6 +493,7 @@ export default {
             this.formatRecord();
             this.cancelRM();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
     },
@@ -528,6 +531,7 @@ export default {
             this.formatRecord();
             this.cancelHP();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
       }
@@ -572,6 +576,7 @@ export default {
             this.formatRecord();
             this.cancelHP();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
       } 
@@ -591,6 +596,7 @@ export default {
             this.formatRecord();
             this.cancelHP();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
     },
@@ -629,6 +635,7 @@ export default {
             this.formatRecord();
             this.cancelHPStab();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
       }
@@ -673,6 +680,7 @@ export default {
             this.formatRecord();
             this.cancelHPStab();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
       } 
@@ -692,6 +700,7 @@ export default {
             this.formatRecord();
             this.cancelHPStab();  
             console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
     },
