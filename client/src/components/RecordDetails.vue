@@ -81,10 +81,11 @@
             </tr>
             <tr class="table-secondary">
               <td><strong>Total:</strong></td>
-              <td><strong>{{record.experimentRecord.total_percentage_w}}</strong></td>
+              <!-- <td><strong>{{record.experimentRecord.total_percentage_w}}</strong></td> -->
+              <td><strong>{{totalW}}</strong></td>
               <td></td>
-              <td><strong>{{record.experimentRecord.total_AR}}</strong></td>
-              <td><strong>{{record.experimentRecord.total_AD}}</strong></td>
+              <td><strong>{{totalAR}}</strong></td>
+              <td><strong>{{totalAD}}</strong></td>
               <td></td>
               <td></td>
               <td></td>
@@ -167,7 +168,7 @@
               <td> <strong></strong> </td>
               <td><strong></strong></td>
               <td><strong>pH</strong></td>
-              <td><strong>{{HP_PH}}</strong></td>
+              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH" class="form-control"/></strong></td>
               <td></td>
               <td></td>
               <td></td>
@@ -238,7 +239,7 @@
               <td> <strong></strong> </td>
               <td><strong></strong></td>
               <td><strong>pH</strong></td>
-              <td><strong>{{HPStab_PH}}</strong></td>
+              <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.number="HPStab_PH" class="form-control"/></strong></td>
               <td></td>
               <td></td>
               <td></td>
@@ -364,6 +365,8 @@ export default {
       this.showCancelRecord = false,
       this.showDeleteRecord = true
       this.cancelRM();
+      this.cancelHP();
+      this.cancelHPStab();
       this.record.experimentRecord = Object.assign({}, this.cachedRecord); //Revert changes
     },
     deleteRecord() {
@@ -582,6 +585,10 @@ export default {
       } 
     },
     updateHP(){
+      //Update the PH of each HP record
+      this.record.HPList.forEach(HP => {
+        HP.PH = this.HP_PH;
+      });
       axios({
           method: "post",
           url: baseURL + '/updateHP',
@@ -686,6 +693,9 @@ export default {
       } 
     },
     updateHPStab(){
+      this.record.HPStabilityList.forEach(HPStab => {
+        HPStab.PH = this.HPStab_PH;
+      });
       axios({
           method: "post",
           url: baseURL + '/updateHP',
@@ -726,6 +736,28 @@ export default {
         }
       });
     },
+    calculatetotalW: function() {
+      let newTotal = this.record.RMList.reduce(function(a, c) {
+        return a + Number(c.percentage_w);
+      }, 0);
+      this.record.experimentRecord.total_percentage_w = newTotal.toFixed(2);
+      //console.log(this.record.experimentRecord.total_percentage_w);
+      return newTotal.toFixed(2);
+    },
+    calculateTotalAD: function() {
+      let newTotal = this.record.RMList.reduce(function(a, c) {
+        return a + Number(c.AD);
+      }, 0);
+      this.record.experimentRecord.total_AD = newTotal.toFixed(3);
+      return newTotal.toFixed(3);
+    },
+    calculateTotalAR: function() {
+      let newTotal = this.record.RMList.reduce(function(a, c) {
+        return a + Number(c.AR);
+      }, 0);
+      this.record.experimentRecord.total_AR = newTotal.toFixed(3);
+      return newTotal.toFixed(3);
+    }
   },
   beforeCreate() {
     axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
@@ -738,6 +770,13 @@ export default {
         //console.log(this.record.experimentRecord.preparation_reason);
         //console.log("cached:");
         //console.log(this.cachedRecord.preparation_reason);
+        if(this.record.HPList.length > 0) {
+          this.HP_PH = this.record.HPList[0].PH;
+        }
+
+        if(this.record.HPStabilityList.length > 0) {
+          this.HPStab_PH = this.record.HPStabilityList[0].PH;
+        }
 
         //Enable editing for new records
         if (this.record.experimentRecord.LOT_NO == "") {
@@ -746,18 +785,14 @@ export default {
     });
   },
   computed: {
-    calculateTotals: function() {
-      let currW_WTotal = 0, currARTotal = 0, currADTotal = 0, record = {};  
-      this.record.RMList.forEach(rawMat => {
-        currW_WTotal += rawMat.percentage_w;
-        currARTotal += rawMat.AR;
-        currADTotal += rawMat.AD;
-      });
-      console.log(currW_WTotal);
-      record.experimentRecord.total_percentage_w = currW_WTotal;
-      record.experimentRecord.total_AR = currARTotal;
-      record.experimentRecord.total_AD = currADTotal;
-      return record;
+    totalW: function() {
+      return this.calculatetotalW();
+    },
+    totalAR: function() {
+      return this.calculateTotalAR();
+    },
+    totalAD: function() {
+      return this.calculateTotalAD();
     }
   }
 };

@@ -325,11 +325,6 @@ router.post('/deleteHP', (req, res) => {
     })();
 });
 
-const port = process.env.PORT || 3000
-
-app.listen(port);
-
-console.log(`app is listening on port: ${port}`);
 function getCurrDate() {
     var today = new Date();
     var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes()
@@ -444,3 +439,8 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     })
 
 }
+
+const port = process.env.PORT || 3000
+
+app.listen(port);
+console.log(`app is listening on port: ${port}`);
