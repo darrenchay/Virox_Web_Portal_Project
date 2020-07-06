@@ -356,7 +356,7 @@ export default {
       this.showEditRecord = true,
       this.showCancelRecord = false,
       this.showDeleteRecord = true
-      //this.cancelRecord();
+      this.cancelRecord();
     },
     cancelRecord() {
       this.isEditingDisabled = true,
@@ -601,10 +601,10 @@ export default {
           axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
             this.record.HPList = response.data.HPList;
             this.formatRecord();
-            this.cancelHP();  
             console.log(response.data.message);
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
+          this.cancelHP();  
         });
     },
 
@@ -708,10 +708,10 @@ export default {
           axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
             this.record.HPStabilityList = response.data.HPStabilityList;
             this.formatRecord();
-            this.cancelHPStab();  
             console.log(response.data.message);
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
+          this.cancelHPStab();  
         });
     },
 

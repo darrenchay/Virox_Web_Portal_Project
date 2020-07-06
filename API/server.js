@@ -235,11 +235,14 @@ router.post('/updateRawMaterial', (req, res) => {
                 message += returnData.message + '\n';
             }
             res.send({
-                returnMessage: message
+                message: message
             });
         })();
-
-    }
+    } else {
+        res.send({
+            message: "Nothing to update"
+        });
+    };
 });
 
 
@@ -274,10 +277,14 @@ router.post('/updateHP', (req, res) => {
                 message += returnData.message + '\n';
             };
             res.send({
-                returnMessage: message
+                message: message
             });
         })();
-    }
+    } else {
+        res.send({
+            message: "Nothing to update"
+        });
+    };
 
 });
 
