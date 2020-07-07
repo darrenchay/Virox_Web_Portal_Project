@@ -25,21 +25,21 @@
             <button type="button" class="btn" @click="search"><span class="fas fa-search"></span></button>
         </div>
 
-        <div id="resultsTable">
-            <table class="table table-bordered table-hover table-responsive">
+        <div id="resultsTable" v-show="receivedSearchResults">
+            <table v-if="record.length > 0" class="table table-bordered table-hover table-responsive">
                 <thead class="thead-dark">
                     <tr>
-                        <th v-for="column in Object.keys(record)" :key="column">{{column}}</th>
-                        <th></th>
+                        <th v-for="column in Object.keys(record[0])" :key="column">{{column}}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
+                    <tr v-for="(record, index) in record" :key="index">
+                        <td v-for="(data, index) in Object.values(record)" :key="index">{{data}}</td>
                     </tr>
                 </tbody>
             </table>
+
+            <label v-else>No results found</label>
         </div>
     </div>
     
@@ -55,31 +55,49 @@
                 searchInput: "Enter search item",
                 searchFilter: {
                     experiment_records: {
-                        record_id: 'record ID',
-                        LOT_NO: 'Lot No'
+                        record_id: 'Record ID',
+                        LOT_NO: 'Lot No',
+                        project_title: 'Project Title',
+                        prepared_by: 'Prepared By',
+                        total_percentage_w: 'Total %w/w',
+                        total_AD: 'Total AD',
+                        total_AR: 'Total AR',
                     },
                     RMList: {
                         raw_material_name: 'Raw Material Name',
                         raw_material_lot: 'Raw Material Lot',
+                        percentage_w: '%w/w',
+                        AD: 'AD',
+                        AR: 'AR',
                         time_added: 'Time Added',
-                        notes: 'notes'
                     },
                     HPList: {
                         experiment_name: 'Experiment Name',
                         N: 'Nitrogen',
-                        vol_change: 'Volume Change',
+                        M: 'Ms [Gr]',
+                        vol_change: 'Volume Change (ml)',
+                        H2O2: 'H2O2',
+                        PH: 'PH',
+                        accepted_range: 'Accepted Range',
+                        date: 'Date',
                         initials: 'Initials',
                     },
                     HPStabList: {
-                        experiment_name: 'Experiment Name (Stability)',
+                        experiment_name: 'Experiment Name',
                         N: 'Nitrogen',
-                        vol_change: 'Volume Change',
+                        M: 'Ms [Gr]',
+                        vol_change: 'Volume Change (ml)',
+                        H2O2: 'H2O2',
+                        PH: 'PH',
+                        accepted_range: 'Accepted Range',
+                        date: 'Date',
                         initials: 'Initials',
                     }
                 },
                 selected: "Choose Filter",
                 selectedType: "",
-                record: []
+                record: [],
+                receivedSearchResults: false
                 
             }
         },
@@ -98,6 +116,7 @@
                         console.log(response.data.message);
                         //console.log(response.data.records);
                         this.record = response.data.records.experimentRecord;
+                        this.receivedSearchResults = true;
                         console.log(this.record);
                     });
                 } else if (this.selectedType == "Raw Materials") {
@@ -109,6 +128,7 @@
                     .then(response => {
                         console.log(response.data.message);
                         this.record = response.data.records.RMList;
+                        this.receivedSearchResults = true;
                         console.log(this.record);
                     });
                 } else if (this.selectedType == "Hydrogen Peroxide Data") {
@@ -121,6 +141,7 @@
                     .then(response => {
                         console.log(response.data.message);
                         this.record = response.data.records;
+                        this.receivedSearchResults = true;
                         console.log(this.record);
                     });
                 } else if (this.selectedType == "Hydrogen Peroxide Stability Data") {
@@ -133,6 +154,7 @@
                     .then(response => {
                         console.log(response.data.message);
                         this.record = response.data.records;
+                        this.receivedSearchResults = true;
                         console.log(this.record);
                     });
                 }                
