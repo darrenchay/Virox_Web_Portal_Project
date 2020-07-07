@@ -7,7 +7,7 @@
             <table class="table table-bordered table-hover table-responsive" data-pagination="true"  id="recordsTable">
                 <thead class="thead-dark">
                     <tr>
-                        <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
+                        <th v-for="(column, index) in column_name" @click="sort(column[index])" :key="index">{{column}}</th>
                         <th></th>
                     </tr>
                 </thead>

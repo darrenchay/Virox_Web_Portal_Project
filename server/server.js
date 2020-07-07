@@ -3,8 +3,11 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const router = require('./API/api.js');
 const app = express();
+const cors = require('cors');
 
 app.use(morgan('short'))
+app.use(cors());
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use('/api', router);

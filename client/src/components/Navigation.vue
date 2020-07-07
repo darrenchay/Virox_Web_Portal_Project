@@ -2,7 +2,8 @@
     <header>
         <section>
             <div class="col1">
-                <button type="button" class="btn" @click="redirect"><h3>Experiment Records</h3></button>
+                <button type="button" class="btn mr-4" @click="redirect"><h3>Experiment Records</h3></button>
+                <button type="button" class="btn btn-outline-secondary" @click="search">Search Records</button>
                 <ul class="inline">
                     <li><a @click="logout">logout</a></li>
                 </ul>
@@ -29,6 +30,12 @@
                 //console.log(this.$route)
                 if(this.$route.name != 'records') {
                     this.$router.push({ name: 'records'})
+                }
+            },
+            search() {
+                console.log("seearch")
+                if(this.$route.name != 'search') {
+                    this.$router.push({ name: 'search'})
                 }
             }
         }

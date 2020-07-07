@@ -4,6 +4,7 @@ import firebase from 'firebase'
 import LoginPage from '../components/LoginPage'
 import RecordDetails from '../components/RecordDetails'
 import RecordsLoggingPage from '../components/RecordsLoggingPage'
+import Search from '../components/Search'
 
 Vue.use(Router)
 const router = new Router({
@@ -33,7 +34,16 @@ const router = new Router({
             meta: {
                 requiresAuth: true
             }
+        },
+        {
+            path: '/search',
+            name: 'search',
+            component: Search,
+            meta: {
+                requiresAuth: true
+            }
         }
+        
     ]
 
 });

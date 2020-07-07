@@ -4,6 +4,9 @@ GET http://localhost:3000/API/getRecords?page=2 HTTP/1.1
 GET http://localhost:3000/API/getRecordsTest?page=1 HTTP/1.1
 
 
+###
+GET http://localhost:3000/API/searchRecord?value=42&name=record_id HTTP/1.1
+
 ### Get single record with an ID
 GET http://localhost:3000/API/getRecord?id=45 HTTP/1.1
 
@@ -11,8 +14,19 @@ GET http://localhost:3000/API/getRecord?id=45 HTTP/1.1
 ### Get single record with an ID
 GET http://localhost:3000/API/getRawMaterial?id=45 HTTP/1.1
 
+###
+GET http://localhost:3000/API/searchRawMaterials?value="chemical L63"&name="raw_material_name" HTTP/1.1
+
 ### Get single record with an ID
 GET http://localhost:3000/API/getHP?id=45 HTTP/1.1
+
+
+###
+GET http://localhost:3000/API/searchHP?value="Trial 1"&name="experiment_name" HTTP/1.1
+
+###
+GET http://localhost:3000/API/searchHPStab?value="Trial 1"&name="experiment_name" HTTP/1.1
+
 
 ### Adding a record
 POST http://localhost:3000/API/addExperimentRecord HTTP/1.1
