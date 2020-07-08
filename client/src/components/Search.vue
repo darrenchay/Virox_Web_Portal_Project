@@ -59,6 +59,7 @@
                         LOT_NO: 'Lot No',
                         project_title: 'Project Title',
                         prepared_by: 'Prepared By',
+                        quantity: 'Quantity',
                         total_percentage_w: 'Total %w/w',
                         total_AD: 'Total AD',
                         total_AR: 'Total AR',
@@ -103,9 +104,9 @@
         },
         methods: {
             search() {
-                console.log("searching " + this.searchInput);
-                console.log(this.selected);
-                let searchItem = {name: this.selected, value: this.searchInput};
+                let formattedSearch = this.formatSearchValue();
+                let searchItem = {name: this.selected, value: formattedSearch};
+                console.log(searchItem);
                 if(this.selectedType == "Experiment Record") {
                     axios.get(baseURL + '/searchRecords', {
                         params: {
@@ -169,6 +170,14 @@
                 const optgroup = option.parentElement;
                 const recordType = optgroup.getAttribute('label');
                 this.selectedType = recordType;
+            },
+            formatSearchValue() {
+                if (this.selected.includes("pr") || this.selected.includes("name") || this.selected.includes("date") || this.selected.includes("time") || this.selected.includes("initials") || this.selected.includes("accepted")) {
+                    console.log("string");
+                    return '"' + this.searchInput + '"';
+                } else {
+                    return this.searchInput;
+                }
             }
         },
         computed: {

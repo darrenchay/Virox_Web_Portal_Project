@@ -3,7 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const { query } = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const pool = require('./dbAuth.js');
+//const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 const app = express();
 
@@ -22,23 +23,42 @@ router.get('/getRecords', (req, res) => {
     const endIndex = page * limit;
 
     let previous, next;
-    if(startIndex > 0) {
-        previous = page - 1; 
+    if (startIndex > 0) {
+        previous = page - 1;
     }
-    
-    (async function () {
-        let returnData = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
-        if(endIndex < returnData.length) {
+    pool.query(queryStringBuilder('SELECT', [], [], [], []), [], (error, results) => {
+        if (error) {
+            res.send(error);
+            throw error;
+        } else {
+            //res.status(200).send(results.rows);
+            console.log(results);
+            if (endIndex < results.rows.length) {
+                next = page + 1;
+            }
+            res.send({
+                message: "successfully retrieved " + results.rows.length + " record(s)",
+                records: results.rows.slice(startIndex, endIndex),
+                pageCount: Math.ceil(results.rows.length / limit),
+                next: next,
+                previous: previous
+            });
+        }
+    });
+    /* (async function () {
+        let returnData = DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
+        console.log(returnData);
+        if (endIndex < returnData.length) {
             next = page + 1;
         }
         res.send({
             message: "successfully retrieved " + returnData.length + " record(s)",
             records: returnData.slice(startIndex, endIndex),
-            pageCount: Math.ceil(returnData.length/limit),
+            pageCount: Math.ceil(returnData.length / limit),
             next: next,
             previous: previous
         });
-    })();
+    })(); */
 });
 
 
@@ -52,16 +72,57 @@ router.get('/getRecord', (req, res) => {
         HPStabilityList: []
     };
 
-    (async function () {
-        record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
-        record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
-        record.HPList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-        record.HPStabilityList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-        res.send({
-            message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
-            records: record
-        });
-    })();
+    pool.query(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), [], (error, results) => {
+        if (error) {
+            res.send(error);
+            throw error;
+        } else {
+            //res.status(200).send(results.rows);
+            console.log(results.rows);
+            record.experimentRecord = result.rows;
+        }
+    }).then(
+        pool.query(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), [], (err, results) => {
+            if (error) {
+                res.send(error);
+                throw error;
+            } else {
+                //res.status(200).send(results.rows);
+                console.log(results.rows);
+                record.RMList = result.rows;
+                res.send({
+                    message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+                    records: record
+                });
+            }
+        }).then(
+            pool.query(queryStringBuilder(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), [], (err, results) => {
+                if (error) {
+                    res.send(error);
+                    throw error;
+                } else {
+                    //res.status(200).send(results.rows);
+                    console.log(results.rows);
+                    record.RMList = result.rows;
+                    res.send({
+                        message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+                        records: record
+                    });
+                }
+            })
+        ))
+    )
+
+        (async function () {
+            record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
+            record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
+            record.HPList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+            record.HPStabilityList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+            res.send({
+                message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+                records: record
+            });
+        })();
 });
 
 //Searches EXPERIMENT_RECORDS using a specific search item
@@ -93,7 +154,7 @@ router.get('/getRawMaterial', (req, res) => {
 
     console.log(id);
 
-    (async function() {
+    (async function () {
         console.log("running")
         record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
         console.log("done ");
@@ -125,10 +186,10 @@ router.get('/searchRawMaterials', (req, res) => {
 });
 
 //Gets Hydro perox data for a specific record
-router.get('/getHP', (req, res) =>  {
+router.get('/getHP', (req, res) => {
     const id = req.query.id;
 
-    (async function() {
+    (async function () {
         let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
@@ -138,10 +199,10 @@ router.get('/getHP', (req, res) =>  {
 });
 
 //Searches HYDROGEN_PEROXIDE_DATA for a specific record using a specific search term
-router.get('/searchHP', (req, res) =>  {
+router.get('/searchHP', (req, res) => {
     let searchData = JSON.parse(req.query.search);
 
-    (async function() {
+    (async function () {
         let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [searchData.value, 1], [searchData.name, 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
@@ -151,10 +212,10 @@ router.get('/searchHP', (req, res) =>  {
 });
 
 //Gets Hydro Perox stabilityh data for a specific record
-router.get('/getHPStab', (req, res) =>  {
+router.get('/getHPStab', (req, res) => {
     const id = req.query.id;
 
-    (async function() {
+    (async function () {
         let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide stability records',
@@ -164,10 +225,10 @@ router.get('/getHPStab', (req, res) =>  {
 });
 
 //Searches HYDROGEN_PEROXIDE_DATA for a specific record using a specific search term
-router.get('/searchHPStab', (req, res) =>  {
+router.get('/searchHPStab', (req, res) => {
     let searchData = JSON.parse(req.query.search);
 
-    (async function() {
+    (async function () {
         let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [searchData.value, 2], [searchData.name, 'hp_type']), '', [], 'db.all', res);
         res.send({
             message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
@@ -183,13 +244,22 @@ router.post('/addExperimentRecord', (req, res) => {
     record.experimentRecord.date_updated = getCurrDate();
     let experimentRecordValues = Object.values(record.experimentRecord);
 
+    /* pool.query(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), experimentRecordValues, (error, results) => {
+        if (error) {
+            res.send(error);
+            throw error;
+        } else {
+            //res.status(200).send(results.rows);
+            console.log(results.rows);
+            res.send({
+                message: 'Added/Updated record successfully in ' +  + ` table, ${results.rowCount} row(s) affected`,
+            });
+        }
+    }); */
+
     (async function () {
         let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', experimentRecordValues, 'db.run', res);
-        console.log(returnData.id);
-        res.send({
-            message: returnData.message,
-            id: returnData.id
-        });
+        console.log(returnData);
     })();
 });
 
@@ -448,20 +518,20 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
         queryString += ') VALUES ';
 
         if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
-            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
         } else if (tableName == 'RAW_MATERIALS') {
-            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8 )').join(',');
         } else {
-            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
         }
     } else if (operation == 'UPDATE') {
         queryString = 'UPDATE ' + tableName + ' SET ';
         //Creating list of columns to update
         for (let index = 0; index < parameterNames.length; index++) {
             if (index == 0) {
-                queryString += parameterNames[index] + ' = ?';
+                queryString += parameterNames[index] + ' = $1';
             } else {
-                queryString += ', ' + parameterNames[index] + ' = ?';
+                queryString += ', ' + parameterNames[index] + ' = $1';
             };
         };
 
@@ -481,8 +551,28 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
     return queryString;
 }
 
-//Dynamic DB runner which handles all db calls
 async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
+    return new Promise((resolve, reject) => {
+        pool.query(queryString, parameters, (error, results) => {
+            if (error) {
+                res.send(error);
+                throw error;
+            } else {
+                //res.status(200).send(results.rows);
+                console.log(results.rows);
+                res.send({
+                    message: "Successfully performed operation, " + results.rowCount + " rows affected"
+                });
+                resolve(results.rows);
+            }
+        });
+    });
+
+}
+
+
+//Dynamic DB runner which handles all db calls
+/* async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     return new Promise((resolve, reject) => {
         //Open DB
         const db = new sqlite3.Database('./router/ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
@@ -529,7 +619,7 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     })
 
 }
-
+ */
 module.exports = router;
 
 
