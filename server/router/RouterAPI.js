@@ -3,8 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const { query } = require('express');
-const pool = require('./dbAuth.js');
-//const sqlite3 = require('sqlite3').verbose();
+//const pool = require('./dbAuth.js');
+const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 const app = express();
 
@@ -25,8 +25,8 @@ router.get('/getRecords', (req, res) => {
     let previous, next;
     if (startIndex > 0) {
         previous = page - 1;
-    }
-    pool.query(queryStringBuilder('SELECT', [], [], [], []), [], (error, results) => {
+    };
+    /* pool.query(queryStringBuilder('SELECT', [], [], [], []), [], (error, results) => {
         if (error) {
             res.send(error);
             throw error;
@@ -44,9 +44,9 @@ router.get('/getRecords', (req, res) => {
                 previous: previous
             });
         }
-    });
-    /* (async function () {
-        let returnData = DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
+    }); */
+    (async function () {
+        let returnData = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
         console.log(returnData);
         if (endIndex < returnData.length) {
             next = page + 1;
@@ -58,7 +58,7 @@ router.get('/getRecords', (req, res) => {
             next: next,
             previous: previous
         });
-    })(); */
+    })();
 });
 
 
@@ -72,7 +72,7 @@ router.get('/getRecord', (req, res) => {
         HPStabilityList: []
     };
 
-    pool.query(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), [], (error, results) => {
+    /* pool.query(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), [], (error, results) => {
         if (error) {
             res.send(error);
             throw error;
@@ -111,7 +111,7 @@ router.get('/getRecord', (req, res) => {
                 }
             })
         ))
-    )
+    ) */
 
         (async function () {
             record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
@@ -518,20 +518,24 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
         queryString += ') VALUES ';
 
         if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
-            queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
+            //queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
+            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         } else if (tableName == 'RAW_MATERIALS') {
-            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8 )').join(',');
+            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8 )').join(',');
+            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
         } else {
-            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
+            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
+            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
         }
     } else if (operation == 'UPDATE') {
         queryString = 'UPDATE ' + tableName + ' SET ';
         //Creating list of columns to update
         for (let index = 0; index < parameterNames.length; index++) {
             if (index == 0) {
-                queryString += parameterNames[index] + ' = $1';
+                //queryString += parameterNames[index] + ' = $1';
+                queryString += parameterNames[index] + ' = ?';
             } else {
-                queryString += ', ' + parameterNames[index] + ' = $1';
+                queryString += ', ' + parameterNames[index] + ' = ?';
             };
         };
 
@@ -551,7 +555,7 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
     return queryString;
 }
 
-async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
+/* async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     return new Promise((resolve, reject) => {
         pool.query(queryString, parameters, (error, results) => {
             if (error) {
@@ -568,11 +572,11 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
         });
     });
 
-}
+} */
 
 
 //Dynamic DB runner which handles all db calls
-/* async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
+async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     return new Promise((resolve, reject) => {
         //Open DB
         const db = new sqlite3.Database('./router/ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
@@ -619,7 +623,7 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     })
 
 }
- */
+
 module.exports = router;
 
 
