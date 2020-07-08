@@ -7,7 +7,7 @@
             <table class="table table-bordered table-hover table-responsive" data-pagination="true"  id="recordsTable">
                 <thead class="thead-dark">
                     <tr>
-                        <th v-for="(column, index) in column_name" @click="sort(column[index])" :key="index">{{column}}</th>
+                        <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -104,7 +104,7 @@
                     this.currentSortDir = this.currentSortDir === 'desc' ? 'asc' : 'desc'
                 } else{
                     this.currentSort = col
-                    //console.log( 'Col name: ' + col )
+                    console.log( 'Col name: ' + col )
                 } // end if
                 //console.log(this.records)
             },
@@ -121,17 +121,17 @@
         },
         computed: {
             sortedRecords: function() {
-                var sortedArray = this.records.slice(0)
-                //console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
+                var sortedArray = this.records.slice(0);
+                console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
                 sortedArray.sort((a, b) => {
-                    let modifier = 1
+                    let modifier = -1;
                     if(this.currentSortDir === 'asc') {
-                        modifier = -1
+                        modifier = 1;
                     } 
                     if (a[this.currentSort] < b[this.currentSort]){
                         return -1 * modifier
                     } else if (a[this.currentSort] > b[this.currentSort]){
-                        return -1 * modifier
+                        return 1 * modifier
                     } else {
                         return 0
                     }
