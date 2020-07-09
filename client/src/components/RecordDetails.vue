@@ -6,7 +6,7 @@
         <div class="form-inline row">
           <div class="form-group col-6">
             <label class="mb-3 mr-2" for="inputLOTNO"><strong>LOT NO:</strong></label>
-            <input type="input" :disabled="isEditingDisabled" v-model.trim="record.experimentRecord.LOT_NO" class="form-control col-5" id="inputLOTNO"/>
+            <input type="input" :disabled="isEditingDisabled" v-model.trim="record.experimentRecord.lot_no" class="form-control col-5" id="inputLOTNO"/>
           </div>
           <div class="form-group col-6">
             <label class="mb-3 mr-2" for="inputProjectTitle"><strong>Project Title:</strong></label>
@@ -66,10 +66,10 @@
                 <input type="text" v-model.trim="rmTemplate.raw_material_lot" class="form-control" id="inputRMlot"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.AR" class="form-control" id="inputAR"/>
+                <input type="text" v-model.trim="rmTemplate.ar" class="form-control" id="inputAR"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.AD" class="form-control" id="inputAD"/>
+                <input type="text" v-model.trim="rmTemplate.ad" class="form-control" id="inputAD"/>
               </td>
               <td>
                 <input type="date" v-model.trim="rmTemplate.time_added" class="form-control" id="inputTimeAdded"/>
@@ -140,16 +140,16 @@
                 <input type="text" v-model.trim="hpTemplate.experiment_name" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.N" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.n" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.M" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.m" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.H2O2" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.h2o2" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.accepted_range" class="form-control"/>
@@ -211,16 +211,16 @@
                 <input type="text" v-model.trim="hpTemplate.experiment_name" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.N" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.n" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.M" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.m" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.H2O2" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.h2o2" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.accepted_range" class="form-control"/>
@@ -268,8 +268,8 @@
 <script>
 const axios = require("axios");
 
-//const baseURL = "/API";
-const baseURL = "http://localhost:3000/API"
+const baseURL = "https://virox-server.herokuapp.com/api";
+//const baseURL = "http://localhost:3000/API"
 export default {
   name: "RecordDetails",
   template: "#general-input-form",
@@ -313,17 +313,17 @@ export default {
         HPStabilityList: []
       },
 
-      RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "AR", "AD", "time_added", "notes"],
+      RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "ar", "ad", "time_added", "notes"],
       RMColumnNames: ["Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added", "Notes"],
-      HPColumns: ["experiment_name", "N", "M", "vol_change", "H2O2", "accepted_range", "date", "initials"],
+      HPColumns: ["experiment_name", "n", "m", "vol_change", "h2o2", "accepted_range", "date", "initials"],
       HPColumnNames: ["Hydrogen Peroxide", "N", "Ms [gr]", "∆V (ml)", "H2O2", "Accepted Range", "Date", "Initials" ],
 
       rmTemplate: {
         raw_material_name: "",
-        percentage_w: "",
-        raw_material_lot: "",
-        AR: "",
-        AD: "",
+        percentage_w: null,
+        raw_material_lot: null,
+        ar: null,
+        ad: null,
         time_added: "",
         notes: "",
       },
@@ -331,14 +331,14 @@ export default {
 
       hpTemplate: {
         experiment_name: "",
-        N: "",
-        M: "",
+        n: "",
+        m: "",
         vol_change: "",
-        H2O2: "",
+        h2o2: "",
         accepted_range: "",
         date: "",
         initials: "",
-        PH: "",
+        ph: "",
       },
       showHPTemplate: false,
       showHPStabTemplate: false,
@@ -374,7 +374,7 @@ export default {
       if(resp == true) {
         axios.get(baseURL + "/deleteRecord?id=" + this.$store.state.currentRecordID).then(response => {
           alert('The record has been successfully deleted');
-          console.log(response);
+          console.log(response.data.message);
           this.$router.push({ name: 'records' });
         });
       } 
@@ -405,7 +405,28 @@ export default {
           }, 
           RMList: []
         };
+        /* Object.values(this.rmTemplate).forEach(element => {
+          if(element !== "") {
+            record.RMList[0][element] = element;
+          }
+        }) */
+        if(this.rmTemplate.percentage_w === "") {
+          this.rmTemplate.percentage_w = 0; 
+        }
+        if(this.rmTemplate.raw_material_lot === "") {
+          this.rmTemplate.raw_material_lot = 0; 
+        }
+        if(this.rmTemplate.ad === "") {
+          this.rmTemplate.ad = null; 
+        }
+        if(this.rmTemplate.ar === "") {
+          this.rmTemplate.ar = null; 
+        }
+        if(this.rmTemplate.time_added === "") {
+          this.rmTemplate.time_added = null; 
+        }
         record.RMList.push(this.rmTemplate);
+        console.log(record.RMList);
 
         //Running ajax calls
         axios({
@@ -482,6 +503,7 @@ export default {
       }
     },
     updateRM(){
+      console.log(this.record.RMList);
       axios({
           method: "post",
           url: baseURL + '/updateRawMaterial',
@@ -493,6 +515,7 @@ export default {
           //Updating RMList
           axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
             this.record.RMList = response.data.RMList;
+            console.log(this.record.RMList);
             this.formatRecord();
             this.cancelRM();  
             console.log(response.data.message);
@@ -512,19 +535,35 @@ export default {
     saveHP() {
       if(this.hpTemplate.experiment_name.length > 0) {
         //Building JSON object to send
-        let record = {
+        let HPRecord = {
+          experiment_record_id: this.record.experimentRecord.record_id,
+          hp_type : 1,
+          experiment_name: this.hpTemplate.experiment_name,
+          n: this.hpTemplate.n,
+          m: this.hpTemplate.m,
+          vol_change: this.hpTemplate.vol_change,
+          h2o2: this.hpTemplate.h2o2,
+          ph: this.HP_PH,
+          accepted_range: this.hpTemplate.accepted_range,
+          date: this.hpTemplate.date,
+          initials: this.hpTemplate.initials
+        }
+        if(HPRecord.date === "") {
+          HPRecord.date = null;
+        }
+        /* let record = {
           experimentRecord: {
-            record_id: this.record.experimentRecord.record_id
+            record_id: 
           }, 
           HPList: [],
           HPStabilityList: []
         };
-        record.HPList.push(this.hpTemplate);
+        record.HPList.push(this.hpTemplate); */
         axios({
           method: "post",
           url: baseURL + '/addHP',
           data: {
-            record: record
+            HPRecord: HPRecord
           }
         }).then(response => {
           console.log(response.data.message);
@@ -537,6 +576,8 @@ export default {
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
+      } else {
+        this.cancelHP();
       }
     },
     cancelHP() {
@@ -587,7 +628,7 @@ export default {
     updateHP(){
       //Update the PH of each HP record
       this.record.HPList.forEach(HP => {
-        HP.PH = this.HP_PH;
+        HP.ph = this.HP_PH;
       });
       axios({
           method: "post",
@@ -619,20 +660,36 @@ export default {
     saveHPStab() {
       if(this.hpTemplate.experiment_name.length > 0) {
         //Building JSON object to send
-        let record = {
+        let HPRecord = {
+          experiment_record_id: this.record.experimentRecord.record_id,
+          hp_type : 2,
+          experiment_name: this.hpTemplate.experiment_name,
+          n: this.hpTemplate.n,
+          m: this.hpTemplate.m,
+          vol_change: this.hpTemplate.vol_change,
+          h2o2: this.hpTemplate.h2o2,
+          ph: this.HPStab_PH,
+          accepted_range: this.hpTemplate.accepted_range,
+          date: this.hpTemplate.date,
+          initials: this.hpTemplate.initials
+        }
+        if(HPRecord.date === "") {
+          HPRecord.date = null;
+        }
+        /* let record = {
           experimentRecord: {
             record_id: this.record.experimentRecord.record_id
           }, 
           HPList: [],
           HPStabilityList: []
         };
-        record.HPStabilityList.push(this.hpTemplate);
+        record.HPStabilityList.push(this.hpTemplate); */
 
         axios({
           method: "post",
           url: baseURL + '/addHP',
           data: {
-            record: record
+            HPRecord: HPRecord
           }
         }).then(response => {
           console.log(response.data.message);
@@ -645,6 +702,8 @@ export default {
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
+      } else {
+        this.cancelHPStab();
       }
     },
     cancelHPStab() {
@@ -694,7 +753,7 @@ export default {
     },
     updateHPStab(){
       this.record.HPStabilityList.forEach(HPStab => {
-        HPStab.PH = this.HPStab_PH;
+        HPStab.ph = this.HPStab_PH;
       });
       axios({
           method: "post",
@@ -746,24 +805,25 @@ export default {
     },
     calculateTotalAD: function() {
       let newTotal = this.record.RMList.reduce(function(a, c) {
-        return a + Number(c.AD);
+        return a + Number(c.ad);
       }, 0);
-      this.record.experimentRecord.total_AD = newTotal.toFixed(3);
+      this.record.experimentRecord.total_ad = newTotal.toFixed(3);
       return newTotal.toFixed(3);
     },
     calculateTotalAR: function() {
       let newTotal = this.record.RMList.reduce(function(a, c) {
-        return a + Number(c.AR);
+        return a + Number(c.ar);
       }, 0);
-      this.record.experimentRecord.total_AR = newTotal.toFixed(3);
+      this.record.experimentRecord.total_ar = newTotal.toFixed(3);
       return newTotal.toFixed(3);
     }
   },
   beforeCreate() {
     axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
         console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+        //console.log(response.data);
         this.record = response.data.records;
-        this.record.experimentRecord = response.data.records.experimentRecord[0];
+        this.record.experimentRecord = response.data.records.experimentRecord;
         this.formatRecord();
         console.log(this.record);
         //console.log("record:");
@@ -771,15 +831,15 @@ export default {
         //console.log("cached:");
         //console.log(this.cachedRecord.preparation_reason);
         if(this.record.HPList.length > 0) {
-          this.HP_PH = this.record.HPList[0].PH;
+          this.HP_PH = this.record.HPList[0].ph;
         }
 
         if(this.record.HPStabilityList.length > 0) {
-          this.HPStab_PH = this.record.HPStabilityList[0].PH;
+          this.HPStab_PH = this.record.HPStabilityList[0].ph;
         }
 
         //Enable editing for new records
-        if (this.record.experimentRecord.LOT_NO == "") {
+        if (this.record.experimentRecord.lot_no == "") {
           this.editRecord();
         }
     });

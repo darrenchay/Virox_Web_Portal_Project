@@ -39,8 +39,8 @@
 <script>
     const axios = require('axios');
     const Paginate = require('vuejs-paginate');
-    //const baseURL = "/API";
-    const baseURL = "http://localhost:3000/API";
+    const baseURL = "https://virox-server.herokuapp.com/api";
+    //const baseURL = "http://localhost:3000/API";
     export default {
         name: 'Records',
         template: '#recordsPage',
@@ -66,14 +66,12 @@
             createNewRecord() {
                 let record = {
                     experimentRecord: {
-                        LOT_NO: "",
+                        LOT_NO: 11111,
                         project_title: "",
-                        formulation_date: "",
-                        preparation_date: "",
+                        formulation_date: "1/1/11",
+                        preparation_date: "1/1/11",
                         prepared_by: "",
-                        quantity: "",
-                        date_created: "",
-                        date_updated: "",
+                        quantity: 0,
                         total_percentage_w: 0,
                         total_AR: 0,
                         total_AD: 0,
@@ -111,7 +109,6 @@
             paginateCallback(pageNum) {
                 axios.get(baseURL + '/getRecords?page=' + pageNum).then(response => {
                 console.log(response.data.message)
-                console.log(response.data);
                 this.records = response.data.records;
                 //this.pageCount = response.data.pageCount;
             }).catch(e => {
