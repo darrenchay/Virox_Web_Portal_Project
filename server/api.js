@@ -22,13 +22,13 @@ const status = {
     nocontent: 204,
 }
 
-router.get('/test', (req, res) => {
+/* router.get('/test', (req, res) => {
     const page = parseInt(req.query.page);
     res.send({
         message: "testing",
         page: page
     })
-})
+}) */
 
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
@@ -558,6 +558,64 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
     return queryString;
 }
 
+function setCommand(operation, tableName) {
+    if (operation == 'SELECT') {
+        queryString = 'SELECT * FROM ' + tableName;
+
+        if (parameters.length == 0) { //Create querySrting for getRecords
+            queryString += 'EXPERIMENT_RECORDS ORDER BY record_id';
+        } else if (parameters.length == 1) {//Create queryString for getting an experiment record or raw materials
+            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0];
+        } else if (parameters.length == 2) {//Create queryString for getting the HP records
+            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0] + ' AND ' + parameterNames[1] + ' = ' + parameters[1];
+        };
+    }else if (operation == 'INSERT') {
+
+        queryString = 'INSERT INTO ' + tableName + ' (';
+        for (let index = 0; index < parameterNames.length; index++) { //Creating list of column names to insert into
+            if (index == 0) {
+                queryString += parameterNames[index];
+            } else {
+                queryString += ', ' + parameterNames[index];
+            };
+        };
+
+        queryString += ') VALUES ';
+
+        if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
+            queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
+            //queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        } else if (tableName == 'RAW_MATERIALS') {
+            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )').join(',');
+            //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+        } else {
+            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
+            queryString += '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 )';
+        }
+
+        queryString += ' RETURNING *'
+    } else if (operation == 'UPDATE') {
+        queryString = 'UPDATE ' + tableName + ' SET ';
+        //Creating list of columns to update
+        let set = [];
+        for (let index = 0; index < parameterNames.length; index++) {
+            set.push(parameterNames[index].toLowerCase() + ' = ( $' + (index + 1) + ' )');
+        };
+        queryString += set.join(', ');
+
+        //Adding identifier to know which row to update
+        if (tableName == 'EXPERIMENT_RECORDS') {
+            queryString += ' WHERE record_id = ' + data;
+        } else if (tableName == 'RAW_MATERIALS') {
+            queryString += ' WHERE raw_material_id = ' + data;
+        } else {
+            queryString += ' WHERE hp_id = ' + data;
+        };
+    } else {
+        queryString = 'DELETE FROM ' + tableName + ' WHERE ' + parameterNames + ' = ' + parameters;
+    }
+}
+
 //Query runner for database
 function DBRunner(queryString, params) {
     return new Promise((resolve, reject) => {
@@ -572,57 +630,6 @@ function DBRunner(queryString, params) {
             });
     });
 }
-
-
-//Dynamic DB runner which handles all db calls
-/* async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
-    return new Promise((resolve, reject) => {
-        //Open DB
-        const db = new sqlite3.Database('./router/ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
-            if (err) {
-                console.error(err.message);
-            }
-            console.log('Connected to the virox database.');
-        });
-        //Run DB call 
-        if (sqliteMethod == 'db.all') {
-            db.all(queryString, parameters, (err, rows) => {
-                if (err) {
-                    res.status(500).send({ "Error ": err.message });
-                    return;
-                } else {
-                    data = rows;
-                    //console.log("Rows:");
-                    //console.log(data);
-                }
-                resolve(data);
-            })
-        } else if (sqliteMethod == 'db.run') {
-            db.run(queryString, parameters, function (err) {
-                if (err) {
-                    res.status(500).send({ "Error ": err.message });
-                    console.log(err.message);
-                    return;
-                } else {
-                    data = {
-                        message: 'Added/Updated record successfully in ' + tableName + ` table, ${this.changes} row(s) affected`,
-                        id: this.lastID,
-                        changes: this.changes
-                    }
-                }
-                resolve(data);
-            })
-        }
-        db.close((err) => {
-            if (err) {
-                console.error(err.message);
-            }
-            console.log('Closed the database connection.');
-        })
-    })
-
-}
- */
 module.exports = router;
 
 
