@@ -33,7 +33,6 @@
                 }
             },
             search() {
-                console.log("seearch")
                 if(this.$route.name != 'search') {
                     this.$router.push({ name: 'search'})
                 }

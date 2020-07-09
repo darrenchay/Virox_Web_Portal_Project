@@ -22,6 +22,13 @@ const status = {
     nocontent: 204,
 }
 
+router.get('/test', (req, res) => {
+    const page = parseInt(req.query.page);
+    res.send({
+        message: "testing",
+        page: page
+    })
+})
 
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
