@@ -140,16 +140,16 @@
                 <input type="text" v-model.trim="hpTemplate.experiment_name" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.N" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.n" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.M" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.m" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.H2O2" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.h2o2" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.accepted_range" class="form-control"/>
@@ -211,16 +211,16 @@
                 <input type="text" v-model.trim="hpTemplate.experiment_name" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.N" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.n" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.M" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.m" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.H2O2" class="form-control"/>
+                <input type="text" v-model.trim="hpTemplate.h2o2" class="form-control"/>
               </td>
               <td>
                 <input type="text" v-model.trim="hpTemplate.accepted_range" class="form-control"/>
@@ -315,7 +315,7 @@ export default {
 
       RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "ar", "ad", "time_added", "notes"],
       RMColumnNames: ["Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added", "Notes"],
-      HPColumns: ["experiment_name", "N", "M", "vol_change", "H2O2", "accepted_range", "date", "initials"],
+      HPColumns: ["experiment_name", "n", "m", "vol_change", "h2o2", "accepted_range", "date", "initials"],
       HPColumnNames: ["Hydrogen Peroxide", "N", "Ms [gr]", "∆V (ml)", "H2O2", "Accepted Range", "Date", "Initials" ],
 
       rmTemplate: {
@@ -331,14 +331,14 @@ export default {
 
       hpTemplate: {
         experiment_name: "",
-        N: "",
-        M: "",
+        n: "",
+        m: "",
         vol_change: "",
-        H2O2: "",
+        h2o2: "",
         accepted_range: "",
         date: "",
         initials: "",
-        PH: "",
+        ph: "",
       },
       showHPTemplate: false,
       showHPStabTemplate: false,
@@ -535,19 +535,35 @@ export default {
     saveHP() {
       if(this.hpTemplate.experiment_name.length > 0) {
         //Building JSON object to send
-        let record = {
+        let HPRecord = {
+          experiment_record_id: this.record.experimentRecord.record_id,
+          hp_type : 1,
+          experiment_name: this.hpTemplate.experiment_name,
+          n: this.hpTemplate.n,
+          m: this.hpTemplate.m,
+          vol_change: this.hpTemplate.vol_change,
+          h2o2: this.hpTemplate.h2o2,
+          ph: this.HP_PH,
+          accepted_range: this.hpTemplate.accepted_range,
+          date: this.hpTemplate.date,
+          initials: this.hpTemplate.initials
+        }
+        if(HPRecord.date === "") {
+          HPRecord.date = null;
+        }
+        /* let record = {
           experimentRecord: {
-            record_id: this.record.experimentRecord.record_id
+            record_id: 
           }, 
           HPList: [],
           HPStabilityList: []
         };
-        record.HPList.push(this.hpTemplate);
+        record.HPList.push(this.hpTemplate); */
         axios({
           method: "post",
           url: baseURL + '/addHP',
           data: {
-            record: record
+            HPRecord: HPRecord
           }
         }).then(response => {
           console.log(response.data.message);
@@ -560,6 +576,8 @@ export default {
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
+      } else {
+        this.cancelHP();
       }
     },
     cancelHP() {
@@ -610,7 +628,7 @@ export default {
     updateHP(){
       //Update the PH of each HP record
       this.record.HPList.forEach(HP => {
-        HP.PH = this.HP_PH;
+        HP.ph = this.HP_PH;
       });
       axios({
           method: "post",
@@ -642,20 +660,36 @@ export default {
     saveHPStab() {
       if(this.hpTemplate.experiment_name.length > 0) {
         //Building JSON object to send
-        let record = {
+        let HPRecord = {
+          experiment_record_id: this.record.experimentRecord.record_id,
+          hp_type : 2,
+          experiment_name: this.hpTemplate.experiment_name,
+          n: this.hpTemplate.n,
+          m: this.hpTemplate.m,
+          vol_change: this.hpTemplate.vol_change,
+          h2o2: this.hpTemplate.h2o2,
+          ph: this.HPStab_PH,
+          accepted_range: this.hpTemplate.accepted_range,
+          date: this.hpTemplate.date,
+          initials: this.hpTemplate.initials
+        }
+        if(HPRecord.date === "") {
+          HPRecord.date = null;
+        }
+        /* let record = {
           experimentRecord: {
             record_id: this.record.experimentRecord.record_id
           }, 
           HPList: [],
           HPStabilityList: []
         };
-        record.HPStabilityList.push(this.hpTemplate);
+        record.HPStabilityList.push(this.hpTemplate); */
 
         axios({
           method: "post",
           url: baseURL + '/addHP',
           data: {
-            record: record
+            HPRecord: HPRecord
           }
         }).then(response => {
           console.log(response.data.message);
@@ -668,6 +702,8 @@ export default {
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
         });
+      } else {
+        this.cancelHPStab();
       }
     },
     cancelHPStab() {
@@ -717,7 +753,7 @@ export default {
     },
     updateHPStab(){
       this.record.HPStabilityList.forEach(HPStab => {
-        HPStab.PH = this.HPStab_PH;
+        HPStab.ph = this.HPStab_PH;
       });
       axios({
           method: "post",
@@ -795,11 +831,11 @@ export default {
         //console.log("cached:");
         //console.log(this.cachedRecord.preparation_reason);
         if(this.record.HPList.length > 0) {
-          this.HP_PH = this.record.HPList[0].PH;
+          this.HP_PH = this.record.HPList[0].ph;
         }
 
         if(this.record.HPStabilityList.length > 0) {
-          this.HPStab_PH = this.record.HPStabilityList[0].PH;
+          this.HPStab_PH = this.record.HPStabilityList[0].ph;
         }
 
         //Enable editing for new records

@@ -40,7 +40,6 @@ router.get('/getRecords', (req, res) => {
         try {
             let result = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), []);
             let rows = result.rows;
-            console.log(rows);
             if (endIndex < rows.length) {
                 next = page + 1;
             }
@@ -250,7 +249,8 @@ router.post('/addExperimentRecord', (req, res) => {
             let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), experimentRecordValues);
             console.log(returnData);
             res.status(status.success).send({
-                message: `Successfully inserted ${returnData.rowCount} rows into experiment_records`
+                message: `Successfully inserted ${returnData.rowCount} rows into experiment_records`,
+                id: returnData.rows[0].record_id
             })
         } catch (error) {
             res.status(status.error).send(error.message);
@@ -525,6 +525,8 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
             //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
             queryString += '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 )';
         }
+
+        queryString += ' RETURNING *'
     } else if (operation == 'UPDATE') {
         queryString = 'UPDATE ' + tableName + ' SET ';
         //Creating list of columns to update
