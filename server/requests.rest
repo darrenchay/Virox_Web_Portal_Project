@@ -5,14 +5,23 @@ GET http://localhost:3000/API/getRecordsTest?page=1 HTTP/1.1
 
 
 ###
-GET http://localhost:3000/API/searchRecord?value=42&name=record_id HTTP/1.1
+GET http://localhost:3000/API/searchRecords HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+    "search" : {
+        "name": "project_title",
+        "value": "2nd Title"
+    }
+}
 
 ### Get single record with an ID
-GET http://localhost:3000/API/getRecord?id=45 HTTP/1.1
+GET http://localhost:3000/API/getRecord?id=1 HTTP/1.1
 
 
 ### Get single record with an ID
-GET http://localhost:3000/API/getRawMaterial?id=45 HTTP/1.1
+GET http://localhost:3000/API/getRawMaterial?id=1 HTTP/1.1
 
 ###
 GET http://localhost:3000/API/searchRawMaterials?value="chemical L63"&name="raw_material_name" HTTP/1.1
@@ -138,25 +147,16 @@ Content-Type: application/json
 {
     "record": {
         "experimentRecord": {
-            "record_id": 52
+            "record_id": 1
         },
         "RMList": [{
                 "raw_material_name": "chemical L63",
                 "percentage_w": 11.11,
-                "raw_material_lot": " ",
+                "raw_material_lot": null,
                 "AR": 44.44,
                 "AD": 44.48,
                 "time_added": "2020-12-5",
                 "notes": "this is an update"
-            },
-            {
-                "raw_material_name": "H2O2 50% EPA",
-                "percentage_w": 21.11,
-                "raw_material_lot": " ",
-                "AR": 55.44,
-                "AD": 44.48,
-                "time_added": "2020-12-5",
-                "notes": "this is another update"
             }
         ]
     }

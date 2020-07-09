@@ -3,8 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const { query } = require('express');
-//const pool = require('./dbAuth.js');
-const sqlite3 = require('sqlite3').verbose();
+const connection = require('./dbAuth.js');
+//const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 const app = express();
 
@@ -12,7 +12,17 @@ app.use(morgan('tiny'));
 app.use(cors());
 app.use(bodyParser.json());
 
-//app.use("/API", router);
+const status = {
+    success: 200,
+    error: 500,
+    notfound: 404,
+    unauthorized: 401,
+    conflict: 409,
+    created: 201,
+    bad: 400,
+    nocontent: 204,
+}
+
 
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
@@ -26,38 +36,25 @@ router.get('/getRecords', (req, res) => {
     if (startIndex > 0) {
         previous = page - 1;
     };
-    /* pool.query(queryStringBuilder('SELECT', [], [], [], []), [], (error, results) => {
-        if (error) {
-            res.send(error);
-            throw error;
-        } else {
-            //res.status(200).send(results.rows);
-            console.log(results);
-            if (endIndex < results.rows.length) {
+    (async function () {
+        try {
+            let result = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), []);
+            let rows = result.rows;
+            console.log(rows);
+            if (endIndex < rows.length) {
                 next = page + 1;
             }
-            res.send({
-                message: "successfully retrieved " + results.rows.length + " record(s)",
-                records: results.rows.slice(startIndex, endIndex),
-                pageCount: Math.ceil(results.rows.length / limit),
+            res.status(status.success).send({
+                message: "successfully retrieved " + rows.length + " record(s)",
+                records: rows.slice(startIndex, endIndex),
+                pageCount: Math.ceil(rows.length / limit),
                 next: next,
                 previous: previous
             });
+        } catch (error) {
+            res.status(status.error).send(error.message);
         }
-    }); */
-    (async function () {
-        let returnData = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), '', [], 'db.all', res);
-        console.log(returnData);
-        if (endIndex < returnData.length) {
-            next = page + 1;
-        }
-        res.send({
-            message: "successfully retrieved " + returnData.length + " record(s)",
-            records: returnData.slice(startIndex, endIndex),
-            pageCount: Math.ceil(returnData.length / limit),
-            next: next,
-            previous: previous
-        });
+
     })();
 });
 
@@ -72,57 +69,26 @@ router.get('/getRecord', (req, res) => {
         HPStabilityList: []
     };
 
-    /* pool.query(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), [], (error, results) => {
-        if (error) {
-            res.send(error);
-            throw error;
-        } else {
-            //res.status(200).send(results.rows);
-            console.log(results.rows);
-            record.experimentRecord = result.rows;
-        }
-    }).then(
-        pool.query(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), [], (err, results) => {
-            if (error) {
-                res.send(error);
-                throw error;
-            } else {
-                //res.status(200).send(results.rows);
-                console.log(results.rows);
-                record.RMList = result.rows;
-                res.send({
-                    message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
-                    records: record
-                });
-            }
-        }).then(
-            pool.query(queryStringBuilder(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), [], (err, results) => {
-                if (error) {
-                    res.send(error);
-                    throw error;
-                } else {
-                    //res.status(200).send(results.rows);
-                    console.log(results.rows);
-                    record.RMList = result.rows;
-                    res.send({
-                        message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
-                        records: record
-                    });
-                }
-            })
-        ))
-    ) */
-
-        (async function () {
-            record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), '', [], 'db.all', res);
-            record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
-            record.HPList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-            record.HPStabilityList = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-            res.send({
-                message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+    (async function () {
+        try {
+            const expRecData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), []);
+            const RMData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), []);
+            const HPData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), []);
+            const HPStabData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), []);
+            record.experimentRecord = expRecData.rows[0];
+            console.log(record.experimentRecord.record_id);
+            record.RMList = RMData.rows;
+            record.HPList = HPData.rows;
+            record.HPStabilityList = HPStabData.rows;
+            res.status(status.success).send({
+                message: `Successfully retrieved record ${record.experimentRecord.record_id} from EXPERIMENT_RECORDS. Retrieved ${record.RMList.length} Raw Materials, ${record.HPList.length} Hydrogren Peroxide Data and ${record.HPStabilityList.length} Hydrogen Peroxide Stability Data`,
                 records: record
             });
-        })();
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+
+    })();
 });
 
 //Searches EXPERIMENT_RECORDS using a specific search item
@@ -135,12 +101,19 @@ router.get('/searchRecords', (req, res) => {
     };
 
     (async function () {
-        record.experimentRecord = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [searchData.value], [searchData.name]), '', [], 'db.all', res);
-        console.log(record);
-        res.send({
-            message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
-            records: record
-        });
+        try {
+            const returnData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [searchData.value], [searchData.name]), []);
+            console.log(returnData);
+            record.experimentRecord = returnData.rows;
+            console.log(record);
+            res.status(status.success).send({
+                message: "Successfully retrieved " + record.experimentRecord.length + " record(s)",
+                records: record
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(status.error).send(error.message);
+        }
     })();
 
 });
@@ -155,13 +128,18 @@ router.get('/getRawMaterial', (req, res) => {
     console.log(id);
 
     (async function () {
-        console.log("running")
-        record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), '', [], 'db.all', res);
-        console.log("done ");
-        res.send({
-            message: 'Successfully retrieved ' + record.RMList.length + ' raw materials',
-            RMList: record.RMList
-        });
+        try {
+            const returnData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), []);
+            record.RMList = returnData.rows;
+            console.log(record.RMList);
+            res.status(status.success).send({
+                message: 'Successfully retrieved ' + record.RMList.length + ' raw materials',
+                RMList: record.RMList
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+
     })();
 });
 
@@ -175,12 +153,18 @@ router.get('/searchRawMaterials', (req, res) => {
     };
 
     (async function () {
-        record.RMList = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [searchData.value], [searchData.name]), '', [], 'db.all', res);
-        console.log(record);
-        res.send({
-            message: "Successfully retrieved " + record.RMList.length + " record(s)",
-            records: record
-        });
+        try {
+            let returnData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [searchData.value], [searchData.name]), []);
+            record.RMList = returnData.rows;
+            console.log(record, RMList);
+            res.send({
+                message: "Successfully retrieved " + record.RMList.length + " record(s)",
+                records: record
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+
     })();
 
 });
@@ -190,11 +174,16 @@ router.get('/getHP', (req, res) => {
     const id = req.query.id;
 
     (async function () {
-        let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-        res.send({
-            message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
-            HPList: HP
-        });
+        try {
+            let returnData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), []);
+            res.send({
+                message: 'Successfully retrieved ' + returnData.rows.length + ' hydrogen peroxide records',
+                HPList: returnData.rows
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+
     })();
 });
 
@@ -203,11 +192,15 @@ router.get('/searchHP', (req, res) => {
     let searchData = JSON.parse(req.query.search);
 
     (async function () {
-        let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [searchData.value, 1], [searchData.name, 'hp_type']), '', [], 'db.all', res);
-        res.send({
-            message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
-            records: HP
-        });
+        try {
+            let returnData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [searchData.value, 1], [searchData.name, 'hp_type']), []);
+            res.send({
+                message: 'Successfully retrieved ' + returnData.rows.length + ' hydrogen peroxide records',
+                records: returnData.rows
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
     })();
 });
 
@@ -216,11 +209,15 @@ router.get('/getHPStab', (req, res) => {
     const id = req.query.id;
 
     (async function () {
-        let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
-        res.send({
-            message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide stability records',
-            HPStabilityList: HP
-        });
+        try {
+            let returnData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), '', [], 'db.all', res);
+            res.send({
+                message: 'Successfully retrieved ' + returnData.rows.length + ' hydrogen peroxide stability records',
+                HPStabilityList: returnData.rows
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
     })();
 });
 
@@ -229,11 +226,16 @@ router.get('/searchHPStab', (req, res) => {
     let searchData = JSON.parse(req.query.search);
 
     (async function () {
-        let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [searchData.value, 2], [searchData.name, 'hp_type']), '', [], 'db.all', res);
-        res.send({
-            message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
-            records: HP
-        });
+        try {
+            let HP = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [searchData.value, 2], [searchData.name, 'hp_type']), '', [], 'db.all', res);
+            res.send({
+                message: 'Successfully retrieved ' + HP.length + ' hydrogen peroxide records',
+                records: HP
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+        
     })();
 });
 
@@ -244,33 +246,28 @@ router.post('/addExperimentRecord', (req, res) => {
     record.experimentRecord.date_updated = getCurrDate();
     let experimentRecordValues = Object.values(record.experimentRecord);
 
-    /* pool.query(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), experimentRecordValues, (error, results) => {
-        if (error) {
-            res.send(error);
-            throw error;
-        } else {
-            //res.status(200).send(results.rows);
-            console.log(results.rows);
-            res.send({
-                message: 'Added/Updated record successfully in ' +  + ` table, ${results.rowCount} row(s) affected`,
-            });
-        }
-    }); */
-
     (async function () {
-        let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', experimentRecordValues, 'db.run', res);
-        console.log(returnData);
+        try {
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), experimentRecordValues);
+            console.log(returnData);
+            res.status(status.success).send({
+                message: `Successfully inserted ${returnData.rowCount} rows into experiment_records` 
+            })
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+        
     })();
 });
 
-//Add all the raw materials to the database
+//Add a raw materials to the database
 router.post('/addRawMaterial', (req, res) => {
     let record = req.body.record;
     if (record.RMList.length > 0) {
         let RMKeys = Object.keys(record.RMList[0]); //Getting keys to create the query string
         RMKeys.unshift('experiment_record_id');
 
-        //Creating the flat array for db.run execution
+        //Creating the flat array for query execution
         let flatRMList = [];
         record.RMList.forEach((arr) => {
             var values = Object.values(arr);
@@ -283,13 +280,19 @@ router.post('/addRawMaterial', (req, res) => {
         /* console.log(RMKeys);
         console.log(flatRMList); */
         (async function () {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', record.RMList, [], RMKeys), 'RAW_MATERIALS', flatRMList, 'db.run', res);
-            res.send({
-                message: returnData.message
-            });
+            try {
+                let returnData = await DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', record.RMList, [], RMKeys), flatRMList);
+                console.log(returnData);
+                res.status(status.success).send({
+                    message: `Successfully added ${returnData.rowCount} rows to Raw Materials`
+                });
+            } catch (error) {
+                res.status(status.error).send(error.message);
+            }
+            
         })();
     } else {
-        res.send({
+        res.status(status.nocontent).send({
             message: 'No data to add'
         });
     };
@@ -342,10 +345,15 @@ router.post('/addHP', (req, res) => {
         //console.log(fullHPList);
         //console.log(flatHPList);
         (async function () {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', fullHPList, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', flatHPList, 'db.run', res);
-            res.send({
-                message: returnData.message
-            });
+            try {
+                let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', fullHPList, [], HPKeys), flatHPList);
+                res.send({
+                    message: `Successfully added ${returnData.RowCount} row(s) to hydrogen peroxide data` 
+                });
+            } catch (error) {
+                res.status(status.error).send(error.message);
+            }
+            
         })();
 
     } else {
@@ -362,6 +370,11 @@ router.post('/updateExperimentRecord', (req, res) => {
     record.experimentRecord.date_updated = getCurrDate(); //Update the updated date of the record
 
     (async function () {
+        try {
+
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
         let returnData = await DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', id, [], Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', Object.values(record.experimentRecord), 'db.run', res);
         res.send({
             message: returnData.message
@@ -379,6 +392,11 @@ router.post('/updateRawMaterial', (req, res) => {
 
         //Updating record for each raw material
         (async function () {
+            try {
+
+            } catch (error) {
+                res.status(status.error).send(error.message);
+            }
             let message = '';
             //Updating each record in raw materials list
             for (var i = 0; i < record.RMList.length; i++) {
@@ -414,6 +432,11 @@ router.post('/updateHP', (req, res) => {
 
         //Updating record for each HP
         (async function () {
+            try {
+
+            } catch (error) {
+                res.status(status.error).send(error.message);
+            }
             let message = '';
             for (var i = 0; i < record.HPList.length; i++) {
                 var values = Object.values(record.HPList[i]);
@@ -445,6 +468,11 @@ router.post('/updateHP', (req, res) => {
 router.get('/deleteRecord', (req, res) => {
     let id = req.query.id;
     (async function () {
+        try {
+
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
         let changes;
         let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'experiment_record_id'), '', [], 'db.run', res);
         changes += returnData.changes;
@@ -462,6 +490,11 @@ router.get('/deleteRecord', (req, res) => {
 router.post('/deleteRawMaterial', (req, res) => {
     let id = req.body.record;
     (async function () {
+        try {
+
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
         let changes;
         let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'), '', [], 'db.run', res);
         changes += returnData.changes;
@@ -476,6 +509,11 @@ router.post('/deleteHP', (req, res) => {
     let id = req.body.record;
     //console.log(req.body)
     (async function () {
+        try {
+
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
         let changes;
         let returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'hp_id'), '', [], 'db.run', res);
         changes += returnData.changes;
@@ -491,7 +529,7 @@ function getCurrDate() {
     return curDate;
 }
 
-//Dynamic sqlite query string builder
+//Dynamic query string builder
 function queryStringBuilder(operation, tableName, data, parameters, parameterNames) {
     let queryString = "";
     if (operation == 'SELECT') {
@@ -518,24 +556,24 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
         queryString += ') VALUES ';
 
         if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
-            //queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
-            queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
+            //queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         } else if (tableName == 'RAW_MATERIALS') {
-            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8 )').join(',');
-            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8 )').join(',');
+            //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
         } else {
-            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
-            queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
+            //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
         }
     } else if (operation == 'UPDATE') {
         queryString = 'UPDATE ' + tableName + ' SET ';
         //Creating list of columns to update
         for (let index = 0; index < parameterNames.length; index++) {
             if (index == 0) {
-                //queryString += parameterNames[index] + ' = $1';
-                queryString += parameterNames[index] + ' = ?';
+                queryString += parameterNames[index] + ' = $1';
+                //queryString += parameterNames[index] + ' = ?';
             } else {
-                queryString += ', ' + parameterNames[index] + ' = ?';
+                queryString += ', ' + parameterNames[index] + ' = $1';
             };
         };
 
@@ -574,9 +612,22 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
 
 } */
 
+//Query runner for database
+function DBRunner(queryString, params) {
+    return new Promise((resolve, reject) => {
+        connection.query(queryString, params)
+            .then((result) => {
+                resolve(result);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
 
 //Dynamic DB runner which handles all db calls
-async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
+/* async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     return new Promise((resolve, reject) => {
         //Open DB
         const db = new sqlite3.Database('./router/ViroxDB.db', sqlite3.OPEN_READWRITE, (err) => {
@@ -623,7 +674,7 @@ async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
     })
 
 }
-
+ */
 module.exports = router;
 
 

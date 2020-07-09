@@ -761,10 +761,11 @@ export default {
   },
   beforeCreate() {
     axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-        console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-        this.record = response.data.records;
-        this.record.experimentRecord = response.data.records.experimentRecord[0];
-        this.formatRecord();
+        //console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+        console.log(response.data);
+        /* this.record = response.data.records;
+        this.record.experimentRecord = response.data.records.experimentRecord;
+        //this.formatRecord();
         console.log(this.record);
         //console.log("record:");
         //console.log(this.record.experimentRecord.preparation_reason);
@@ -781,7 +782,7 @@ export default {
         //Enable editing for new records
         if (this.record.experimentRecord.LOT_NO == "") {
           this.editRecord();
-        }
+        } */
     });
   },
   computed: {
