@@ -133,7 +133,6 @@
                         console.log(this.record);
                     });
                 } else if (this.selectedType == "Hydrogen Peroxide Data") {
-                    console.log("here")
                     axios.get(baseURL + '/searchHP', {
                         params: {
                             search: JSON.stringify(searchItem)
@@ -146,7 +145,6 @@
                         console.log(this.record);
                     });
                 } else if (this.selectedType == "Hydrogen Peroxide Stability Data") {
-                    console.log("not here")
                     axios.get(baseURL + '/searchHPStab', {
                         params: {
                             search: JSON.stringify(searchItem)
@@ -174,7 +172,7 @@
             formatSearchValue() {
                 if (this.selected.includes("pr") || this.selected.includes("name") || this.selected.includes("date") || this.selected.includes("time") || this.selected.includes("initials") || this.selected.includes("accepted")) {
                     console.log("string");
-                    return '"' + this.searchInput + '"';
+                    return "'" + this.searchInput + "'";
                 } else {
                     return this.searchInput;
                 }

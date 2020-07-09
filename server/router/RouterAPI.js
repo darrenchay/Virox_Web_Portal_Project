@@ -58,7 +58,6 @@ router.get('/getRecords', (req, res) => {
     })();
 });
 
-
 //Get a single complete record data based off record id
 router.get('/getRecord', (req, res) => {
     const id = req.query.id;
@@ -156,7 +155,7 @@ router.get('/searchRawMaterials', (req, res) => {
         try {
             let returnData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [searchData.value], [searchData.name]), []);
             record.RMList = returnData.rows;
-            console.log(record, RMList);
+            console.log(record.RMList);
             res.send({
                 message: "Successfully retrieved " + record.RMList.length + " record(s)",
                 records: record
@@ -235,7 +234,7 @@ router.get('/searchHPStab', (req, res) => {
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        
+
     })();
 });
 
@@ -251,19 +250,22 @@ router.post('/addExperimentRecord', (req, res) => {
             let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), experimentRecordValues);
             console.log(returnData);
             res.status(status.success).send({
-                message: `Successfully inserted ${returnData.rowCount} rows into experiment_records` 
+                message: `Successfully inserted ${returnData.rowCount} rows into experiment_records`
             })
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        
+
     })();
 });
 
+//TO REFACTOR
 //Add a raw materials to the database
 router.post('/addRawMaterial', (req, res) => {
     let record = req.body.record;
     if (record.RMList.length > 0) {
+        record.RMList[0].date_created = getCurrDate();
+        record.RMList[0].date_updated = getCurrDate();
         let RMKeys = Object.keys(record.RMList[0]); //Getting keys to create the query string
         RMKeys.unshift('experiment_record_id');
 
@@ -289,96 +291,52 @@ router.post('/addRawMaterial', (req, res) => {
             } catch (error) {
                 res.status(status.error).send(error.message);
             }
-            
+
         })();
-    } else {
-        res.status(status.nocontent).send({
-            message: 'No data to add'
-        });
-    };
-});
-
-//Add all the hydrogen peroxide data to the database
-router.post('/addHP', (req, res) => {
-    let record = req.body.record;
-    console.log(record);
-    //Check if there are records to add
-    if (record.HPList.length != 0 || record.HPStabilityList.length != 0) {
-        //Creating list of keys
-        let HPKeys;
-        if (record.HPList.length != 0) {
-            HPKeys = Object.keys(record.HPList[0]);
-        } else {
-            HPKeys = Object.keys(record.HPStabilityList[0]);
-        };
-        HPKeys.unshift('hp_type');
-        HPKeys.unshift('experiment_record_id');
-
-        //Creating list of values and paramters
-        let flatHPList = [];
-        let fullHPList = [];
-        if (record.HPList.length != 0) {
-            record.HPList.forEach((arr) => {
-                var values = Object.values(arr);
-                values.unshift(1); //Set hp_type to 1 for HP record
-                values.unshift(record.experimentRecord.record_id);
-                fullHPList.push(values);
-                values.forEach((item) => {
-                    flatHPList.push(item);
-                });
-            });
-        };
-
-        if (record.HPStabilityList.length != 0) {
-            record.HPStabilityList.forEach((arr) => {
-                var values = Object.values(arr);
-                values.unshift(2); //Set hp_type to 2 for HP stability record 
-                values.unshift(record.experimentRecord.record_id);
-                fullHPList.push(values);
-
-                values.forEach((item) => {
-                    flatHPList.push(item);
-                });
-            });
-        };
-
-        //console.log(fullHPList);
-        //console.log(flatHPList);
-        (async function () {
-            try {
-                let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', fullHPList, [], HPKeys), flatHPList);
-                res.send({
-                    message: `Successfully added ${returnData.RowCount} row(s) to hydrogen peroxide data` 
-                });
-            } catch (error) {
-                res.status(status.error).send(error.message);
-            }
-            
-        })();
-
     } else {
         res.send({
             message: 'No data to add'
         });
     };
+});
+
+//Adds a hydrogen peroxide data record to the database
+router.post('/addHP', (req, res) => {
+    let HPRecord = req.body.HPRecord;
+    HPRecord.date_created = getCurrDate();
+    HPRecord.date_updated = getCurrDate();
+    let HPvalues = Object.values(HPRecord);
+    let HPKeys = Object.keys(HPRecord);
+
+    (async function () {
+        try {
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPvalues, [], HPKeys), HPvalues);
+            res.status(status.success).send({
+                message: `Successfully added ${returnData.rowCount} row(s) to hydrogen peroxide data`
+            });
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+    })();
+
 });
 
 //Update an experiment record
 router.post('/updateExperimentRecord', (req, res) => {
     let id = req.body.record.experimentRecord.record_id;
     let record = req.body.record;
-    record.experimentRecord.date_updated = getCurrDate(); //Update the updated date of the record
+    record.experimentRecord.date_updated = getCurrDate(); //Update the date updated of the record
 
     (async function () {
         try {
-
+            let returnData = await DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', id, Object.values(record.experimentRecord), Object.keys(record.experimentRecord)), Object.values(record.experimentRecord));
+            //console.log(returnData);
+            res.status(status.success).send({
+                message: `Successfully updated record ${returnData.rowCount} from experiment_records`
+            });
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        let returnData = await DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', id, [], Object.keys(record.experimentRecord)), 'EXPERIMENT_RECORDS', Object.values(record.experimentRecord), 'db.run', res);
-        res.send({
-            message: returnData.message
-        });
     })();
 });
 
@@ -393,22 +351,24 @@ router.post('/updateRawMaterial', (req, res) => {
         //Updating record for each raw material
         (async function () {
             try {
+                let count = 0;
+                //Updating each record in raw materials list
+                for (var i = 0; i < record.RMList.length; i++) {
+                    record.RMList[i].date_updated = getCurrDate();
 
+                    var values = Object.values(record.RMList[i]);
+                    values.shift(); //removing rm_id
+                    //console.log(values);
+
+                    let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.RMList[i].raw_material_id, [], RMKeys), values);
+                    count += returnData.rowCount;
+                }
+                res.status(status.success).send({
+                    message: `Successfully updated ${count} rows from raw_materials table`
+                });
             } catch (error) {
                 res.status(status.error).send(error.message);
             }
-            let message = '';
-            //Updating each record in raw materials list
-            for (var i = 0; i < record.RMList.length; i++) {
-                var values = Object.values(record.RMList[i]);
-                values.shift(); //removing rm_id
-
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', record.RMList[i].raw_material_id, [], RMKeys), 'RAW_MATERIALS', values, 'db.run', res);
-                message += returnData.message + '\n';
-            }
-            res.send({
-                message: message
-            });
         })();
     } else {
         res.send({
@@ -433,28 +393,30 @@ router.post('/updateHP', (req, res) => {
         //Updating record for each HP
         (async function () {
             try {
+                let count = 0;
+                for (var i = 0; i < record.HPList.length; i++) {
+                    record.HPList[i].date_updated = getCurrDate();
+                    var values = Object.values(record.HPList[i]);
+                    values.shift(); //removing hp_id
 
+                    let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.HPList[i].hp_id, [], HPKeys), values);
+                    count += returnData.rowCount;
+                };
+                for (var i = 0; i < record.HPStabilityList.length; i++) {
+                    record.HPStabilityList[i].date_updated = getCurrDate();
+                    var values = Object.values(record.HPStabilityList[i]);
+                    values.shift(); //removing hp_id
+
+                    let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.HPStabilityList[i].hp_id, [], HPKeys), values);
+                    count += returnData.rowCount;
+                };
+                res.status(status.success).send({
+                    message: `Successfully updated ${count} rows from hydrogen_peroxide_data table`
+                });
             } catch (error) {
                 res.status(status.error).send(error.message);
             }
-            let message = '';
-            for (var i = 0; i < record.HPList.length; i++) {
-                var values = Object.values(record.HPList[i]);
-                values.shift(); //removing hp_id
 
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.HPList[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
-                message += returnData.message + '\n';
-            };
-            for (var i = 0; i < record.HPStabilityList.length; i++) {
-                var values = Object.values(record.HPStabilityList[i]);
-                values.shift(); //removing hp_id
-
-                let returnData = await DBRunner(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', record.HPStabilityList[i].hp_id, [], HPKeys), 'HYDROGEN_PEROXIDE_DATA', values, 'db.run', res);
-                message += returnData.message + '\n';
-            };
-            res.send({
-                message: message
-            });
         })();
     } else {
         res.send({
@@ -469,20 +431,23 @@ router.get('/deleteRecord', (req, res) => {
     let id = req.query.id;
     (async function () {
         try {
-
+            let changes = {};
+            let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'experiment_record_id'), []);
+            //console.log(returnData);
+            changes.RM = returnData.rowCount;
+            returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'experiment_record_id'), []);
+            //console.log(returnData);
+            changes.HP = returnData.rowCount;
+            returnData = await DBRunner(queryStringBuilder('DELETE', 'EXPERIMENT_RECORDS', [], id, 'record_id'), []);
+            //console.log(returnData);
+            changes.ER = returnData.rowCount;
+            res.status(status.success).send({
+                message: `successfully deleted ${changes.ER} record(s) from experiment_records, ${changes.RM} from raw_materials and ${changes.HP} from hydrogen_peroxide_data `,
+            });
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        let changes;
-        let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'experiment_record_id'), '', [], 'db.run', res);
-        changes += returnData.changes;
-        returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'experiment_record_id'), '', [], 'db.run', res);
-        changes += returnData.changes;
-        returnData = await DBRunner(queryStringBuilder('DELETE', 'EXPERIMENT_RECORDS', [], id, 'record_id'), '', [], 'db.run', res);
-        changes += returnData.changes;
-        res.send({
-            message: "successfully deleted " + changes + " record(s)",
-        });
+
     })();
 });
 
@@ -491,16 +456,13 @@ router.post('/deleteRawMaterial', (req, res) => {
     let id = req.body.record;
     (async function () {
         try {
-
+            let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'),[]);
+            res.status(status.success).send({
+                message: "successfully deleted " + returnData.rowCount + " record(s) from raw_materials",
+            });
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        let changes;
-        let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'), '', [], 'db.run', res);
-        changes += returnData.changes;
-        res.send({
-            message: "successfully deleted " + changes + " record(s)",
-        });
     })();
 });
 
@@ -510,16 +472,14 @@ router.post('/deleteHP', (req, res) => {
     //console.log(req.body)
     (async function () {
         try {
-
+            let returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'hp_id'), '', [], 'db.run', res);
+            res.status(status.success).send({
+                message: "successfully deleted " + returnData.rowCount + " record(s) from hydrogen_peroxide_data",
+            });
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        let changes;
-        let returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], id, 'hp_id'), '', [], 'db.run', res);
-        changes += returnData.changes;
-        res.send({
-            message: "successfully deleted " + changes + " record(s)",
-        });
+        
     })();
 });
 
@@ -559,23 +519,20 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
             queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
             //queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         } else if (tableName == 'RAW_MATERIALS') {
-            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8 )').join(',');
+            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )').join(',');
             //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
         } else {
-            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
-            //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
+            queryString += '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 )';
         }
     } else if (operation == 'UPDATE') {
         queryString = 'UPDATE ' + tableName + ' SET ';
         //Creating list of columns to update
+        let set = [];
         for (let index = 0; index < parameterNames.length; index++) {
-            if (index == 0) {
-                queryString += parameterNames[index] + ' = $1';
-                //queryString += parameterNames[index] + ' = ?';
-            } else {
-                queryString += ', ' + parameterNames[index] + ' = $1';
-            };
+            set.push(parameterNames[index].toLowerCase() + ' = ( $' + (index + 1) + ' )');
         };
+        queryString += set.join(', ');
 
         //Adding identifier to know which row to update
         if (tableName == 'EXPERIMENT_RECORDS') {
@@ -593,33 +550,16 @@ function queryStringBuilder(operation, tableName, data, parameters, parameterNam
     return queryString;
 }
 
-/* async function DBRunner(queryString, tableName, parameters, sqliteMethod, res) {
-    return new Promise((resolve, reject) => {
-        pool.query(queryString, parameters, (error, results) => {
-            if (error) {
-                res.send(error);
-                throw error;
-            } else {
-                //res.status(200).send(results.rows);
-                console.log(results.rows);
-                res.send({
-                    message: "Successfully performed operation, " + results.rowCount + " rows affected"
-                });
-                resolve(results.rows);
-            }
-        });
-    });
-
-} */
-
 //Query runner for database
 function DBRunner(queryString, params) {
     return new Promise((resolve, reject) => {
         connection.query(queryString, params)
             .then((result) => {
+                //console.log(result);
                 resolve(result);
             })
             .catch((err) => {
+                console.log(err);
                 reject(err);
             });
     });

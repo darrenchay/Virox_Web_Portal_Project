@@ -6,7 +6,7 @@
         <div class="form-inline row">
           <div class="form-group col-6">
             <label class="mb-3 mr-2" for="inputLOTNO"><strong>LOT NO:</strong></label>
-            <input type="input" :disabled="isEditingDisabled" v-model.trim="record.experimentRecord.LOT_NO" class="form-control col-5" id="inputLOTNO"/>
+            <input type="input" :disabled="isEditingDisabled" v-model.trim="record.experimentRecord.lot_no" class="form-control col-5" id="inputLOTNO"/>
           </div>
           <div class="form-group col-6">
             <label class="mb-3 mr-2" for="inputProjectTitle"><strong>Project Title:</strong></label>
@@ -66,10 +66,10 @@
                 <input type="text" v-model.trim="rmTemplate.raw_material_lot" class="form-control" id="inputRMlot"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.AR" class="form-control" id="inputAR"/>
+                <input type="text" v-model.trim="rmTemplate.ar" class="form-control" id="inputAR"/>
               </td>
               <td>
-                <input type="text" v-model.trim="rmTemplate.AD" class="form-control" id="inputAD"/>
+                <input type="text" v-model.trim="rmTemplate.ad" class="form-control" id="inputAD"/>
               </td>
               <td>
                 <input type="date" v-model.trim="rmTemplate.time_added" class="form-control" id="inputTimeAdded"/>
@@ -313,17 +313,17 @@ export default {
         HPStabilityList: []
       },
 
-      RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "AR", "AD", "time_added", "notes"],
+      RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "ar", "ad", "time_added", "notes"],
       RMColumnNames: ["Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added", "Notes"],
       HPColumns: ["experiment_name", "N", "M", "vol_change", "H2O2", "accepted_range", "date", "initials"],
       HPColumnNames: ["Hydrogen Peroxide", "N", "Ms [gr]", "∆V (ml)", "H2O2", "Accepted Range", "Date", "Initials" ],
 
       rmTemplate: {
         raw_material_name: "",
-        percentage_w: "",
-        raw_material_lot: "",
-        AR: "",
-        AD: "",
+        percentage_w: null,
+        raw_material_lot: null,
+        ar: null,
+        ad: null,
         time_added: "",
         notes: "",
       },
@@ -374,7 +374,7 @@ export default {
       if(resp == true) {
         axios.get(baseURL + "/deleteRecord?id=" + this.$store.state.currentRecordID).then(response => {
           alert('The record has been successfully deleted');
-          console.log(response);
+          console.log(response.data.message);
           this.$router.push({ name: 'records' });
         });
       } 
@@ -405,7 +405,28 @@ export default {
           }, 
           RMList: []
         };
+        /* Object.values(this.rmTemplate).forEach(element => {
+          if(element !== "") {
+            record.RMList[0][element] = element;
+          }
+        }) */
+        if(this.rmTemplate.percentage_w === "") {
+          this.rmTemplate.percentage_w = 0; 
+        }
+        if(this.rmTemplate.raw_material_lot === "") {
+          this.rmTemplate.raw_material_lot = 0; 
+        }
+        if(this.rmTemplate.ad === "") {
+          this.rmTemplate.ad = null; 
+        }
+        if(this.rmTemplate.ar === "") {
+          this.rmTemplate.ar = null; 
+        }
+        if(this.rmTemplate.time_added === "") {
+          this.rmTemplate.time_added = null; 
+        }
         record.RMList.push(this.rmTemplate);
+        console.log(record.RMList);
 
         //Running ajax calls
         axios({
@@ -482,6 +503,7 @@ export default {
       }
     },
     updateRM(){
+      console.log(this.record.RMList);
       axios({
           method: "post",
           url: baseURL + '/updateRawMaterial',
@@ -493,6 +515,7 @@ export default {
           //Updating RMList
           axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
             this.record.RMList = response.data.RMList;
+            console.log(this.record.RMList);
             this.formatRecord();
             this.cancelRM();  
             console.log(response.data.message);
@@ -746,26 +769,26 @@ export default {
     },
     calculateTotalAD: function() {
       let newTotal = this.record.RMList.reduce(function(a, c) {
-        return a + Number(c.AD);
+        return a + Number(c.ad);
       }, 0);
-      this.record.experimentRecord.total_AD = newTotal.toFixed(3);
+      this.record.experimentRecord.total_ad = newTotal.toFixed(3);
       return newTotal.toFixed(3);
     },
     calculateTotalAR: function() {
       let newTotal = this.record.RMList.reduce(function(a, c) {
-        return a + Number(c.AR);
+        return a + Number(c.ar);
       }, 0);
-      this.record.experimentRecord.total_AR = newTotal.toFixed(3);
+      this.record.experimentRecord.total_ar = newTotal.toFixed(3);
       return newTotal.toFixed(3);
     }
   },
   beforeCreate() {
     axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
-        //console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
-        console.log(response.data);
-        /* this.record = response.data.records;
+        console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
+        //console.log(response.data);
+        this.record = response.data.records;
         this.record.experimentRecord = response.data.records.experimentRecord;
-        //this.formatRecord();
+        this.formatRecord();
         console.log(this.record);
         //console.log("record:");
         //console.log(this.record.experimentRecord.preparation_reason);
@@ -780,9 +803,9 @@ export default {
         }
 
         //Enable editing for new records
-        if (this.record.experimentRecord.LOT_NO == "") {
+        if (this.record.experimentRecord.lot_no == "") {
           this.editRecord();
-        } */
+        }
     });
   },
   computed: {
