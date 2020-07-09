@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const { query } = require('express');
 const connection = require('./dbAuth.js');
-//const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 const app = express();
 
