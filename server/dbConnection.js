@@ -49,7 +49,7 @@ const createRMTable = () => {
 	experiment_record_id integer NOT NULL    ,
 	raw_material_name    varchar(256) NOT NULL DEFAULT '-'   ,
 	percentage_w         double precision NOT NULL DEFAULT 0   ,
-	raw_material_lot     integer     ,
+	raw_material_lot     varchar(50)     ,
 	AR                   double precision NOT NULL DEFAULT 0   ,
 	AD                   double precision NOT NULL DEFAULT 0   ,
 	notes                varchar(600)     ,

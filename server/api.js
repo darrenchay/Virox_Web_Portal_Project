@@ -44,7 +44,7 @@ router.get('/getRecords', (req, res) => {
     };
     (async function () {
         try {
-            let result = await DBRunner(queryStringBuilder('SELECT', [], [], [], []), []);
+            let result = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], []), []);
             let rows = result.rows;
             if (endIndex < rows.length) {
                 next = page + 1;
@@ -496,124 +496,73 @@ function getCurrDate() {
 }
 
 //Dynamic query string builder
-function queryStringBuilder(operation, tableName, data, parameters, parameterNames) {
-    let queryString = "";
-    if (operation == 'SELECT') {
-        queryString = 'SELECT * FROM ';
-
-        if (parameters.length == 0) { //Create querySrting for getRecords
-            queryString += 'EXPERIMENT_RECORDS ORDER BY record_id';
-        } else if (parameters.length == 1) {//Create queryString for getting an experiment record or raw materials
-            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0];
-        } else if (parameters.length == 2) {//Create queryString for getting the HP records
-            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0] + ' AND ' + parameterNames[1] + ' = ' + parameters[1];
-        };
-    } else if (operation == 'INSERT') {
-
-        queryString = 'INSERT INTO ' + tableName + ' (';
-        for (let index = 0; index < parameterNames.length; index++) { //Creating list of column names to insert into
-            if (index == 0) {
-                queryString += parameterNames[index];
-            } else {
-                queryString += ', ' + parameterNames[index];
-            };
-        };
-
-        queryString += ') VALUES ';
-
-        if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
-            queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
-            //queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        } else if (tableName == 'RAW_MATERIALS') {
-            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )').join(',');
-            //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
-        } else {
-            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
-            queryString += '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 )';
-        }
-
-        queryString += ' RETURNING *'
-    } else if (operation == 'UPDATE') {
-        queryString = 'UPDATE ' + tableName + ' SET ';
-        //Creating list of columns to update
-        let set = [];
-        for (let index = 0; index < parameterNames.length; index++) {
-            set.push(parameterNames[index].toLowerCase() + ' = ( $' + (index + 1) + ' )');
-        };
-        queryString += set.join(', ');
-
-        //Adding identifier to know which row to update
-        if (tableName == 'EXPERIMENT_RECORDS') {
-            queryString += ' WHERE record_id = ' + data;
-        } else if (tableName == 'RAW_MATERIALS') {
-            queryString += ' WHERE raw_material_id = ' + data;
-        } else {
-            queryString += ' WHERE hp_id = ' + data;
-        };
-    } else {
-        queryString = 'DELETE FROM ' + tableName + ' WHERE ' + parameterNames + ' = ' + parameters;
-    }
-
-    console.log(queryString);
-    return queryString;
+function queryStringBuilder(operation, tableName, parameters, identifiers) {
+    let queryString = [];
+    queryString.push(setCommand(operation, tableName));
+    queryString.push(setValues(operation, parameters, identifiers));
+    return queryString.join(' ');
 }
 
+//Builds the command section of the query string
 function setCommand(operation, tableName) {
+    let commandSectionString = [operation];
     if (operation == 'SELECT') {
-        queryString = 'SELECT * FROM ' + tableName;
-
-        if (parameters.length == 0) { //Create querySrting for getRecords
-            queryString += 'EXPERIMENT_RECORDS ORDER BY record_id';
-        } else if (parameters.length == 1) {//Create queryString for getting an experiment record or raw materials
-            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0];
-        } else if (parameters.length == 2) {//Create queryString for getting the HP records
-            queryString += tableName + ' WHERE ' + parameterNames[0] + ' = ' + parameters[0] + ' AND ' + parameterNames[1] + ' = ' + parameters[1];
-        };
-    }else if (operation == 'INSERT') {
-
-        queryString = 'INSERT INTO ' + tableName + ' (';
-        for (let index = 0; index < parameterNames.length; index++) { //Creating list of column names to insert into
-            if (index == 0) {
-                queryString += parameterNames[index];
-            } else {
-                queryString += ', ' + parameterNames[index];
-            };
-        };
-
-        queryString += ') VALUES ';
-
-        if (tableName == 'EXPERIMENT_RECORDS') { //Mapping values portion to query string
-            queryString += '($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)';
-            //queryString += '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        } else if (tableName == 'RAW_MATERIALS') {
-            queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )').join(',');
-            //queryString += data.map(() => '( ?, ?, ?, ?, ?, ?, ?, ? )').join(',');
+        commandSectionString.push('* FROM ' + tableName);
+        //Completes string if its getting all experiment records
+        if (tableName == 'EXPERIMENT_RECORDS') {
+            commandSectionString.push('ORDER BY record_id');
         } else {
-            //queryString += data.map(() => '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )').join(',');
-            queryString += '( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13 )';
+            commandSectionString.push('WHERE');
         }
-
-        queryString += ' RETURNING *'
+    } else if (operation == 'INSERT') {
+        commandSectionString.push('INTO ' + tableName);
     } else if (operation == 'UPDATE') {
-        queryString = 'UPDATE ' + tableName + ' SET ';
+        commandSectionString.push(tableName + ' SET');
+    } else {
+        commandSectionString.push('FROM ' + tableName + ' WHERE');
+    }
+    return commandSectionString.join(' ');
+}
+
+//Builds the values/identifiers section of the query string
+function setValues(operation, parameters, identifiers) {
+    let valueSectionString = [];
+    if (operation == 'UPDATE') {
         //Creating list of columns to update
         let set = [];
-        for (let index = 0; index < parameterNames.length; index++) {
-            set.push(parameterNames[index].toLowerCase() + ' = ( $' + (index + 1) + ' )');
+        for (let index = 0; index < parameters.length; index++) {
+            set.push(parameters[index].toLowerCase() + ' = ( $' + (index + 1) + ' )');
         };
-        queryString += set.join(', ');
+        valueSectionString.push(set.join(', '));
 
-        //Adding identifier to know which row to update
-        if (tableName == 'EXPERIMENT_RECORDS') {
-            queryString += ' WHERE record_id = ' + data;
-        } else if (tableName == 'RAW_MATERIALS') {
-            queryString += ' WHERE raw_material_id = ' + data;
-        } else {
-            queryString += ' WHERE hp_id = ' + data;
-        };
-    } else {
-        queryString = 'DELETE FROM ' + tableName + ' WHERE ' + parameterNames + ' = ' + parameters;
+        valueSectionString.push('WHERE');
+    } else if (operation == 'INSERT') {
+        //Creates the column names of the values to be inserted
+        valueSectionString.push('(');
+        valueSectionString.push(Object.keys(parameters[0]).join(', '));
+        valueSectionString.push(') VALUES');
+
+        //Creating chunks of paramter values
+        let i = 1;
+        let values = Array(parameters.length).fill() //For each row
+            .map(v => `(${Array(Object.values(parameters[0]).length).fill() //For each column
+                .map(v => `$${i++}`).join(", ")})`).join(", ");
+        //console.log(values);
+        valueSectionString.push(values);
+
+        //Adding a returning statement to get the ID(and other data) of the inserted row
+        valueSectionString.push('RETURNING *');
+
     }
+
+    //Setting identifiers (e.g WHERE record_id = 1)
+    let set = [];
+    Object.keys(identifiers).forEach(key => {
+        set.push(key + ' = ' + identifiers[key]);
+    });
+    valueSectionString.push(set.join(' AND '));
+    
+    return valueSectionString.join(' ');
 }
 
 //Query runner for database
