@@ -151,6 +151,9 @@ function createValues(parameters) {
 }
 
 (function () {
+    let id = 1;
+    //DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], {record_id: id}), []);
+    //DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: id, hp_type: 1 }), []);
 
     /* console.log(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], {}));
     console.log();
@@ -241,9 +244,10 @@ function createValues(parameters) {
         date_created: "2020-12-5",
         date_updated: "2020-12-5"
     }]
+    console.log(JSON.stringify(experimentRecord));
 
-    DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }), Object.values(experimentRecord[0]));
-    DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', Object.keys(RMList[0]), { raw_material_id: 1 }), Object.values(RMList[0]));
+    //DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }), Object.values(experimentRecord[0]));
+    //DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', Object.keys(RMList[0]), { raw_material_id: 1 }), Object.values(RMList[0]));
     /* console.log(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }));
     console.log();
     console.log(queryStringBuilder('UPDATE', 'RAW_MATERIALS', Object.keys(RMList[0]), { raw_material_id: 1 }));

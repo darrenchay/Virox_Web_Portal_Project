@@ -268,8 +268,8 @@
 <script>
 const axios = require("axios");
 
-const baseURL = "https://virox-server.herokuapp.com/api";
-//const baseURL = "http://localhost:3000/API"
+//const baseURL = "https://virox-server.herokuapp.com/api";
+const baseURL = "http://localhost:3000/API"
 export default {
   name: "RecordDetails",
   template: "#general-input-form",
@@ -356,7 +356,9 @@ export default {
       this.showEditRecord = true,
       this.showCancelRecord = false,
       this.showDeleteRecord = true
-      //this.cancelRecord();
+      this.cancelRM();
+      this.cancelHP();
+      this.cancelHPStab();
     },
     cancelRecord() {
       this.isEditingDisabled = true,
@@ -437,14 +439,31 @@ export default {
           }
         }).then(response => {
           console.log(response.data.message);
-          //Updating RMList
-          axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.RMList = response.data.RMList;
+          let JSONData = {
+            tableName: 'RAW_MATERIALS',
+            identifiers: {
+                experiment_record_id: this.$store.state.currentRecordID,
+            }
+          }
+          axios.get(baseURL + '/getData', {
+            params: {
+              data: JSON.stringify(JSONData)
+            }
+          }).then( response => {
+            this.record.RMList = response.data.rows;
             this.formatRecord();
             this.cancelRM();  
             console.log(response.data.message);
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
+          //Updating RMList
+          /* axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.RMList = response.data.RMList;
+            this.formatRecord();
+            this.cancelRM();  
+            console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
+          }); */
         });
       }
     },
@@ -567,14 +586,32 @@ export default {
           }
         }).then(response => {
           console.log(response.data.message);
-          //Updating HPList
+          let JSONData = {
+            tableName: 'HYDROGEN_PEROXIDE_DATA',
+            identifiers: {
+                experiment_record_id: this.$store.state.currentRecordID,
+                hp_type: 1
+            }
+          }
+          axios.get(baseURL + '/getData', {
+            params: {
+              data: JSON.stringify(JSONData)
+            }
+          }).then( response => {
+            this.record.HPList = response.data.rows;
+            this.formatRecord();
+            this.cancelHP();  
+            console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
+          });
+          /* //Updating HPList
           axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
             this.record.HPList = response.data.HPList;
             this.formatRecord();
             this.cancelHP();  
             console.log(response.data.message);
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
+          }); */
         });
       } else {
         this.cancelHP();
@@ -693,14 +730,32 @@ export default {
           }
         }).then(response => {
           console.log(response.data.message);
-          //Updating HPStabilityList
-          axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPStabilityList = response.data.HPStabilityList;
+          let JSONData = {
+            tableName: 'HYDROGEN_PEROXIDE_DATA',
+            identifiers: {
+                experiment_record_id: this.$store.state.currentRecordID,
+                hp_type: 2
+            }
+          }
+          axios.get(baseURL + '/getData', {
+            params: {
+              data: JSON.stringify(JSONData)
+            }
+          }).then( response => {
+            this.record.HPStabilityList = response.data.rows;
             this.formatRecord();
             this.cancelHPStab();  
             console.log(response.data.message);
             postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
           });
+          //Updating HPStabilityList
+          /* axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
+            this.record.HPStabilityList = response.data.HPStabilityList;
+            this.formatRecord();
+            this.cancelHPStab();  
+            console.log(response.data.message);
+            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
+          }); */
         });
       } else {
         this.cancelHPStab();

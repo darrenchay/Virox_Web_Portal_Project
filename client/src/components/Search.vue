@@ -47,7 +47,7 @@
 
 <script>
     const axios = require('axios');
-    //const baseURL = "/API";
+    //const baseURL = "https://virox-server.herokuapp.com/api";
     const baseURL = "http://localhost:3000/API";
     export default {
         data() {
@@ -56,40 +56,43 @@
                 searchFilter: {
                     experiment_records: {
                         record_id: 'Record ID',
-                        LOT_NO: 'Lot No',
+                        lot_no: 'Lot No',
                         project_title: 'Project Title',
                         prepared_by: 'Prepared By',
                         quantity: 'Quantity',
                         total_percentage_w: 'Total %w/w',
-                        total_AD: 'Total AD',
-                        total_AR: 'Total AR',
+                        total_ad: 'Total AD',
+                        total_ar: 'Total AR',
                     },
                     RMList: {
+                        //experiment_record_id: 'Experiment record',
                         raw_material_name: 'Raw Material Name',
                         raw_material_lot: 'Raw Material Lot',
                         percentage_w: '%w/w',
-                        AD: 'AD',
-                        AR: 'AR',
+                        ad: 'AD',
+                        ar: 'AR',
                         time_added: 'Time Added',
                     },
                     HPList: {
+                        //experiment_record_id: 'Experiment record',
                         experiment_name: 'Experiment Name',
-                        N: 'Nitrogen',
-                        M: 'Ms [Gr]',
+                        n: 'Nitrogen',
+                        m: 'Ms [Gr]',
                         vol_change: 'Volume Change (ml)',
-                        H2O2: 'H2O2',
-                        PH: 'PH',
+                        h2o2: 'H2O2',
+                        ph: 'PH',
                         accepted_range: 'Accepted Range',
                         date: 'Date',
                         initials: 'Initials',
                     },
                     HPStabList: {
+                        //experiment_record_id: 'Experiment record',
                         experiment_name: 'Experiment Name',
-                        N: 'Nitrogen',
-                        M: 'Ms [Gr]',
+                        n: 'Nitrogen',
+                        m: 'Ms [Gr]',
                         vol_change: 'Volume Change (ml)',
-                        H2O2: 'H2O2',
-                        PH: 'PH',
+                        h2o2: 'H2O2',
+                        ph: 'PH',
                         accepted_range: 'Accepted Range',
                         date: 'Date',
                         initials: 'Initials',
@@ -97,6 +100,7 @@
                 },
                 selected: "Choose Filter",
                 selectedType: "",
+                searchName: "",
                 record: [],
                 receivedSearchResults: false
                 
@@ -104,10 +108,39 @@
         },
         methods: {
             search() {
-                let formattedSearch = this.formatSearchValue();
-                let searchItem = {name: this.selected, value: formattedSearch};
-                console.log(searchItem);
+                let JSONData = {
+                    tableName: '',
+                    identifiers: {                   
+                    }
+                }
+                JSONData.identifiers[this.searchName] = this.formatSearchValue();
+                //let formattedSearch = this.formatSearchValue();
+                //let searchItem = {name: this.selected, value: formattedSearch};
                 if(this.selectedType == "Experiment Record") {
+                    JSONData.tableName = 'EXPERIMENT_RECORDS';
+                } else if (this.selectedType == "Raw Materials") {
+                    JSONData.tableName = 'RAW_MATERIALS';
+                } else if (this.selectedType == "Hydrogen Peroxide Data") {
+                    JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
+                    JSONData.identifiers.hp_type = 1;
+                } else if (this.selectedType == "Hydrogen Peroxide Stability Data") {
+                    JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
+                    JSONData.identifiers.hp_type = 2;
+                }
+                console.log(JSONData);
+                axios.get(baseURL + '/getData', {
+                    params: {
+                        data: JSON.stringify(JSONData)
+                    }
+                }).then(response => {
+                        console.log(response.data.message);
+                        //console.log(response.data.records);
+                        this.record = response.data.rows;
+                        this.receivedSearchResults = true;
+                        console.log(this.record);
+                })
+
+                /* if(this.selectedType == "Experiment Record") {
                     axios.get(baseURL + '/searchRecords', {
                         params: {
                             search: JSON.stringify(searchItem)
@@ -156,22 +189,26 @@
                         this.receivedSearchResults = true;
                         console.log(this.record);
                     });
-                }                
+                }       */          
             },
             setSelected: function(event) {
                 //setting the selected type of dropdown
                 // 1. Get the selected index
                 const index = event.target.selectedIndex;
+                //console.log(index);
+                //Object.keys(event.target.selectedIndex)[index]
                 // 2. Find the selected option
                 const option = event.target.options[index];
+                this.searchName = option.value;
                 // 3. Select the parent element (optgroup) for the selected option
                 const optgroup = option.parentElement;
                 const recordType = optgroup.getAttribute('label');
                 this.selectedType = recordType;
             },
             formatSearchValue() {
+                console.log(this.selected);
                 if (this.selected.includes("pr") || this.selected.includes("name") || this.selected.includes("date") || this.selected.includes("time") || this.selected.includes("initials") || this.selected.includes("accepted")) {
-                    console.log("string");
+                    console.log('formatting');
                     return "'" + this.searchInput + "'";
                 } else {
                     return this.searchInput;

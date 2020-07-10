@@ -39,8 +39,8 @@
 <script>
     const axios = require('axios');
     const Paginate = require('vuejs-paginate');
-    const baseURL = "https://virox-server.herokuapp.com/api";
-    //const baseURL = "http://localhost:3000/API";
+    //const baseURL = "https://virox-server.herokuapp.com/api";
+    const baseURL = "http://localhost:3000/API";
     export default {
         name: 'Records',
         template: '#recordsPage',

@@ -7,16 +7,8 @@ GET http://localhost:3000/API/getRecordsTest?page=1 HTTP/1.1
 
 
 ###
-GET http://localhost:3000/API/searchRecords HTTP/1.1
-Host: localhost:3000
-Content-Type: application/json
+GET http://localhost:3000/API/getData HTTP/1.1
 
-{
-    "search" : {
-        "name": "project_title",
-        "value": "2nd Title"
-    }
-}
 
 ### Get single record with an ID
 GET http://localhost:3000/API/getRecord?id=1 HTTP/1.1
@@ -170,8 +162,8 @@ Host: localhost:3000
 Content-Type: application/json
 
 {
-    "HPRecord": {
-        "experiment_record_id": 3,
+    "HPRecord": [{
+        "experiment_record_id": 2,
         "hp_type" : 2,
         "experiment_name": "Trial 1",
         "n": 0.1000,
@@ -182,7 +174,20 @@ Content-Type: application/json
         "accepted_range": "~ 0.8%",
         "date": "2020-12-5",
         "initials": "D.C"
-    }
+    },
+    {
+        "experiment_record_id": 2,
+        "hp_type" : 2,
+        "experiment_name": "Trial 2",
+        "n": 0.1000,
+        "m": null,
+        "vol_change": null,
+        "H2O2": 0.1000,
+        "PH": 0.870,
+        "accepted_range": "test",
+        "date": "2020-12-5",
+        "initials": "D.C"
+    }]
 }
 
 # {

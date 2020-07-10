@@ -22,14 +22,6 @@ const status = {
     nocontent: 204,
 }
 
-/* router.get('/test', (req, res) => {
-    const page = parseInt(req.query.page);
-    res.send({
-        message: "testing",
-        page: page
-    })
-}) */
-
 //Get all the records to display on table
 router.get('/getRecords', (req, res) => {
     const page = parseInt(req.query.page);
@@ -75,10 +67,10 @@ router.get('/getRecord', (req, res) => {
 
     (async function () {
         try {
-            const expRecData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], [id], ['record_id']), []);
-            const RMData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], [id], ['experiment_record_id']), []);
-            const HPData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 1], ['experiment_record_id', 'hp_type']), []);
-            const HPStabData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], [id, 2], ['experiment_record_id', 'hp_type']), []);
+            const expRecData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], {record_id: id}), []);
+            const RMData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], {experiment_record_id: id}), []);
+            const HPData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], {experiment_record_id: id, hp_type: 1}), []);
+            const HPStabData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], {experiment_record_id: id, hp_type: 2}), []);
             record.experimentRecord = expRecData.rows[0];
             console.log(record.experimentRecord.record_id);
             record.RMList = RMData.rows;
@@ -95,6 +87,38 @@ router.get('/getRecord', (req, res) => {
     })();
 });
 
+/** Retrieves all data from the table using the specified identifier
+ * Used for getting/searching from a table
+ * @params data {table, identifier}
+ */
+router.get('/getData', (req, res) => {
+    /* let JSONObject = {
+        tableName: 'HYDROGEN_PEROXIDE_DATA',
+        identifiers: {
+            experiment_record_id: 1,
+            hp_type: 1
+        }
+    }; */
+    let JSONObject = JSON.parse(req.query.data);
+    console.log(req.query.data);
+    (async function () {
+        try{
+            const returnData = await DBRunner(queryStringBuilder('SELECT', JSONObject.tableName, [], JSONObject.identifiers), []);
+            console.log(returnData);
+            res.status(status.success).send({
+                message: "Successfully retrieved " + returnData.rows.length + " record(s) from " + JSONObject.tableName,
+                rows: returnData.rows
+            });
+        } catch(err) {
+            console.log(error);
+            res.status(status.error).send(error.message);
+        }
+    })();
+    
+});
+
+
+//DEPRECATED FUNCTIONS (All search and getters now use getData)
 //Searches EXPERIMENT_RECORDS using a specific search item
 router.get('/searchRecords', (req, res) => {
     let searchData = JSON.parse(req.query.search);
@@ -248,11 +272,12 @@ router.post('/addExperimentRecord', (req, res) => {
     let record = req.body.record;
     record.experimentRecord.date_created = getCurrDate();
     record.experimentRecord.date_updated = getCurrDate();
-    let experimentRecordValues = Object.values(record.experimentRecord);
+    let experimentRecord = [];
+    experimentRecord.push(record.experimentRecord);
 
     (async function () {
         try {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', record.experimentRecord, experimentRecordValues, Object.keys(record.experimentRecord)), experimentRecordValues);
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', experimentRecord , []), Object.values(experimentRecord[0]));
             console.log(returnData);
             res.status(status.success).send({
                 message: `Successfully inserted ${returnData.rowCount} rows into experiment_records`,
@@ -309,14 +334,16 @@ router.post('/addRawMaterial', (req, res) => {
 //Adds a hydrogen peroxide data record to the database
 router.post('/addHP', (req, res) => {
     let HPRecord = req.body.HPRecord;
-    HPRecord.date_created = getCurrDate();
-    HPRecord.date_updated = getCurrDate();
-    let HPvalues = Object.values(HPRecord);
-    let HPKeys = Object.keys(HPRecord);
+    console.log(HPRecord);
+    HPRecord.forEach(element => {
+        element.date_created = getCurrDate();
+        element.date_updated = getCurrDate();
+    })
+    
 
     (async function () {
         try {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPvalues, [], HPKeys), HPvalues);
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPRecord), flattenArray(HPRecord));
             res.status(status.success).send({
                 message: `Successfully added ${returnData.rowCount} row(s) to hydrogen peroxide data`
             });
@@ -495,21 +522,32 @@ function getCurrDate() {
     return curDate;
 }
 
+function flattenArray(array) {
+    var newArr = [];
+    array.forEach(element => Object.values(element).forEach(value => {
+        newArr.push(value)
+    }));
+    return newArr;
+}
+
+
 //Dynamic query string builder
 function queryStringBuilder(operation, tableName, parameters, identifiers) {
     let queryString = [];
-    queryString.push(setCommand(operation, tableName));
+    queryString.push(setCommand(operation, tableName, identifiers));
+    console.log(queryString.join(' '));
     queryString.push(setValues(operation, parameters, identifiers));
+    console.log(queryString.join(' '));
     return queryString.join(' ');
 }
 
 //Builds the command section of the query string
-function setCommand(operation, tableName) {
+function setCommand(operation, tableName, identifiers) {
     let commandSectionString = [operation];
     if (operation == 'SELECT') {
         commandSectionString.push('* FROM ' + tableName);
         //Completes string if its getting all experiment records
-        if (tableName == 'EXPERIMENT_RECORDS') {
+        if (tableName == 'EXPERIMENT_RECORDS' && identifiers.length == 0) {
             commandSectionString.push('ORDER BY record_id');
         } else {
             commandSectionString.push('WHERE');
