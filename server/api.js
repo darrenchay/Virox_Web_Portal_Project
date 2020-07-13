@@ -87,24 +87,17 @@ router.get('/getRecord', (req, res) => {
     })();
 });
 
-/** Retrieves all data from the table using the specified identifier
+/** Retrieves all data from the specified table using the specified identifier
  * Used for getting/searching from a table
  * @params data {table, identifier}
  */
 router.get('/getData', (req, res) => {
-    /* let JSONObject = {
-        tableName: 'HYDROGEN_PEROXIDE_DATA',
-        identifiers: {
-            experiment_record_id: 1,
-            hp_type: 1
-        }
-    }; */
     let JSONObject = JSON.parse(req.query.data);
     console.log(req.query.data);
     (async function () {
         try {
             const returnData = await DBRunner(queryStringBuilder('SELECT', JSONObject.tableName, [], JSONObject.identifiers), []);
-            console.log(returnData);
+            console.log(returnData.rows);
             res.status(status.success).send({
                 message: "Successfully retrieved " + returnData.rows.length + " record(s) from " + JSONObject.tableName,
                 rows: returnData.rows
@@ -267,7 +260,9 @@ router.get('/searchHPStab', (req, res) => {
     })();
 });
 
-
+/** Inserts rows to the specified table
+ * @params data {tableName, data[]}
+ */
 router.post('/addData', (req, res) => {
     let JSONObject = req.body.data
     //console.log(flattenArray(JSONObject.data));
@@ -376,6 +371,9 @@ router.post('/addHP', (req, res) => {
 
 });
 
+/** Updates rows to the specified table using the specified identifier (generally the ID)
+ * @params data {tableName, data[] (with identifiers)}
+ */
 router.post('/updateData', (req, res) => {
     let JSONObject = req.body.data;
     console.log(JSONObject);
@@ -388,28 +386,28 @@ router.post('/updateData', (req, res) => {
                 let record = JSONObject.data[i];
                 record.date_updated = getCurrDate();
 
-                //Getting identifiers
+                //Extracting identifiers
                 let identifiers = {}
                 let colNames = Object.keys(record);
                 let colValues = Object.values(record);
                 identifiers[colNames.shift()] = colValues.shift();
 
                 //console.log(record);
-                console.log(identifiers);
+                /* console.log(identifiers);
                 console.log(colNames);
-                console.log(colValues);
+                console.log(colValues); */
                 const returnData = await DBRunner(queryStringBuilder('UPDATE', JSONObject.tableName, colNames, identifiers), colValues);
                 count += returnData.rowCount;
                 console.log(returnData);
             }
-    res.status(status.success).send({
-        message: "Successfully updated " + count + " record(s) from " + JSONObject.tableName,
-    });
-} catch (error) {
-    console.log(error.details);
-    res.status(status.error).send(error.details);
-}
-    }) ();
+            res.status(status.success).send({
+                message: "Successfully updated " + count + " record(s) from " + JSONObject.tableName,
+            });
+        } catch (error) {
+            console.log(error.details);
+            res.status(status.error).send(error.details);
+        }
+    })();
 });
 
 //Update an experiment record
@@ -518,6 +516,43 @@ router.post('/updateHP', (req, res) => {
 
 });
 
+/** Deletes rows from the specified table (including tables with related foreign keys) using the specified identifier (generally the ID)
+ * @params data {tableName, identifiers}
+ */
+router.post('/deleteData', (req, res) => {
+    let JSONObject = req.body.data;
+    console.log(JSONObject);
+
+    (async function () {
+        try {
+            if (JSONObject.tableName == 'EXPERIMENT_RECORDS') {
+                let changes = {};
+                let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], { experiment_record_id: JSONObject.identifiers.record_id }), []);
+                //console.log(returnData);
+                changes.RM = returnData.rowCount;
+                returnData = await DBRunner(queryStringBuilder('DELETE', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: JSONObject.identifiers.record_id }), []);
+                //console.log(returnData);
+                changes.HP = returnData.rowCount;
+                returnData = await DBRunner(queryStringBuilder('DELETE', JSONObject.tableName, [], JSONObject.identifiers), []);
+                //console.log(returnData);
+                changes.ER = returnData.rowCount;
+                res.status(status.success).send({
+                    message: `successfully deleted ${changes.ER} record(s) from experiment_records, ${changes.RM} from raw_materials and ${changes.HP} from hydrogen_peroxide_data `,
+                });
+            } else {
+                returnData = await DBRunner(queryStringBuilder('DELETE', JSONObject.tableName, [], JSONObject.identifiers), []);
+                res.status(status.success).send({
+                    message: `successfully deleted ${returnData.rowCount} record(s) from ${JSONObject.tableName}`,
+                });
+            }
+        } catch (error) {
+            res.status(status.error).send(error.message);
+        }
+    })();
+
+});
+
+
 //Delete a full record from all tables
 router.get('/deleteRecord', (req, res) => {
     let id = req.query.id;
@@ -575,6 +610,7 @@ router.post('/deleteHP', (req, res) => {
     })();
 });
 
+//Gets current date in the appropriate format
 function getCurrDate() {
     var today = new Date();
     //var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes()
@@ -582,6 +618,8 @@ function getCurrDate() {
     return curDate;
 }
 
+
+//Helper function which flattens a 2D array into a 1D array
 function flattenArray(array) {
     var newArr = [];
     array.forEach(element => Object.values(element).forEach(value => {
@@ -594,10 +632,8 @@ function flattenArray(array) {
 //Dynamic query string builder
 function queryStringBuilder(operation, tableName, parameters, identifiers) {
     let queryString = [];
-    queryString.push(setCommand(operation, tableName, identifiers));
-    //console.log(queryString.join(' '));
-    queryString.push(setValues(operation, parameters, identifiers));
-    //console.log(queryString.join(' '));
+    queryString.push(setCommand(operation, tableName, identifiers)); //Creating command section of string
+    queryString.push(setValues(operation, parameters, identifiers)); //Creating values section of string
     return queryString.join(' ');
 }
 
@@ -650,9 +686,7 @@ function setValues(operation, parameters, identifiers) {
 
         //Adding a returning statement to get the ID(and other data) of the inserted row
         valueSectionString.push('RETURNING *');
-
     }
-
     //Setting identifiers (e.g WHERE record_id = 1)
     let set = [];
     Object.keys(identifiers).forEach(key => {

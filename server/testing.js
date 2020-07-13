@@ -231,14 +231,14 @@ function createValues(parameters) {
         date_updated: "2020-12-5"
     }]
 
-    DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }), Object.values(experimentRecord[0]));
+    //DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }), Object.values(experimentRecord[0]));
     //DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', Object.keys(RMList[0]), { raw_material_id: 1 }), Object.values(RMList[0]));
     /* console.log(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }));
     console.log();
     console.log(queryStringBuilder('UPDATE', 'RAW_MATERIALS', Object.keys(RMList[0]), { raw_material_id: 1 }));
     console.log();
     console.log(queryStringBuilder('UPDATE', 'HYDROGEN_PEROXIDE_DATA', Object.keys(HPList[0]), { hp_id: 1 })); */
-
+    //console.log(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], { raw_material_id: 1 }));
     /* console.log(queryStringBuilder('DELETE', 'EXPERIMENT_RECORDS', [], { record_id: 1 }));
     console.log();
     console.log(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], { raw_material_id: 1 }));

@@ -2,12 +2,12 @@ const axios = require('axios');
 const baseURL = "http://localhost:3000/API";
 (function () {
     let JSONData = {
-        //tableName: 'EXPERIMENT_RECORDS',
+        tableName: 'EXPERIMENT_RECORDS',
         //tableName: 'RAW_MATERIALS',
-        tableName: 'HYDROGEN_PEROXIDE_DATA',
-        /* identifiers: {
-            experiment_record_id: 4
-        }, */
+        //tableName: 'HYDROGEN_PEROXIDE_DATA',
+        identifiers: {
+            record_id: 6
+        },
         /* data: [{
             record_id: 1,
             lot_no: 1628,
@@ -50,7 +50,7 @@ const baseURL = "http://localhost:3000/API";
             date_created: "2020-12-5",
             date_updated: "2020-12-5"
         }] */
-        data: [{
+        /* data: [{
             hp_id: 8,
             //hp_type: 1,
             //experiment_record_id: 4,
@@ -81,7 +81,7 @@ const baseURL = "http://localhost:3000/API";
             initials: "D.C",
             date_created: "2020-12-5",
             date_updated: "2020-12-5"
-        }]
+        }] */
     }
     /* axios.get(baseURL + '/addData', {
         params: {
@@ -94,9 +94,22 @@ const baseURL = "http://localhost:3000/API";
         console.log(error.message);
     }); */
 
-    axios({
+    /* axios({
         method: "post",
         url: baseURL + '/updateData',
+        data: {
+          data: JSONData
+        }
+      }).then(response => {
+        console.log(response.data);
+        return response.data;
+      }).catch(error => {
+          console.log(error.message);
+      }); */
+
+      axios({
+        method: "post",
+        url: baseURL + '/deleteData',
         data: {
           data: JSONData
         }
