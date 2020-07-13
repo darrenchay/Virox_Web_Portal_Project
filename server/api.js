@@ -67,10 +67,10 @@ router.get('/getRecord', (req, res) => {
 
     (async function () {
         try {
-            const expRecData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], {record_id: id}), []);
-            const RMData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], {experiment_record_id: id}), []);
-            const HPData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], {experiment_record_id: id, hp_type: 1}), []);
-            const HPStabData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], {experiment_record_id: id, hp_type: 2}), []);
+            const expRecData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], { record_id: id }), []);
+            const RMData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], { experiment_record_id: id }), []);
+            const HPData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: id, hp_type: 1 }), []);
+            const HPStabData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: id, hp_type: 2 }), []);
             record.experimentRecord = expRecData.rows[0];
             console.log(record.experimentRecord.record_id);
             record.RMList = RMData.rows;
@@ -102,19 +102,19 @@ router.get('/getData', (req, res) => {
     let JSONObject = JSON.parse(req.query.data);
     console.log(req.query.data);
     (async function () {
-        try{
+        try {
             const returnData = await DBRunner(queryStringBuilder('SELECT', JSONObject.tableName, [], JSONObject.identifiers), []);
             console.log(returnData);
             res.status(status.success).send({
                 message: "Successfully retrieved " + returnData.rows.length + " record(s) from " + JSONObject.tableName,
                 rows: returnData.rows
             });
-        } catch(err) {
+        } catch (error) {
             console.log(error);
-            res.status(status.error).send(error.message);
+            res.status(status.error).send(error);
         }
     })();
-    
+
 });
 
 
@@ -267,6 +267,28 @@ router.get('/searchHPStab', (req, res) => {
     })();
 });
 
+
+router.post('/addData', (req, res) => {
+    let JSONObject = req.body.data
+    //console.log(flattenArray(JSONObject.data));
+    console.log(JSONObject);
+    (async function () {
+        try {
+            const returnData = await DBRunner(queryStringBuilder('INSERT', JSONObject.tableName, JSONObject.data, {}), flattenArray(JSONObject.data));
+            console.log(returnData.rows);
+            res.status(status.success).send({
+                message: "Successfully inserted " + returnData.rowCount + " record(s) to " + JSONObject.tableName,
+                rows: returnData.rows
+            });
+        } catch (error) {
+            console.log(error.details);
+            res.status(status.error).send(error.details);
+        }
+    })();
+});
+
+
+//TO REMOVE AFTER
 //Add an experiment record to the database
 router.post('/addExperimentRecord', (req, res) => {
     let record = req.body.record;
@@ -277,7 +299,7 @@ router.post('/addExperimentRecord', (req, res) => {
 
     (async function () {
         try {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', experimentRecord , []), Object.values(experimentRecord[0]));
+            let returnData = await DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', experimentRecord, []), Object.values(experimentRecord[0]));
             console.log(returnData);
             res.status(status.success).send({
                 message: `Successfully inserted ${returnData.rowCount} rows into experiment_records`,
@@ -339,19 +361,55 @@ router.post('/addHP', (req, res) => {
         element.date_created = getCurrDate();
         element.date_updated = getCurrDate();
     })
-    
+
+
+        (async function () {
+            try {
+                let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPRecord), flattenArray(HPRecord));
+                res.status(status.success).send({
+                    message: `Successfully added ${returnData.rowCount} row(s) to hydrogen peroxide data`
+                });
+            } catch (error) {
+                res.status(status.error).send(error.message);
+            }
+        })();
+
+});
+
+router.post('/updateData', (req, res) => {
+    let JSONObject = req.body.data;
+    console.log(JSONObject);
 
     (async function () {
         try {
-            let returnData = await DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPRecord), flattenArray(HPRecord));
-            res.status(status.success).send({
-                message: `Successfully added ${returnData.rowCount} row(s) to hydrogen peroxide data`
-            });
-        } catch (error) {
-            res.status(status.error).send(error.message);
-        }
-    })();
+            let count = 0;
+            //Updating each row 
+            for (var i = 0; i < JSONObject.data.length; i++) {
+                let record = JSONObject.data[i];
+                record.date_updated = getCurrDate();
 
+                //Getting identifiers
+                let identifiers = {}
+                let colNames = Object.keys(record);
+                let colValues = Object.values(record);
+                identifiers[colNames.shift()] = colValues.shift();
+
+                //console.log(record);
+                console.log(identifiers);
+                console.log(colNames);
+                console.log(colValues);
+                const returnData = await DBRunner(queryStringBuilder('UPDATE', JSONObject.tableName, colNames, identifiers), colValues);
+                count += returnData.rowCount;
+                console.log(returnData);
+            }
+    res.status(status.success).send({
+        message: "Successfully updated " + count + " record(s) from " + JSONObject.tableName,
+    });
+} catch (error) {
+    console.log(error.details);
+    res.status(status.error).send(error.details);
+}
+    }) ();
 });
 
 //Update an experiment record
@@ -367,6 +425,7 @@ router.post('/updateExperimentRecord', (req, res) => {
             res.status(status.success).send({
                 message: `Successfully updated record ${returnData.rowCount} from experiment_records`
             });
+
         } catch (error) {
             res.status(status.error).send(error.message);
         }
@@ -489,7 +548,7 @@ router.post('/deleteRawMaterial', (req, res) => {
     let id = req.body.record;
     (async function () {
         try {
-            let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'),[]);
+            let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], id, 'raw_material_id'), []);
             res.status(status.success).send({
                 message: "successfully deleted " + returnData.rowCount + " record(s) from raw_materials",
             });
@@ -512,13 +571,14 @@ router.post('/deleteHP', (req, res) => {
         } catch (error) {
             res.status(status.error).send(error.message);
         }
-        
+
     })();
 });
 
 function getCurrDate() {
     var today = new Date();
-    var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes()
+    //var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes()
+    var curDate = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()
     return curDate;
 }
 
@@ -535,9 +595,9 @@ function flattenArray(array) {
 function queryStringBuilder(operation, tableName, parameters, identifiers) {
     let queryString = [];
     queryString.push(setCommand(operation, tableName, identifiers));
-    console.log(queryString.join(' '));
+    //console.log(queryString.join(' '));
     queryString.push(setValues(operation, parameters, identifiers));
-    console.log(queryString.join(' '));
+    //console.log(queryString.join(' '));
     return queryString.join(' ');
 }
 
@@ -599,12 +659,13 @@ function setValues(operation, parameters, identifiers) {
         set.push(key + ' = ' + identifiers[key]);
     });
     valueSectionString.push(set.join(' AND '));
-    
+
     return valueSectionString.join(' ');
 }
 
 //Query runner for database
 function DBRunner(queryString, params) {
+    console.log(queryString);
     return new Promise((resolve, reject) => {
         connection.query(queryString, params)
             .then((result) => {

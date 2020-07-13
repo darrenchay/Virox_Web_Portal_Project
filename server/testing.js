@@ -151,21 +151,7 @@ function createValues(parameters) {
 }
 
 (function () {
-    let id = 1;
-    //DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], {record_id: id}), []);
-    //DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: id, hp_type: 1 }), []);
-
-    /* console.log(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], {}));
-    console.log();
-    console.log(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], { experiment_record_id: 1 }));
-    console.log();
-    console.log(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: 1, hp_id: 1 }));
-
-    console.log(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', experimentRecord, {}));
-    console.log();
-    console.log(queryStringBuilder('INSERT', 'RAW_MATERIALS', RMList, {}));
-    console.log();
-    console.log(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPList, {})); */
+    //DBRunner(queryStringBuilder('INSERT', 'EXPERIMENT_RECORDS', experimentRecord, {}), flattenArray(experimentRecord));
     //DBRunner(queryStringBuilder('INSERT', 'RAW_MATERIALS', RMList, {}), flattenArray(RMList));
     //DBRunner(queryStringBuilder('INSERT', 'HYDROGEN_PEROXIDE_DATA', HPList, {}), flattenArray(HPList));
 
@@ -244,9 +230,8 @@ function createValues(parameters) {
         date_created: "2020-12-5",
         date_updated: "2020-12-5"
     }]
-    console.log(JSON.stringify(experimentRecord));
 
-    //DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }), Object.values(experimentRecord[0]));
+    DBRunner(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }), Object.values(experimentRecord[0]));
     //DBRunner(queryStringBuilder('UPDATE', 'RAW_MATERIALS', Object.keys(RMList[0]), { raw_material_id: 1 }), Object.values(RMList[0]));
     /* console.log(queryStringBuilder('UPDATE', 'EXPERIMENT_RECORDS', Object.keys(experimentRecord[0]), { record_id: 1 }));
     console.log();
@@ -272,6 +257,7 @@ function flattenArray(array) {
 //Query runner for database
 function DBRunner(queryString, params) {
     console.log(queryString);
+    console.log(params);
     return new Promise((resolve, reject) => {
         connection.query(queryString, params)
             .then((result) => {

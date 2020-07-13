@@ -3,10 +3,6 @@ GET https://virox-server.herokuapp.com/api/getRecords?page=1
 GET http://localhost:3000/API/getRecords?page=1 HTTP/1.1
 
 ###
-GET http://localhost:3000/API/getRecordsTest?page=1 HTTP/1.1
-
-
-###
 GET http://localhost:3000/API/getData HTTP/1.1
 
 
