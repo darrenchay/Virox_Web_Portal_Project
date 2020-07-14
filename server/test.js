@@ -83,7 +83,7 @@ const baseURL = "http://localhost:3000/API";
             date_updated: "2020-12-5"
         }] */
     }
-    /* axios.get(baseURL + '/addData', {
+    /* axios.get(baseURL + '/getData', {
         params: {
             data: JSON.stringify(JSONData)
         }

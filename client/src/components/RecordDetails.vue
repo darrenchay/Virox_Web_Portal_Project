@@ -255,7 +255,6 @@
         </div>
       </div>
       
-
       <button type="submit" v-show="showSubmit" @click="submit" class="btn btn-success mr-2">Save</button>
       <button type="button" v-show="showCancelRecord" @click="cancelRecord" class="btn btn-secondary">Cancel</button>
       <button type="button" v-show="showDeleteRecord" @click="deleteRecord" class="btn btn-danger mr-2">Delete</button>
@@ -267,7 +266,6 @@
 
 <script>
 const axios = require("axios");
-
 //const baseURL = "https://virox-server.herokuapp.com/api";
 const baseURL = "http://localhost:3000/API"
 export default {
@@ -350,7 +348,7 @@ export default {
   methods: {
     //Record handlers
     submit() {
-      postRequest(baseURL + "/updateExperimentRecord", this.record);
+      postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {});
       this.isEditingDisabled = true,
       this.showSubmit = false,
       this.showEditRecord = true,
@@ -374,11 +372,9 @@ export default {
     deleteRecord() {
       let resp = confirm("Are you sure you want to delete this record?"); 
       if(resp == true) {
-        axios.get(baseURL + "/deleteRecord?id=" + this.$store.state.currentRecordID).then(response => {
-          alert('The record has been successfully deleted');
-          console.log(response.data.message);
-          this.$router.push({ name: 'records' });
-        });
+        postRequest(baseURL + "/deleteData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {record_id: this.$store.state.currentRecordID});
+        alert('The record has been successfully deleted');
+        this.$router.push({ name: 'records' });
       } 
     }, 
     editRecord() {
@@ -400,18 +396,9 @@ export default {
     },
     saveRM() {
       if(this.rmTemplate.raw_material_name.length > 0) {
-        //Building JSON object to send
-        let record = {
-          experimentRecord: {
-            record_id: this.record.experimentRecord.record_id
-          }, 
-          RMList: []
-        };
-        /* Object.values(this.rmTemplate).forEach(element => {
-          if(element !== "") {
-            record.RMList[0][element] = element;
-          }
-        }) */
+        let record = [];
+
+        //TO REMOVE AND REPLACE WITH VALIDATION
         if(this.rmTemplate.percentage_w === "") {
           this.rmTemplate.percentage_w = 0; 
         }
@@ -427,44 +414,11 @@ export default {
         if(this.rmTemplate.time_added === "") {
           this.rmTemplate.time_added = null; 
         }
-        record.RMList.push(this.rmTemplate);
-        console.log(record.RMList);
+        record.push(this.rmTemplate);
+        record[0]['experiment_record_id'] = this.$store.state.currentRecordID;
+        //console.log(record.RMList);
 
-        //Running ajax calls
-        axios({
-          method: "post",
-          url: baseURL + '/addRawMaterial',
-          data: {
-            record: record
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          let JSONData = {
-            tableName: 'RAW_MATERIALS',
-            identifiers: {
-                experiment_record_id: this.$store.state.currentRecordID,
-            }
-          }
-          axios.get(baseURL + '/getData', {
-            params: {
-              data: JSON.stringify(JSONData)
-            }
-          }).then( response => {
-            this.record.RMList = response.data.rows;
-            this.formatRecord();
-            this.cancelRM();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-          //Updating RMList
-          /* axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.RMList = response.data.RMList;
-            this.formatRecord();
-            this.cancelRM();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          }); */
-        });
+        this.postGetRequest(baseURL + '/addData', record, 'RAW_MATERIALS', 0, {});
       }
     },
     cancelRM() {
@@ -500,47 +454,13 @@ export default {
     },
     deleteRM: function(rawMat) {
       let resp = confirm("Are you sure you want to delete this record?"); 
-      let id = rawMat.raw_material_id;
       if(resp == true) {
-        axios({
-          method: "post",
-          url: baseURL + '/deleteRawMaterial',
-          data: {
-            record: id
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          //Updating RMList
-          axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.RMList = response.data.RMList;
-            this.formatRecord();
-            this.cancelRM();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-        });
+        this.postGetRequest(baseURL + '/deleteData', [], 'RAW_MATERIALS', 0, {raw_material_id: rawMat.raw_material_id});
       }
     },
     updateRM(){
       console.log(this.record.RMList);
-      axios({
-          method: "post",
-          url: baseURL + '/updateRawMaterial',
-          data: {
-            record: this.record
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          //Updating RMList
-          axios.get(baseURL + '/getRawMaterial?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.RMList = response.data.RMList;
-            console.log(this.record.RMList);
-            this.formatRecord();
-            this.cancelRM();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-        });
+      this.postGetRequest(baseURL + '/updateData', this.record.RMList, 'RAW_MATERIALS', 0, {});
     },
 
     //HP handlers
@@ -556,7 +476,7 @@ export default {
         //Building JSON object to send
         let HPRecord = {
           experiment_record_id: this.record.experimentRecord.record_id,
-          hp_type : 1,
+          hp_type: 1,
           experiment_name: this.hpTemplate.experiment_name,
           n: this.hpTemplate.n,
           m: this.hpTemplate.m,
@@ -570,49 +490,9 @@ export default {
         if(HPRecord.date === "") {
           HPRecord.date = null;
         }
-        /* let record = {
-          experimentRecord: {
-            record_id: 
-          }, 
-          HPList: [],
-          HPStabilityList: []
-        };
-        record.HPList.push(this.hpTemplate); */
-        axios({
-          method: "post",
-          url: baseURL + '/addHP',
-          data: {
-            HPRecord: HPRecord
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          let JSONData = {
-            tableName: 'HYDROGEN_PEROXIDE_DATA',
-            identifiers: {
-                experiment_record_id: this.$store.state.currentRecordID,
-                hp_type: 1
-            }
-          }
-          axios.get(baseURL + '/getData', {
-            params: {
-              data: JSON.stringify(JSONData)
-            }
-          }).then( response => {
-            this.record.HPList = response.data.rows;
-            this.formatRecord();
-            this.cancelHP();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-          /* //Updating HPList
-          axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPList = response.data.HPList;
-            this.formatRecord();
-            this.cancelHP();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          }); */
-        });
+
+        let record = [HPRecord];
+        this.postGetRequest(baseURL + '/addData', record, 'HYDROGEN_PEROXIDE_DATA', 1, {});
       } else {
         this.cancelHP();
       }
@@ -640,26 +520,8 @@ export default {
     },
     deleteHP: function(HP) {
       let resp = confirm("Are you sure you want to delete this record?"); 
-      let id = HP.hp_id;
-      //console.log(id);
       if(resp == true) {
-        axios({
-          method: "post",
-          url: baseURL + '/deleteHP',
-          data: {
-            record: id
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          //Updating HPList
-          axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPList = response.data.HPList;
-            this.formatRecord();
-            this.cancelHP();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-        });
+        this.postGetRequest(baseURL + '/deleteData', [], 'HYDROGEN_PEROXIDE_DATA', 1, {hp_id: HP.hp_id});
       } 
     },
     updateHP(){
@@ -667,23 +529,7 @@ export default {
       this.record.HPList.forEach(HP => {
         HP.ph = this.HP_PH;
       });
-      axios({
-          method: "post",
-          url: baseURL + '/updateHP',
-          data: {
-            record: this.record
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          //Updating HPList
-          axios.get(baseURL + '/getHP?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPList = response.data.HPList;
-            this.formatRecord();
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-          this.cancelHP();  
-        });
+      this.postGetRequest(baseURL + '/updateData', this.record.HPList, 'HYDROGEN_PEROXIDE_DATA', 1, {});
     },
 
     //HP stability handlers
@@ -713,50 +559,8 @@ export default {
         if(HPRecord.date === "") {
           HPRecord.date = null;
         }
-        /* let record = {
-          experimentRecord: {
-            record_id: this.record.experimentRecord.record_id
-          }, 
-          HPList: [],
-          HPStabilityList: []
-        };
-        record.HPStabilityList.push(this.hpTemplate); */
-
-        axios({
-          method: "post",
-          url: baseURL + '/addHP',
-          data: {
-            HPRecord: HPRecord
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          let JSONData = {
-            tableName: 'HYDROGEN_PEROXIDE_DATA',
-            identifiers: {
-                experiment_record_id: this.$store.state.currentRecordID,
-                hp_type: 2
-            }
-          }
-          axios.get(baseURL + '/getData', {
-            params: {
-              data: JSON.stringify(JSONData)
-            }
-          }).then( response => {
-            this.record.HPStabilityList = response.data.rows;
-            this.formatRecord();
-            this.cancelHPStab();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-          //Updating HPStabilityList
-          /* axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPStabilityList = response.data.HPStabilityList;
-            this.formatRecord();
-            this.cancelHPStab();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          }); */
-        });
+        let record = [HPRecord];
+        this.postGetRequest(baseURL + '/addData', record, 'HYDROGEN_PEROXIDE_DATA', 2, {});
       } else {
         this.cancelHPStab();
       }
@@ -784,69 +588,72 @@ export default {
     },
     deleteHPStab: function(HPStab) {
       let resp = confirm("Are you sure you want to delete this record?"); 
-      let id = HPStab.hp_id;
-      //console.log(id);
       if(resp == true) {
-        axios({
-          method: "post",
-          url: baseURL + '/deleteHP',
-          data: {
-            record: id
-          }
-        }).then(response => {
-          console.log(response.data.message);
-          //Updating HPStabilityList
-          axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPStabilityList = response.data.HPStabilityList;
-            this.formatRecord();
-            this.cancelHPStab();  
-            console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
-          });
-        });
+        this.postGetRequest(baseURL + '/deleteData', [], 'HYDROGEN_PEROXIDE_DATA', 2, {hp_id: HPStab.hp_id});
       } 
     },
     updateHPStab(){
       this.record.HPStabilityList.forEach(HPStab => {
         HPStab.ph = this.HPStab_PH;
       });
+      this.postGetRequest(baseURL + '/updateData', this.record.HPStabilityList, 'HYDROGEN_PEROXIDE_DATA', 2, {});
+    },
+    postGetRequest(url, data, tableName, type, identifiers) {
+      let getIdentifiers = {};
+      getIdentifiers['experiment_record_id'] = this.$store.state.currentRecordID;
+      if(type == 1) {
+        getIdentifiers['hp_type'] = 1
+      } else if (type == 2) {
+        getIdentifiers['hp_type'] = 2
+      }
       axios({
           method: "post",
-          url: baseURL + '/updateHP',
+          url: url,
           data: {
-            record: this.record
+            data: createJSONObject(tableName, data, identifiers)
           }
         }).then(response => {
           console.log(response.data.message);
-          //Updating HPStabilityList
-          axios.get(baseURL + '/getHPStab?id=' + this.$store.state.currentRecordID).then( response => {
-            this.record.HPStabilityList = response.data.HPStabilityList;
-            this.formatRecord();
+          axios.get(baseURL + '/getData', {
+            params: {
+              data: JSON.stringify(createJSONObject(tableName, [], getIdentifiers))
+            }
+          }).then( response => {
+            if(type == 0) {
+              this.record.RMList = response.data.rows;
+              this.formatRecord();
+              this.cancelRM();
+            } else if (type == 1) {
+              this.record.HPList = response.data.rows;
+              this.formatRecord();
+              this.cancelHP();
+            } else if (type == 2) {
+              this.record.HPStabilityList = response.data.rows;
+              this.formatRecord();
+              this.cancelHPStab();
+            }
             console.log(response.data.message);
-            postRequest(baseURL + "/updateExperimentRecord", this.record); //Update date update field
+            postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {}); //To update current date
           });
-          this.cancelHPStab();  
         });
     },
-
-
     //Converts all the dates in record from string to date format  
     formatRecord() {
-      this.record.experimentRecord.formulation_date = newDate(this.record.experimentRecord.formulation_date);
-      this.record.experimentRecord.preparation_date = newDate(this.record.experimentRecord.preparation_date);
+      this.record.experimentRecord.formulation_date = formatDate(this.record.experimentRecord.formulation_date);
+      this.record.experimentRecord.preparation_date = formatDate(this.record.experimentRecord.preparation_date);
       this.record.RMList.forEach(element => {
         if (element.time_added !== null) {
-          element.time_added = newDate(element.time_added);
+          element.time_added = formatDate(element.time_added);
         }
       });
       this.record.HPList.forEach(element => {
         if (element.date !== null) {
-          element.date = newDate(element.date);
+          element.date = formatDate(element.date);
         }
       });
       this.record.HPStabilityList.forEach(element => {
         if (element.date !== null) {
-          element.date = newDate(element.date);
+          element.date = formatDate(element.date);
         }
       });
     },
@@ -880,11 +687,7 @@ export default {
         this.record = response.data.records;
         this.record.experimentRecord = response.data.records.experimentRecord;
         this.formatRecord();
-        console.log(this.record);
-        //console.log("record:");
-        //console.log(this.record.experimentRecord.preparation_reason);
-        //console.log("cached:");
-        //console.log(this.cachedRecord.preparation_reason);
+        //console.log(this.record);
         if(this.record.HPList.length > 0) {
           this.HP_PH = this.record.HPList[0].ph;
         }
@@ -915,25 +718,39 @@ export default {
 /** Helper functions **/
 
 //POST request
-function postRequest(url, record) {
+function postRequest(url, data, tableName, identifiers) {
   axios({
     method: "post",
     url: url,
     data: {
-      record: record
+      data: createJSONObject(tableName, data, identifiers)
     }
   }).then(response => {
     console.log(response.data.message);
     return response.data;
+  }).catch(error => {
+    console.log(error);
+    alert(error.message);
   });
 }
 
 //Converts a string to a date object
-function newDate(date) {
+function formatDate(date) {
   if (date != "") {
     return new Date(date).toISOString().substring(0, 10);
   } else {
     return "";
   }
 }
+
+function createJSONObject(tableName, data, identifiers) {
+  let JSONData = {
+    tableName: tableName,
+    identifiers: identifiers,
+    data: data
+  };
+  console.log(JSONData);
+  return JSONData;
+}
+
 </script>

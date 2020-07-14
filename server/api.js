@@ -93,7 +93,7 @@ router.get('/getRecord', (req, res) => {
  */
 router.get('/getData', (req, res) => {
     let JSONObject = JSON.parse(req.query.data);
-    console.log(req.query.data);
+    console.log(JSONObject);
     (async function () {
         try {
             const returnData = await DBRunner(queryStringBuilder('SELECT', JSONObject.tableName, [], JSONObject.identifiers), []);
@@ -522,6 +522,8 @@ router.post('/updateHP', (req, res) => {
 router.post('/deleteData', (req, res) => {
     let JSONObject = req.body.data;
     console.log(JSONObject);
+    console.log(JSONObject);
+
 
     (async function () {
         try {

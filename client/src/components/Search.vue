@@ -138,65 +138,12 @@
                         this.record = response.data.rows;
                         this.receivedSearchResults = true;
                         console.log(this.record);
-                })
-
-                /* if(this.selectedType == "Experiment Record") {
-                    axios.get(baseURL + '/searchRecords', {
-                        params: {
-                            search: JSON.stringify(searchItem)
-                        }
-                    })
-                    .then(response => {
-                        console.log(response.data.message);
-                        //console.log(response.data.records);
-                        this.record = response.data.records.experimentRecord;
-                        this.receivedSearchResults = true;
-                        console.log(this.record);
-                    });
-                } else if (this.selectedType == "Raw Materials") {
-                    axios.get(baseURL + '/searchRawMaterials', {
-                        params: {
-                            search: JSON.stringify(searchItem)
-                        }
-                    })
-                    .then(response => {
-                        console.log(response.data.message);
-                        this.record = response.data.records.RMList;
-                        this.receivedSearchResults = true;
-                        console.log(this.record);
-                    });
-                } else if (this.selectedType == "Hydrogen Peroxide Data") {
-                    axios.get(baseURL + '/searchHP', {
-                        params: {
-                            search: JSON.stringify(searchItem)
-                        }
-                    })
-                    .then(response => {
-                        console.log(response.data.message);
-                        this.record = response.data.records;
-                        this.receivedSearchResults = true;
-                        console.log(this.record);
-                    });
-                } else if (this.selectedType == "Hydrogen Peroxide Stability Data") {
-                    axios.get(baseURL + '/searchHPStab', {
-                        params: {
-                            search: JSON.stringify(searchItem)
-                        }
-                    })
-                    .then(response => {
-                        console.log(response.data.message);
-                        this.record = response.data.records;
-                        this.receivedSearchResults = true;
-                        console.log(this.record);
-                    });
-                }       */          
+                })     
             },
             setSelected: function(event) {
                 //setting the selected type of dropdown
                 // 1. Get the selected index
                 const index = event.target.selectedIndex;
-                //console.log(index);
-                //Object.keys(event.target.selectedIndex)[index]
                 // 2. Find the selected option
                 const option = event.target.options[index];
                 this.searchName = option.value;

@@ -52,7 +52,7 @@
                 records: [],
                 currentSort: 'record_id',
                 currentSortDir: 'asc',
-                columns: ['record_id', 'project_title', 'LOT_NO', 'prepared_by', 'formulation_date', 'preparation_date', 'date_created', 'date_updated'],
+                columns: ['record_id', 'project_title', 'lot_no', 'prepared_by', 'formulation_date', 'preparation_date', 'date_created', 'date_updated'],
                 column_name: ['#', 'Project Title', 'LOT NO', 'Prepared By', 'Formulation Date', 'Preparation Date', 'Date Created', 'Date Updated'],
             }
         },
@@ -60,34 +60,30 @@
             Paginate
         },
         methods:{
-            newDate(date) {
-                return new Date(date).toISOString().substring(0,10)
-            },
             createNewRecord() {
-                let record = {
-                    experimentRecord: {
+                let JSONData = {
+                    tableName: 'EXPERIMENT_RECORDS',
+                    data: [{
                         LOT_NO: 11111,
                         project_title: "",
-                        formulation_date: "1/1/11",
-                        preparation_date: "1/1/11",
+                        formulation_date: "2000-1-11",
+                        preparation_date: "2000-1-11",
                         prepared_by: "",
                         quantity: 0,
                         total_percentage_w: 0,
                         total_AR: 0,
                         total_AD: 0,
-                        notes: "",
-                        preparation_reason: "",
-                        observations: ""
-                    }
-                };
+                    }]
+                }
                 axios({
                     method: 'post',
-                    url: baseURL + '/addExperimentRecord',
+                    url: baseURL + '/addData',
                     data: {
-                        record: record
+                        data: JSONData
                     }
                 }).then((response) => {
-                    this.$store.commit('setCurrentRecordID', response.data.id)
+                    console.log(response.data.rows);
+                    this.$store.commit('setCurrentRecordID', response.data.rows[0].record_id);
                     this.$router.push({ name: 'recordDetails'})
                     console.log(response.data.message)
                 });
@@ -102,7 +98,7 @@
                     this.currentSortDir = this.currentSortDir === 'desc' ? 'asc' : 'desc'
                 } else{
                     this.currentSort = col
-                    console.log( 'Col name: ' + col )
+                    //console.log( 'Col name: ' + col )
                 } // end if
                 //console.log(this.records)
             },
@@ -110,6 +106,12 @@
                 axios.get(baseURL + '/getRecords?page=' + pageNum).then(response => {
                 console.log(response.data.message)
                 this.records = response.data.records;
+                this.records.forEach(record => {
+                    record.formulation_date = formatDate(record.formulation_date);
+                    record.preparation_date = formatDate(record.preparation_date);
+                    record.date_created = formatDate(record.date_created);
+                    record.date_updated = formatDate(record.date_updated);
+                })
                 //this.pageCount = response.data.pageCount;
             }).catch(e => {
                 this.errors.push(e)
@@ -138,14 +140,11 @@
             }
         },
         mounted() {
-            axios.get(baseURL + '/getRecords?page=1').then(response => {
-                console.log(response.data.message)
-                console.log(response.data);
-                this.records = response.data.records;
-                this.pageCount = response.data.pageCount;
-            }).catch(e => {
-                this.errors.push(e)
-            })
+            this.paginateCallback(1);
         } 
     }
+
+function formatDate(date) {
+    return new Date(date).toString().substring(3, 21);
+}
 </script>
