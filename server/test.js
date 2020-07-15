@@ -1,30 +1,28 @@
 const axios = require('axios');
-const baseURL = "http://localhost:3000/API";
+const baseURL = "https://virox-server.herokuapp.com/api";
 (function () {
     let JSONData = {
         tableName: 'EXPERIMENT_RECORDS',
         //tableName: 'RAW_MATERIALS',
         //tableName: 'HYDROGEN_PEROXIDE_DATA',
-        identifiers: {
+        /* identifiers: {
             record_id: 6
-        },
-        /* data: [{
-            record_id: 1,
-            lot_no: 1628,
-            project_title: "new testing update",
+        }, */
+        data: [{
+            //record_id: 1,
+            lot_no: 44444,
+            project_title: "Title 4",
             formulation_date: "2020-12-5",
             preparation_date: "2020-12-5",
-            prepared_by: "Not Jack",
-            quantity: 300,
+            prepared_by: "Darren Chay",
+            quantity: 510,
             notes: "Take 100g and Test stability in 54C for 2 weeks\nTake 100g and Test stability in 50C for 35 days\nProvide 100g to Sean/Cesar to conduct corrosion testing on Brass.",
             preparation_reason: "To test improved F/T performance and reduce corrosion of the RTU formula while making it fall under our newly filed patents",
             observations: "",
             total_percentage_w: 100.0,
             total_ar: 355.6,
             total_ad: "355.84",
-            date_created: "2020-12-5",
-            date_updated: "2020-12-5"
-        }] */
+        }]
         /* data: [{
             raw_material_id: 1,
             experiment_record_id: 4,
@@ -109,7 +107,7 @@ const baseURL = "http://localhost:3000/API";
 
       axios({
         method: "post",
-        url: baseURL + '/deleteData',
+        url: baseURL + '/addData',
         data: {
           data: JSONData
         }

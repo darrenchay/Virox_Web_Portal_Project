@@ -118,6 +118,11 @@ router.post('/addData', (req, res) => {
     console.log(JSONObject);
     (async function () {
         try {
+            for (var i = 0; i < JSONObject.data.length; i++) {
+                let record = JSONObject.data[i];
+                record.date_created = getCurrDate();
+                record.date_updated = getCurrDate();
+            }
             const returnData = await DBRunner(queryStringBuilder('INSERT', JSONObject.tableName, JSONObject.data, {}), flattenArray(JSONObject.data));
             console.log(returnData.rows);
             res.status(status.success).send({
