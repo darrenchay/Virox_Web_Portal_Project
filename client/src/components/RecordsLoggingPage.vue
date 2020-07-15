@@ -121,7 +121,7 @@
         computed: {
             sortedRecords: function() {
                 var sortedArray = this.records.slice(0);
-                console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
+                //console.log("Sorting by " + this.currentSort + " in a " + this.currentSortDir + " manner")
                 sortedArray.sort((a, b) => {
                     let modifier = -1;
                     if(this.currentSortDir === 'asc') {

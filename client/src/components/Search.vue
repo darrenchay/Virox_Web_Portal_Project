@@ -1,12 +1,13 @@
 <template>
     <div class="card-body"> 
+        <form class="needs-validation" novalidate @submit.prevent>
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <label class="input-group-text" for="searchFilter">Choose search filter</label>
             </div>
 
-            <select class="custom-select" name="searchFilter" id="searchFilter" @change="setSelected($event)" v-model="selected" required>
-                <!-- <option>search filter</option> -->
+            <select class="custom-select" :class="{'is-invalid': isFilterInvalid}" name="searchFilter" id="searchFilter" @change="setSelected($event)" v-model="selected" required>
+               <!--  <option disabled selected>Search Filter</option> -->
                 <optgroup label="Experiment Record">
                     <option v-for="(column, index) in searchExpList" :key="index" :value="column">{{searchFilter.experiment_records[column]}}</option>
                 </optgroup>
@@ -21,9 +22,20 @@
                 </optgroup>
             </select>
             
-            <input type="text" class="form-control" v-model.trim="searchInput">
+            <input type="text" class="form-control" :class="{'is-invalid': isInputInvalid}" placeholder="Enter Search Item" v-model.trim="searchInput" required>
             <button type="button" class="btn" @click="search"><span class="fas fa-search"></span></button>
+            
+            <small v-if="isBothInvalid" class="invalid-feedback" v-show="isBothInvalid">
+                Please select a search filter and enter a search item.
+            </small>
+            <small v-else-if="isInputInvalid" class="invalid-feedback" v-show="isInputInvalid">
+                Please enter a search item.
+            </small>
+            <small v-else-if="isFilterInvalid" class="invalid-feedback" v-show="isFilterInvalid">
+                Please select a search filter.
+            </small>
         </div>
+        </form>
 
         <div id="resultsTable" v-show="receivedSearchResults">
             <table v-if="record.length > 0" class="table table-bordered table-hover table-responsive">
@@ -52,7 +64,10 @@
     export default {
         data() {
             return {
-                searchInput: "Enter search item",
+                searchInput: "",
+                isFilterInvalid: false,
+                isInputInvalid: false,
+                isBothInvalid: false,
                 searchFilter: {
                     experiment_records: {
                         record_id: 'Record ID',
@@ -98,7 +113,7 @@
                         initials: 'Initials',
                     }
                 },
-                selected: "Choose Filter",
+                selected: "",
                 selectedType: "",
                 searchName: "",
                 record: [],
@@ -108,37 +123,42 @@
         },
         methods: {
             search() {
-                let JSONData = {
-                    tableName: '',
-                    identifiers: {                   
+                //console.log("'" + this.selected + "' -- '" + this.searchInput + "'");
+                if(this.checkValidity()) {
+                    this.isFilterInvalid = false;
+                    this.isInputInvalid = false;
+                    let JSONData = {
+                        tableName: '',
+                        identifiers: {                   
+                        }
                     }
-                }
-                JSONData.identifiers[this.searchName] = this.formatSearchValue();
-                //let formattedSearch = this.formatSearchValue();
-                //let searchItem = {name: this.selected, value: formattedSearch};
-                if(this.selectedType == "Experiment Record") {
-                    JSONData.tableName = 'EXPERIMENT_RECORDS';
-                } else if (this.selectedType == "Raw Materials") {
-                    JSONData.tableName = 'RAW_MATERIALS';
-                } else if (this.selectedType == "Hydrogen Peroxide Data") {
-                    JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
-                    JSONData.identifiers.hp_type = 1;
-                } else if (this.selectedType == "Hydrogen Peroxide Stability Data") {
-                    JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
-                    JSONData.identifiers.hp_type = 2;
-                }
-                console.log(JSONData);
-                axios.get(baseURL + '/getData', {
-                    params: {
-                        data: JSON.stringify(JSONData)
+                    JSONData.identifiers[this.searchName] = this.formatSearchValue();
+                    //let formattedSearch = this.formatSearchValue();
+                    //let searchItem = {name: this.selected, value: formattedSearch};
+                    if(this.selectedType == "Experiment Record") {
+                        JSONData.tableName = 'EXPERIMENT_RECORDS';
+                    } else if (this.selectedType == "Raw Materials") {
+                        JSONData.tableName = 'RAW_MATERIALS';
+                    } else if (this.selectedType == "Hydrogen Peroxide Data") {
+                        JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
+                        JSONData.identifiers.hp_type = 1;
+                    } else if (this.selectedType == "Hydrogen Peroxide Stability Data") {
+                        JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
+                        JSONData.identifiers.hp_type = 2;
                     }
-                }).then(response => {
-                        console.log(response.data.message);
-                        //console.log(response.data.records);
-                        this.record = response.data.rows;
-                        this.receivedSearchResults = true;
-                        console.log(this.record);
-                })     
+                    console.log(JSONData);
+                    axios.get(baseURL + '/getData', {
+                        params: {
+                            data: JSON.stringify(JSONData)
+                        }
+                    }).then(response => {
+                            console.log(response.data.message);
+                            //console.log(response.data.records);
+                            this.record = response.data.rows;
+                            this.receivedSearchResults = true;
+                            console.log(this.record);
+                    })     
+                }
             },
             setSelected: function(event) {
                 //setting the selected type of dropdown
@@ -160,6 +180,30 @@
                 } else {
                     return this.searchInput;
                 }
+            },
+            checkValidity() {
+                if(this.selected === "" && this.searchInput === "") {
+                    //console.log("both");
+                    this.isFilterInvalid = true;
+                    this.isInputInvalid = true;
+                    this.isBothInvalid = true;
+                    return false;
+                }
+                if(this.selected === "") {
+                    //console.log("filter");
+                    this.isBothInvalid = false;
+                    this.isInputInvalid = false;
+                    this.isFilterInvalid = true;
+                    return false;
+                }
+                if (this.searchInput === "") {
+                    //console.log("name");
+                    this.isBothInvalid = false;
+                    this.isInputInvalid = true;
+                    this.isFilterInvalid = false;
+                    return false;
+                } 
+                return true;
             }
         },
         computed: {
@@ -179,23 +223,3 @@
         }
     }
 </script>
-
-<style>
-.dropdown-submenu {
-    position: relative;
-  }
-  
-  .dropdown-submenu>a:after {
-    content: "\f0da";
-    float: right;
-    border: none;
-    font-family: 'FontAwesome';
-  }
-  
-  .dropdown-submenu>.dropdown-menu {
-    top: 0;
-    left: 100%;
-    margin-top: 0px;
-    margin-left: 0px;
-  }
-</style>
