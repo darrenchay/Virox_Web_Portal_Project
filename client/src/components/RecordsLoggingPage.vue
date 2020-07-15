@@ -20,6 +20,7 @@
             </table>
             <nav>
                 <paginate
+                    v-model="page"
                     :page-count="pageCount"
                     :margin-pages="1"
                     :click-handler="paginateCallback"
@@ -48,6 +49,7 @@
         },
         data(){
             return {
+                page: 1,
                 pageCount: 0,
                 records: [],
                 currentSort: 'record_id',
@@ -104,8 +106,9 @@
             },
             paginateCallback(pageNum) {
                 axios.get(baseURL + '/getRecords?page=' + pageNum).then(response => {
-                console.log(response.data.message)
+                console.log(response.data)
                 this.records = response.data.records;
+                this.pageCount = response.data.pageCount;
                 this.records.forEach(record => {
                     record.formulation_date = formatDate(record.formulation_date);
                     record.preparation_date = formatDate(record.preparation_date);

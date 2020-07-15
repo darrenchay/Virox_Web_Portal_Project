@@ -3,13 +3,13 @@ const axios = require('axios');
     const baseURL = "http://localhost:3000/API";
     (function () {
     let JSONData = {
-        tableName: 'EXPERIMENT_RECORDS',
-        //tableName: 'RAW_MATERIALS',
+        //tableName: 'EXPERIMENT_RECORDS',
+        tableName: 'RAW_MATERIALS',
         //tableName: 'HYDROGEN_PEROXIDE_DATA',
         /* identifiers: {
             record_id: 6
         }, */
-        data: [{
+        /* data: [{
             //record_id: 1,
             lot_no: 99999,
             project_title: "Title 9",
@@ -23,32 +23,28 @@ const axios = require('axios');
             total_percentage_w: 100.0,
             total_ar: 355.6,
             total_ad: "355.84",
-        }]
-        /* data: [{
-            raw_material_id: 1,
-            experiment_record_id: 4,
-            raw_material_name: "updated chemical name",
+        }] */
+        data: [{
+            //raw_material_id: 1,
+            experiment_record_id: 1,
+            raw_material_name: "chemical L63",
             percentage_w: 55.11,
             raw_material_lot: '1412-G',
             ar: 34.44,
             ad: 57.48,
             time_added: "2020-12-5",
             notes: "updated test",
-            date_created: "2020-12-5",
-            date_updated: "2020-12-5"
         }, {
-            raw_material_id: 29,
-            experiment_record_id: 4,
-            raw_material_name: "update test L63",
+            //raw_material_id: 29,
+            experiment_record_id: 1,
+            raw_material_name: "H2O2 50% EPA",
             percentage_w: 22.22,
             raw_material_lot: "404-F",
             ar: 44.44,
             ad: 44.48,
             time_added: "2020-12-5",
             notes: "new updated test",
-            date_created: "2020-12-5",
-            date_updated: "2020-12-5"
-        }] */
+        }]
         /* data: [{
             hp_id: 8,
             //hp_type: 1,
