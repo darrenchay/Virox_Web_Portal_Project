@@ -110,10 +110,10 @@
                 this.records = response.data.records;
                 this.pageCount = response.data.pageCount;
                 this.records.forEach(record => {
-                    record.formulation_date = formatDate(record.formulation_date);
-                    record.preparation_date = formatDate(record.preparation_date);
-                    record.date_created = formatDate(record.date_created);
-                    record.date_updated = formatDate(record.date_updated);
+                    record.formulation_date = formatDate(record.formulation_date, 2);
+                    record.preparation_date = formatDate(record.preparation_date, 2);
+                    record.date_created = formatDate(record.date_created, 1);
+                    record.date_updated = formatDate(record.date_updated, 1);
                 })
                 //this.pageCount = response.data.pageCount;
             }).catch(e => {
@@ -147,7 +147,11 @@
         } 
     }
 
-function formatDate(date) {
-    return new Date(date).toString().substring(3, 21);
+function formatDate(date, type) {
+    if(type == 1) {
+        return new Date(date).toString().substring(3, 21);
+    } else {
+        return new Date(date).toString().substring(3, 15);
+    }
 }
 </script>
