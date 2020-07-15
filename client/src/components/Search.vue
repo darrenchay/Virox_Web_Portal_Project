@@ -153,10 +153,18 @@
                         }
                     }).then(response => {
                             console.log(response.data.message);
-                            //console.log(response.data.records);
                             this.record = response.data.rows;
+
+                            //Formats any dates in search results
+                            this.record.forEach(row => {
+                                Object.keys(row).forEach(key => {
+                                    if(key.includes('date') || key.includes('time')) {
+                                        row[key] = formatDate(row[key]);
+                                    }
+                                })
+                            })
                             this.receivedSearchResults = true;
-                            console.log(this.record);
+                            //console.log(this.record);
                     })     
                 }
             },
@@ -222,4 +230,7 @@
 
         }
     }
+function formatDate(date) {
+    return new Date(date).toString().substring(3, 21);
+}
 </script>
