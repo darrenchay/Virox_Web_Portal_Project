@@ -435,10 +435,12 @@ export default {
       this.showEditRecord = true,
       this.showCancelRecord = false,
       this.showDeleteRecord = true
+
       this.cancelRM();
       this.cancelHP();
       this.cancelHPStab();
       this.record.experimentRecord = Object.assign({}, this.cachedRecord); //Revert changes
+      this.checkValidityRecord();
     },
     deleteRecord() {
       let resp = confirm("Are you sure you want to delete this record?"); 

@@ -1,11 +1,11 @@
 const axios = require('axios');
-//const baseURL = "https://virox-server.herokuapp.com/api";
-    const baseURL = "http://localhost:3000/API";
+   const baseURL = "https://virox-server.herokuapp.com/api";
+    //const baseURL = "http://localhost:3000/API";
     (function () {
     let JSONData = {
         //tableName: 'EXPERIMENT_RECORDS',
-        tableName: 'RAW_MATERIALS',
-        //tableName: 'HYDROGEN_PEROXIDE_DATA',
+        //tableName: 'RAW_MATERIALS',
+        tableName: 'HYDROGEN_PEROXIDE_DATA',
         /* identifiers: {
             record_id: 6
         }, */
@@ -24,9 +24,9 @@ const axios = require('axios');
             total_ar: 355.6,
             total_ad: "355.84",
         }] */
-        data: [{
+        /* data: [{
             //raw_material_id: 1,
-            experiment_record_id: 1,
+            experiment_record_id: 5,
             raw_material_name: "chemical L63",
             percentage_w: 55.11,
             raw_material_lot: '1412-G',
@@ -36,7 +36,7 @@ const axios = require('axios');
             notes: "updated test",
         }, {
             //raw_material_id: 29,
-            experiment_record_id: 1,
+            experiment_record_id: 5,
             raw_material_name: "H2O2 50% EPA",
             percentage_w: 22.22,
             raw_material_lot: "404-F",
@@ -44,12 +44,12 @@ const axios = require('axios');
             ad: 44.48,
             time_added: "2020-12-5",
             notes: "new updated test",
-        }]
-        /* data: [{
-            hp_id: 8,
-            //hp_type: 1,
-            //experiment_record_id: 4,
-            experiment_name: "UPDATE",
+        }] */
+        data: [{
+            //hp_id: 8,
+            hp_type: 2,
+            experiment_record_id: 3,
+            experiment_name: "Trial 1",
             n: 0.1000,
             m: null,
             vol_change: null,
@@ -58,14 +58,12 @@ const axios = require('axios');
             accepted_range: "~ 0.8%",
             date: "2020-12-5",
             initials: "D.C",
-            date_created: "2020-12-5",
-            date_updated: "2020-12-5"
         },
         {
-            hp_id: 9,
-            //hp_type: 1,
-            //experiment_record_id: 4,
-            experiment_name: "UPDATE 2",
+            //hp_id: 9,
+            hp_type: 2,
+            experiment_record_id: 3,
+            experiment_name: "Trial 2",
             n: 0.1000,
             m: null,
             vol_change: null,
@@ -74,9 +72,7 @@ const axios = require('axios');
             accepted_range: "~ 0.8%",
             date: "2020-12-5",
             initials: "D.C",
-            date_created: "2020-12-5",
-            date_updated: "2020-12-5"
-        }] */
+        }]
     }
     /* axios.get(baseURL + '/getData', {
         params: {
