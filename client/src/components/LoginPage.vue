@@ -8,7 +8,7 @@
         <section>
             <div class="col1">
                 <h1>Virox Web Portal</h1>
-                <img alt="Vue logo" class="img-thumbnail" src="../assets/Virox-Logo.png">
+                <img class="img-thumbnail" src="../assets/Virox-Logo.png">
             </div>
             <div class="col2" :class="{ 'signup-form': !showLogin }">
                 <form v-if="showLogin" @submit.prevent>
@@ -102,16 +102,19 @@
                     console.log(credential.user.displayName)
                     console.log(credential.user.uid)
                     console.log(this.signupForm.name)
-                    // create user profile in firebase
+
+                    console.log("Rerouting")
+                    this.$store.dispatch('fetchUserProfile') //set that user's profile in store
+                    this.performingRequest = false
+                    this.$router.push('/records')
+                    
+                    // create user profile in firebase NOT WORKING
                     fb.usersCollection.add({
                         name: this.signupForm.name,
                         email: this.signupForm.email,
                         uid: credential.user.uid
                     }).then(() => {
-                        console.log("Rerouting")
-                        this.$store.dispatch('fetchUserProfile') //set that user's profile in store
-                        this.performingRequest = false
-                        this.$router.push('/records')
+                        
                     }).catch(err => {
                         console.log("SETTING ERROR")
                         console.log(err.message)

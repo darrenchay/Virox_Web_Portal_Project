@@ -1,5 +1,10 @@
 <template>
   <div class="card-body container">
+    <transition name="fade">
+            <div v-if="performingRequest" class="loading">
+                <p>Loading...</p>
+            </div>
+        </transition>
     <form id="general-input-form" class="form needs-validation" @submit.prevent novalidate>
       <!-- Button suite -->
       <div class="mb-3">
@@ -329,6 +334,8 @@ export default {
   props: {},
   data() {
     return {
+      performingRequest: false,
+
       isEditingDisabled: true,
       showSubmit: false,
       showCancelRecord: false,
@@ -510,10 +517,9 @@ export default {
       Object.keys(this.rmTemplate).forEach(key => {
         this.rmTemplate[key] = "";
       });
-      /* this.record.RMList.forEach(function (RM) {
-        this.tempRMList.push(Object.assign({}, RM));
-      }); */
-      //this.record.RMList = this.tempRMList; //TOFIX
+
+      //Reverting changes
+      this.record.RMList = this.tempList;
     },
     editRM() {
       this.isRMRowDisabled = false;
@@ -521,12 +527,13 @@ export default {
       this.showAddRM = false,
       this.showUpdateRMBtn = true;
       this.showCancelRM = true;
-      /* this.record.RMList.forEach(function (RM) {
-        this.tempRMList.push(Object.assign({}, RM));
-      });
+
+      //Caching RMList
+      this.tempList = [];
+      for(var i = 0; i < this.record.RMList.length; i++) {
+        this.tempList.push({...this.record.RMList[i]});
+      }
       console.log(this.tempRMList);
-      console.log("real records: ")
-      console.log(this.record.RMList); */
     },
 
     //HP handlers
@@ -550,6 +557,9 @@ export default {
       Object.keys(this.hpTemplate).forEach(key => {
         this.hpTemplate[key] = "";
       });
+
+      this.record.HPList = this.tempList;
+      this.HP_PH = this.tempPH;
     },
     editHP() {
       this.isHPRowDisabled = false;
@@ -557,6 +567,13 @@ export default {
       this.showAddHP = false,
       this.showUpdateHPBtn = true;
       this.showCancelHP = true;
+
+      //Caching HPList data
+      this.tempList = [];
+      this.tempPH = this.HP_PH;
+      for(var i = 0; i < this.record.HPList.length; i++) {
+        this.tempList.push({...this.record.HPList[i]});
+      }
     },
 
     //HP stability handlers
@@ -580,6 +597,10 @@ export default {
       Object.keys(this.hpTemplate).forEach(key => {
         this.hpTemplate[key] = "";
       });
+
+      // Reverting changes
+      this.record.HPStabilityList = this.tempList;
+      this.HPStab_PH = this.tempPH;
     },
     editHPStab() {
       this.isHPStabRowDisabled = false;
@@ -587,6 +608,13 @@ export default {
       this.showAddHPStab = false,
       this.showUpdateHPStabBtn = true;
       this.showCancelHPStab = true;
+
+      //Caching HPStabilityList
+      this.tempPH = this.HPStab_PH;
+      this.tempList = [];
+      for(var i = 0; i < this.record.HPStabilityList.length; i++) {
+        this.tempList.push({...this.record.HPStabilityList[i]});
+      }
     },
 
     saveHP(type) {
@@ -828,6 +856,7 @@ export default {
     }
   },
   beforeCreate() {
+    this.performingRequest = true;
     axios.get(baseURL + "/getRecord?id=" + this.$store.state.currentRecordID).then(response => {
         console.log("record ID: " + this.$store.state.currentRecordID + ", " + response.data.message);
         //console.log(response.data);
@@ -847,6 +876,7 @@ export default {
         if (this.record.experimentRecord.lot_no == "") {
           this.editRecord();
         }
+        this.performingRequest = false;
     });
   },
   computed: {

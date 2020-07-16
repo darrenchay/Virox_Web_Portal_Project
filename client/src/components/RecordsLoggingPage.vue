@@ -1,5 +1,10 @@
 <template>
     <div id="recordsPage" class="card">
+        <transition name="fade">
+            <div v-if="performingRequest" class="loading">
+                <p>Loading...</p>
+            </div>
+        </transition>
         <div class="card-head">
             <label for="recordsTable"><strong>Experiment Records</strong></label>
         </div>
@@ -20,14 +25,18 @@
             </table>
             <nav>
                 <paginate
-                    v-model="page"
                     :page-count="pageCount"
-                    :margin-pages="1"
+                    :margin-pages="0"
                     :click-handler="paginateCallback"
                     :prev-text="'&laquo'"
                     :next-text="'&raquo'"
                     :container-class="'pagination'"
-                    :page-class="'page-item'">
+                    :page-class="'page-item'"
+                    :page-link-class="'page-link-item'"
+                    :prev-class="'ignore prev-item'"
+                    :prev-link-class="'prev-link-item'"
+                    :next-class="'ignore next-item'"
+                    :next-link-class="'next-link-item'">
                 </paginate>
             </nav>
 
@@ -49,7 +58,7 @@
         },
         data(){
             return {
-                page: 1,
+                performingRequest: false,
                 pageCount: 0,
                 records: [],
                 currentSort: 'record_id',
@@ -105,6 +114,7 @@
                 //console.log(this.records)
             },
             paginateCallback(pageNum) {
+                this.performingRequest = true;
                 axios.get(baseURL + '/getRecords?page=' + pageNum).then(response => {
                 console.log(response.data)
                 this.records = response.data.records;
@@ -116,6 +126,7 @@
                     record.date_updated = formatDate(record.date_updated, 1);
                 })
                 //this.pageCount = response.data.pageCount;
+                this.performingRequest = false;
             }).catch(e => {
                 this.errors.push(e)
             });
@@ -155,3 +166,22 @@ function formatDate(date, type) {
     }
 }
 </script>
+
+<style lang="css">
+.page-item {
+}
+.page-link-item {
+}
+.prev-item {
+}
+.prev-link-item {
+}
+.next-item {
+}
+.next-link-item {
+}
+.break-view {
+}
+.break-view-item {
+}
+</style>

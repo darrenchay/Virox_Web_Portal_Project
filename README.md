@@ -12,7 +12,6 @@ Use login info test@gmail.com // 123456 to login
 - Records can be sorted using column names
 - Search tab to allow searches of tables for specific values
 - Records can be created, edited, deleted and updated on Records Details page
-
 ```
 ### Server Side 
 ```
