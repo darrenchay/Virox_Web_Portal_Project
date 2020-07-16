@@ -7,7 +7,7 @@
     </transition>
     <div class="alert alert-success alert-dismissible fade" v-show="showSuccess" :class="{'show': showSuccess}" role="alert">
       <strong>Success!</strong> Changes saved successfully.
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <button type="button" class="close" @click="showSuccess=false" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
