@@ -4,7 +4,13 @@
             <div v-if="performingRequest" class="loading">
                 <p>Loading...</p>
             </div>
-        </transition>
+    </transition>
+    <div class="alert alert-success alert-dismissible fade" v-show="showSuccess" :class="{'show': showSuccess}" role="alert">
+      <strong>Success!</strong> Changes saved successfully.
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
     <form id="general-input-form" class="form needs-validation" @submit.prevent novalidate>
       <!-- Button suite -->
       <div class="mb-3">
@@ -13,7 +19,7 @@
         <button type="button" v-show="showDeleteRecord" @click="deleteRecord" class="btn btn-danger mr-2">Delete</button>
         <button type="button" v-show="showEditRecord" @click="editRecord" class="btn btn-secondary">Edit</button>
       </div>
-
+      <hr>
       <!-- General record information section -->
       <div id="generalInfo">
         <div class="form-inline row">
@@ -65,7 +71,7 @@
           </div>
         </div>
       </div>
-
+      <hr>
       <!-- Raw Materials Table -->
       <div class="form-group">
         <label for="rmTable"><strong>Raw Materials</strong></label>
@@ -145,7 +151,7 @@
           <button type="button" v-show="showCancelRM" @click="cancelRM" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
-
+      <hr>
       <!-- Notes and preparation reason section -->
       <div>
         <div class="form-group">
@@ -157,7 +163,7 @@
           <textarea class="form-control" :disabled="isEditingDisabled" id="reasonPrepTextArea" v-model.trim="record.experimentRecord.preparation_reason"></textarea>
         </div>
       </div>
-
+      <hr>
       <!-- Hydrogen Peroxide Table -->
       <div class="form-group">
         <label for="HPTable">
@@ -237,7 +243,7 @@
           <button type="button" v-show="showCancelHP" @click="cancelHP" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
-
+      <hr>
       <!-- Hydrogen Peroxide Stability Table -->
       <div class="form-group">
         <label for="HPStabTable">
@@ -334,7 +340,8 @@ export default {
   props: {},
   data() {
     return {
-      performingRequest: false,
+      performingRequest: true,
+      showSuccess: false,
 
       isEditingDisabled: true,
       showSubmit: false,
@@ -417,7 +424,7 @@ export default {
       showHPStabTemplate: false,
       
       cachedRecord: {},
-      tempRMList: [],
+      tempList: []
     };
   },
   methods: {
@@ -434,6 +441,11 @@ export default {
         this.cancelRM();
         this.cancelHP();
         this.cancelHPStab();
+        this.showSuccess = true;
+        setTimeout( () => {
+          this.showSuccess = false
+        }, 3000);
+
       }
     },
     cancelRecord() {
@@ -519,7 +531,9 @@ export default {
       });
 
       //Reverting changes
-      this.record.RMList = this.tempList;
+      if(this.tempList.length > 0) {
+        this.record.RMList = this.tempList;
+      }
     },
     editRM() {
       this.isRMRowDisabled = false;
@@ -558,8 +572,10 @@ export default {
         this.hpTemplate[key] = "";
       });
 
-      this.record.HPList = this.tempList;
-      this.HP_PH = this.tempPH;
+      if(this.tempList.length > 0) {
+        this.record.HPList = this.tempList;
+        this.HP_PH = this.tempPH;
+      }
     },
     editHP() {
       this.isHPRowDisabled = false;
@@ -599,8 +615,10 @@ export default {
       });
 
       // Reverting changes
-      this.record.HPStabilityList = this.tempList;
-      this.HPStab_PH = this.tempPH;
+      if(this.tempList.length > 0) {
+        this.record.HPStabilityList = this.tempList;
+        this.HPStab_PH = this.tempPH;
+      }
     },
     editHPStab() {
       this.isHPStabRowDisabled = false;
@@ -713,6 +731,10 @@ export default {
             }
             console.log(response.data.message);
             postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {}); //To update current date
+            this.showSuccess = true;
+            setTimeout( () => {
+              this.showSuccess = false
+            }, 3000);
           });
         });
     },
@@ -796,7 +818,6 @@ export default {
         this.isQuantityInvalid = false;
       }
       if(!this.isLotNoInvalid && !this.isTitleInvalid && !this.isFormDateInvalid && !this.isPrepDateInvalid && !this.isPrepByInvalid && !this.isQuantityInvalid) {
-        console.log("here");
         this.isAllValid = true;
       }
     },
