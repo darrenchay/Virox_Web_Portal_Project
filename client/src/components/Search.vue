@@ -165,7 +165,10 @@
                             })
                             this.receivedSearchResults = true;
                             //console.log(this.record);
-                    })     
+                    }).catch(err => {
+                        console.log(err);
+                        this.record = [];
+                    }) 
                 }
             },
             setSelected: function(event) {

@@ -76,7 +76,7 @@
       <div class="form-group">
         <label for="rmTable"><strong>Raw Materials</strong></label>
         <div class="table-scrollable">
-          <table class="table table-bordered table-hover table-responsive" id="rmTable">
+          <table class="table table-bordered table-hover d-table table-responsive" id="rmTable">
             <thead class="thead-dark">
               <tr>
                 <th v-for="(column, index) in RMColumnNames" :key="index">{{column}}</th>
@@ -86,9 +86,10 @@
             <tbody>
               <tr v-for="RawMat in record.RMList" :key="RawMat.raw_material_id">
                 <td v-for="(data, index) in RMColumns" :key="index">
-                  <input v-if="index != 5" type="text" :readonly="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control"/>
-                  <input v-else type="date" :readonly="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control col-sm"/>
-                  </td>
+                  <input v-if="index == 3" type="text" readonly v-model.trim="RawMat[data]" class="form-control"/>
+                  <input v-else-if="index == 5" type="date" :readonly="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control"/>
+                  <input v-else type="text" :readonly="isRMRowDisabled" v-model.trim="RawMat[data]" class="form-control col-sm"/>
+                </td>
                 <td>
                   <button type="button" :disabled="isRMRowDisabled" @click="deleteRow(RawMat, 0)" class="btn btn-danger">Delete</button>
                 </td>
@@ -152,18 +153,24 @@
         </div>
       </div>
       <hr>
+
       <!-- Notes and preparation reason section -->
       <div>
         <div class="form-group">
-          <label for="notesTextArea"><strong>Notes</strong></label>
+          <label for="notesTextArea"><strong>Sample Preparation Notes</strong></label>
           <textarea class="form-control" :disabled="isEditingDisabled" id="notesTextArea" v-model.trim="record.experimentRecord.notes"></textarea>
         </div>
         <div class="form-group">
           <label for="reasonPrepTextArea"><strong>Reason for Preparation</strong></label>
           <textarea class="form-control" :disabled="isEditingDisabled" id="reasonPrepTextArea" v-model.trim="record.experimentRecord.preparation_reason"></textarea>
         </div>
+        <div class="form-group">
+          <label for="obsTextArea"><strong>Observation Notes</strong></label>
+          <textarea class="form-control" :disabled="isEditingDisabled" id="obsTextArea" v-model.trim="record.experimentRecord.observations"></textarea>
+        </div>
       </div>
       <hr>
+
       <!-- Hydrogen Peroxide Table -->
       <div class="form-group">
         <label for="HPTable">
@@ -226,9 +233,9 @@
               <td> <strong></strong> </td>
               <td></td>
               <td> <strong></strong> </td>
-              <td><strong></strong></td>
               <td><strong>pH</strong></td>
               <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH" class="form-control"/></strong></td>
+              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH_acceptedRange" class="form-control"/></strong></td>
               <td></td>
               <td></td>
               <td></td>
@@ -884,7 +891,7 @@ export default {
         this.record = response.data.records;
         this.record.experimentRecord = response.data.records.experimentRecord;
         this.formatRecord();
-        //console.log(this.record);
+        console.log(this.record);
         if(this.record.HPList.length > 0) {
           this.HP_PH = this.record.HPList[0].ph;
         }

@@ -9,7 +9,7 @@
             <label for="recordsTable"><strong>Experiment Records</strong></label>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover table-responsive" data-pagination="true"  id="recordsTable">
+            <table class="table table-hover table-responsive ml-4" data-pagination="true" id="recordsTable">
                 <thead class="thead-dark">
                     <tr>
                         <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
@@ -112,6 +112,7 @@
                     //console.log( 'Col name: ' + col )
                 } // end if
                 //console.log(this.records)
+                console.log(this.sortedRecords[0]);
             },
             paginateCallback(pageNum) {
                 this.performingRequest = true;
