@@ -235,7 +235,8 @@
               <td> <strong></strong> </td>
               <td><strong>pH</strong></td>
               <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH" class="form-control"/></strong></td>
-              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH_acceptedRange" class="form-control"/></strong></td>
+              <!-- <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH_acceptedRange" class="form-control"/></strong></td> -->
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -753,6 +754,10 @@ export default {
         if (element.time_added !== null) {
           element.time_added = formatDate(element.time_added);
         }
+        console.log(element.percentage_w);
+        console.log(this.record.experimentRecord.quantity);
+        element.ar = this.record.experimentRecord.quantity/100 * element.percentage_w;
+        console.log(element);
       });
       this.record.HPList.forEach(element => {
         if (element.date !== null) {
@@ -881,6 +886,15 @@ export default {
       if(!this.isHPNameInvalid && !this.isNInvalid && !this.isH2O2Invalid) {
         this.isHPValid = true;
       }
+    },
+    calculateAR() {
+      this.record.RMList.forEach(element => {
+        // console.log(element.percentage_w);
+        // console.log(this.record.experimentRecord.quantity);
+        let newAR = this.record.experimentRecord.quantity/100 * element.percentage_w;
+        element.ar = newAR.toFixed(3);
+        console.log(element);
+      });
     }
   },
   beforeCreate() {
@@ -891,6 +905,7 @@ export default {
         this.record = response.data.records;
         this.record.experimentRecord = response.data.records.experimentRecord;
         this.formatRecord();
+        this.calculateAR();
         console.log(this.record);
         if(this.record.HPList.length > 0) {
           this.HP_PH = this.record.HPList[0].ph;
