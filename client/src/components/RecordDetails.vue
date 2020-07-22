@@ -149,7 +149,7 @@
           <button type="button" :disabled="isEditingDisabled" v-show="showEditRMBtn" @click="editRM" class="btn btn-info">Edit Raw Materials</button>
           <button type="button" v-show="showUpdateRMBtn" @click="updateRows(0)" class="btn btn-success mr-2">Update Raw Materials</button>
           <button type="button" v-show="showSaveRM" @click="saveRM" class="btn btn-success mr-2">Save Raw Material</button>
-          <button type="button" v-show="showCancelRM" @click="cancelRM" class="btn btn-secondary">Cancel</button>
+          <button type="button" v-show="showCancelRM" @click="cancelRM(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
       <hr>
@@ -248,7 +248,7 @@
           <button type="button" :disabled="isEditingDisabled" v-show="showEditHPBtn" @click="editHP" class="btn btn-info">Edit Hydrogen Peroxide Data</button>
           <button type="button" v-show="showUpdateHPBtn" @click="updateRows(1)" class="btn btn-success mr-2">Update Hydrogen Peroxide Data</button>
           <button type="button" v-show="showSaveHP" @click="saveHP(1)" class="btn btn-success mr-2">Save Hydrogen Peroxide Data</button>
-          <button type="button" v-show="showCancelHP" @click="cancelHP" class="btn btn-secondary">Cancel</button>
+          <button type="button" v-show="showCancelHP" @click="cancelHP(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
       <hr>
@@ -328,7 +328,7 @@
           <button type="button" :disabled="isEditingDisabled" v-show="showEditHPStabBtn" @click="editHPStab" class="btn btn-info">Edit Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showUpdateHPStabBtn" @click="updateRows(2)" class="btn btn-success mr-2">Update Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showSaveHPStab" @click="saveHP(2)" class="btn btn-success mr-2">Save Hydrogen Peroxide Stability Data</button>
-          <button type="button" v-show="showCancelHPStab" @click="cancelHPStab" class="btn btn-secondary">Cancel</button>
+          <button type="button" v-show="showCancelHPStab" @click="cancelHPStab(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
       
@@ -401,6 +401,8 @@ export default {
         HPStabilityList: []
       },
 
+      watchedQuantity: 0,
+
       RMColumns: ["raw_material_name", "percentage_w", "raw_material_lot", "ar", "ad", "time_added", "notes"],
       RMColumnNames: ["Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added", "Notes"],
       HPColumns: ["experiment_name", "n", "m", "vol_change", "h2o2", "accepted_range", "date", "initials"],
@@ -441,14 +443,8 @@ export default {
       this.checkValidityRecord();
       if(this.isAllValid) {
         postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {});
-        this.isEditingDisabled = true,
-        this.showSubmit = false,
-        this.showEditRecord = true,
-        this.showCancelRecord = false,
-        this.showDeleteRecord = true
-        this.cancelRM();
-        this.cancelHP();
-        this.cancelHPStab();
+        this.calculateAR();
+        this.cancelRecord(false)
         this.showSuccess = true;
         setTimeout( () => {
           this.showSuccess = false
@@ -456,17 +452,19 @@ export default {
 
       }
     },
-    cancelRecord() {
+    cancelRecord(revertCached) {
       this.isEditingDisabled = true,
       this.showSubmit = false,
       this.showEditRecord = true,
       this.showCancelRecord = false,
       this.showDeleteRecord = true
 
-      this.cancelRM();
-      this.cancelHP();
-      this.cancelHPStab();
-      this.record.experimentRecord = Object.assign({}, this.cachedRecord); //Revert changes
+      this.cancelRM(false);
+      this.cancelHP(false);
+      this.cancelHPStab(false);
+      if(revertCached) {
+        this.record.experimentRecord = Object.assign({}, this.cachedRecord); //Revert changes
+      }
       this.checkValidityRecord();
     },
     deleteRecord() {
@@ -519,7 +517,7 @@ export default {
         this.postGetRequest(baseURL + '/addData', record, 'RAW_MATERIALS', 0, {});
       }
     },
-    cancelRM() {
+    cancelRM(revertCached) {
       this.showSaveRM = false,
       this.showAddRM = true,
       this.showCancelRM = false
@@ -538,10 +536,12 @@ export default {
         this.rmTemplate[key] = "";
       });
 
-      //Reverting changes
-      if(this.tempList.length > 0) {
-        this.record.RMList = this.tempList;
-      }
+      if(revertCached) {
+        //Reverting changes
+        if(this.tempList.length > 0) {
+          this.record.RMList = this.tempList;
+        }
+      }      
     },
     editRM() {
       this.isRMRowDisabled = false;
@@ -555,7 +555,7 @@ export default {
       for(var i = 0; i < this.record.RMList.length; i++) {
         this.tempList.push({...this.record.RMList[i]});
       }
-      console.log(this.tempRMList);
+      console.log(this.tempList);
     },
 
     //HP handlers
@@ -566,7 +566,7 @@ export default {
       this.showEditHPBtn = false;
       this.showHPTemplate = true;
     },
-    cancelHP() {
+    cancelHP(revertCached) {
       this.showSaveHP = false,
       this.showAddHP = true,
       this.showCancelHP = false
@@ -580,9 +580,12 @@ export default {
         this.hpTemplate[key] = "";
       });
 
-      if(this.tempList.length > 0) {
-        this.record.HPList = this.tempList;
-        this.HP_PH = this.tempPH;
+      // Revert cached changes if cancelling and not updating
+      if(revertCached) {
+        if(this.tempList.length > 0) {
+          this.record.HPList = this.tempList;
+          this.HP_PH = this.tempPH;
+        }
       }
     },
     editHP() {
@@ -608,7 +611,7 @@ export default {
       this.showEditHPStabBtn = false;
       this.showHPStabTemplate = true;
     },
-    cancelHPStab() {
+    cancelHPStab(revertCached) {
       this.showSaveHPStab = false,
       this.showAddHPStab = true,
       this.showCancelHPStab = false
@@ -622,10 +625,13 @@ export default {
         this.hpTemplate[key] = "";
       });
 
-      // Reverting changes
-      if(this.tempList.length > 0) {
-        this.record.HPStabilityList = this.tempList;
-        this.HPStab_PH = this.tempPH;
+
+      // Revert cached changes if cancelling and not updating
+      if(revertCached) {
+        if(this.tempList.length > 0) {
+          this.record.HPStabilityList = this.tempList;
+          this.HPStab_PH = this.tempPH;
+        }
       }
     },
     editHPStab() {
@@ -687,6 +693,7 @@ export default {
     updateRows(type){
       //Update the PH of each HP record
       if(type == 0) {
+        console.log(this.record.RMList)
         this.postGetRequest(baseURL + '/updateData', this.record.RMList, 'RAW_MATERIALS', 0, {});
       } else if(type == 1) {
         this.record.HPList.forEach(HP => {
@@ -727,15 +734,16 @@ export default {
             if(type == 0) {
               this.record.RMList = response.data.rows;
               this.formatRecord();
-              this.cancelRM();
+              this.cancelRM(false);
+              this.calculateAR();
             } else if (type == 1) {
               this.record.HPList = response.data.rows;
               this.formatRecord();
-              this.cancelHP();
+              this.cancelHP(false);
             } else if (type == 2) {
               this.record.HPStabilityList = response.data.rows;
               this.formatRecord();
-              this.cancelHPStab();
+              this.cancelHPStab(false);
             }
             console.log(response.data.message);
             postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {}); //To update current date
@@ -754,10 +762,10 @@ export default {
         if (element.time_added !== null) {
           element.time_added = formatDate(element.time_added);
         }
-        console.log(element.percentage_w);
-        console.log(this.record.experimentRecord.quantity);
-        element.ar = this.record.experimentRecord.quantity/100 * element.percentage_w;
-        console.log(element);
+        // console.log(element.percentage_w);
+        // console.log(this.record.experimentRecord.quantity);
+        // element.ar = this.record.experimentRecord.quantity/100 * element.percentage_w;
+        // console.log(element);
       });
       this.record.HPList.forEach(element => {
         if (element.date !== null) {
@@ -893,7 +901,7 @@ export default {
         // console.log(this.record.experimentRecord.quantity);
         let newAR = this.record.experimentRecord.quantity/100 * element.percentage_w;
         element.ar = newAR.toFixed(3);
-        console.log(element);
+        // console.log(element);
       });
     }
   },
@@ -919,6 +927,7 @@ export default {
         if (this.record.experimentRecord.lot_no == "") {
           this.editRecord();
         }
+        this.watchedQuantity = this.record.experimentRecord.quantity;
         this.performingRequest = false;
     });
   },
@@ -932,7 +941,7 @@ export default {
     totalAD: function() {
       return this.calculateTotalAD();
     }
-  }
+  },
 };
 
 /** Helper functions **/
