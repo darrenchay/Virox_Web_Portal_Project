@@ -117,7 +117,7 @@
                   </small>
                 </td>
                 <td>
-                  <input type="text" :class="{'is-invalid': isADInvalid}" v-model.trim="rmTemplate.ad" class="form-control" id="inputAD"/>
+                  <input type="text" v-model.trim="rmTemplate.ad" class="form-control" id="inputAD"/>
                 </td>
                 <td>
                   <input type="date" v-model.trim="rmTemplate.time_added" class="form-control" id="inputTimeAdded"/>
@@ -369,7 +369,6 @@ export default {
       isRMNameInvalid: false,
       isPercentWInvalid: false,
       isARInvalid: false,
-      isADInvalid: false,
 
       isHPRowDisabled: true,
       showAddHP: true,
@@ -525,7 +524,6 @@ export default {
       this.isRMNameInvalid = false;
       this.isPercentWInvalid = false;
       this.isARInvalid = false;
-      this.isADInvalid = false;
 
       Object.keys(this.rmTemplate).forEach(key => {
         this.rmTemplate[key] = "";
