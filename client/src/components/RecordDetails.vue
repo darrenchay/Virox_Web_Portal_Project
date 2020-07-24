@@ -230,12 +230,22 @@
               <td></td>
             </tr>
             <tr class="table-secondary">
+              <td></td>
+              <td></td>
+              <td></td>
+              <td><strong>PH</strong></td>
+              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="record.experimentRecord.hp_ph" class="form-control"/></strong></td>
+              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="record.experimentRecord.hp_ph_accepted_range" class="form-control"/></strong></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr class="table-secondary">
               <td> <strong></strong> </td>
               <td></td>
-              <td> <strong></strong> </td>
-              <td><strong>pH</strong></td>
-              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH" class="form-control"/></strong></td>
-              <!-- <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="HP_PH_acceptedRange" class="form-control"/></strong></td> -->
+              <td></td>
+              <td><strong>S.G</strong></td>
+              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.number="record.experimentRecord.sg" class="form-control"/></strong></td>
               <td></td>
               <td></td>
               <td></td>
@@ -311,12 +321,12 @@
               <td></td>
             </tr>
             <tr class="table-secondary">
-              <td> <strong></strong> </td>
               <td></td>
-              <td> <strong></strong> </td>
-              <td><strong></strong></td>
-              <td><strong>pH</strong></td>
-              <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.number="HPStab_PH" class="form-control"/></strong></td>
+              <td></td>
+              <td></td>
+              <td><strong>PH</strong></td>
+              <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.number="record.experimentRecord.hp_stab_ph" class="form-control"/></strong></td>
+              <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.trim="record.experimentRecord.hp_stab_ph_accepted_range" class="form-control"/></strong></td>
               <td></td>
               <td></td>
               <td></td>
@@ -391,8 +401,12 @@ export default {
       isHPNameInvalid: false,
       isNInvalid: false,
       isH2O2Invalid: false,
+
       HP_PH: 0,
       HPStab_PH: 0,
+
+      HP_PH_acceptedRange: '',
+      HP_Stab_PH_acceptedRange: '',
 
       record: {
         experimentRecord: {},
@@ -917,10 +931,12 @@ export default {
         console.log(this.record);
         if(this.record.HPList.length > 0) {
           this.HP_PH = this.record.HPList[0].ph;
+          this.record.experimentRecord.hp_ph = this.HP_PH
         }
 
         if(this.record.HPStabilityList.length > 0) {
           this.HPStab_PH = this.record.HPStabilityList[0].ph;
+          this.record.experimentRecord.hp_stab_ph = this.HPStab_PH
         }
 
         //Enable editing for new records

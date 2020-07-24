@@ -3,13 +3,13 @@ const axios = require('axios');
     //const baseURL = "http://localhost:3000/API";
     (function () {
     let JSONData = {
-        //tableName: 'EXPERIMENT_RECORDS',
+        tableName: 'EXPERIMENT_RECORDS',
         //tableName: 'RAW_MATERIALS',
-        tableName: 'HYDROGEN_PEROXIDE_DATA',
+        //tableName: 'HYDROGEN_PEROXIDE_DATA',
         /* identifiers: {
             record_id: 6
         }, */
-        /* data: [{
+        data: [{
             //record_id: 1,
             lot_no: 99999,
             project_title: "Title 9",
@@ -23,7 +23,7 @@ const axios = require('axios');
             total_percentage_w: 100.0,
             total_ar: 355.6,
             total_ad: "355.84",
-        }] */
+        }]
         /* data: [{
             //raw_material_id: 1,
             experiment_record_id: 5,
@@ -45,34 +45,34 @@ const axios = require('axios');
             time_added: "2020-12-5",
             notes: "new updated test",
         }] */
-        data: [{
-            //hp_id: 8,
-            hp_type: 2,
-            experiment_record_id: 3,
-            experiment_name: "Trial 1",
-            n: 0.1000,
-            m: null,
-            vol_change: null,
-            h2o2: 0.1000,
-            ph: 0.870,
-            accepted_range: "~ 0.8%",
-            date: "2020-12-5",
-            initials: "D.C",
-        },
-        {
-            //hp_id: 9,
-            hp_type: 2,
-            experiment_record_id: 3,
-            experiment_name: "Trial 2",
-            n: 0.1000,
-            m: null,
-            vol_change: null,
-            h2o2: 0.1000,
-            ph: 0.870,
-            accepted_range: "~ 0.8%",
-            date: "2020-12-5",
-            initials: "D.C",
-        }]
+        // data: [{
+        //     //hp_id: 8,
+        //     hp_type: 2,
+        //     experiment_record_id: 3,
+        //     experiment_name: "Trial 1",
+        //     n: 0.1000,
+        //     m: null,
+        //     vol_change: null,
+        //     h2o2: 0.1000,
+        //     ph: 0.870,
+        //     accepted_range: "~ 0.8%",
+        //     date: "2020-12-5",
+        //     initials: "D.C",
+        // },
+        // {
+        //     //hp_id: 9,
+        //     hp_type: 2,
+        //     experiment_record_id: 3,
+        //     experiment_name: "Trial 2",
+        //     n: 0.1000,
+        //     m: null,
+        //     vol_change: null,
+        //     h2o2: 0.1000,
+        //     ph: 0.870,
+        //     accepted_range: "~ 0.8%",
+        //     date: "2020-12-5",
+        //     initials: "D.C",
+        // }]
     }
     /* axios.get(baseURL + '/getData', {
         params: {
