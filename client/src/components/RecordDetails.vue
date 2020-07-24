@@ -76,7 +76,7 @@
       <div class="form-group">
         <label for="rmTable"><strong>Raw Materials</strong></label>
         <div class="table-scrollable">
-          <table class="table table-bordered table-hover d-table table-responsive" id="rmTable">
+          <table v-if="record.RMList.length > 0 || showRMTemplate" class="table table-bordered table-hover d-table table-responsive" id="rmTable">
             <thead class="thead-dark">
               <tr>
                 <th v-for="(column, index) in RMColumnNames" :key="index">{{column}}</th>
@@ -118,9 +118,6 @@
                 </td>
                 <td>
                   <input type="text" :class="{'is-invalid': isADInvalid}" v-model.trim="rmTemplate.ad" class="form-control" id="inputAD"/>
-                  <small class="invalid-feedback" v-show="isADInvalid">
-                      Field cannot be empty.
-                  </small>
                 </td>
                 <td>
                   <input type="date" v-model.trim="rmTemplate.time_added" class="form-control" id="inputTimeAdded"/>
@@ -176,7 +173,7 @@
         <label for="HPTable">
           <strong>Hydrogen Peroxide</strong>
         </label>
-        <table class="table table-bordered table-hover table-responsive" id="HPTable">
+        <table v-if="record.HPList.length > 0 || showHPTemplate" class="table table-bordered table-hover table-responsive" id="HPTable">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in HPColumnNames" :key="index">{{column}}</th>
@@ -229,27 +226,16 @@
               </td>
               <td></td>
             </tr>
-            <tr class="table-secondary">
-              <td></td>
-              <td></td>
-              <td></td>
+            <tr v-if="record.HPList.length > 0" class="table-secondary">
               <td><strong>PH</strong></td>
               <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="record.experimentRecord.hp_ph" class="form-control"/></strong></td>
+              <td></td>
+              <td><strong>Average H2O2</strong></td>
+              <td><strong>{{averageHP}}</strong></td>
               <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="record.experimentRecord.hp_ph_accepted_range" class="form-control"/></strong></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr class="table-secondary">
-              <td> <strong></strong> </td>
-              <td></td>
               <td></td>
               <td><strong>S.G</strong></td>
               <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.number="record.experimentRecord.sg" class="form-control"/></strong></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
             </tr>
           </tbody>
         </table>
@@ -257,7 +243,7 @@
           <button type="button" :disabled="isEditingDisabled" v-show="showAddHP" @click="addHP" class="btn btn-primary mr-2">Add Hydrogen Peroxide Data</button>
           <button type="button" :disabled="isEditingDisabled" v-show="showEditHPBtn" @click="editHP" class="btn btn-info">Edit Hydrogen Peroxide Data</button>
           <button type="button" v-show="showUpdateHPBtn" @click="updateRows(1)" class="btn btn-success mr-2">Update Hydrogen Peroxide Data</button>
-          <button type="button" v-show="showSaveHP" @click="saveHP(1)" class="btn btn-success mr-2">Save Hydrogen Peroxide Data</button>
+          <button type="button" v-show="showSaveHP" @click="saveHP(1, record.experimentRecord.hp_ph)" class="btn btn-success mr-2">Save Hydrogen Peroxide Data</button>
           <button type="button" v-show="showCancelHP" @click="cancelHP(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
@@ -267,7 +253,7 @@
         <label for="HPStabTable">
           <strong>Hydrogen Peroxide Stability</strong>
         </label>
-        <table class="table table-bordered table-hover table-responsive" id="HPStabTable">
+        <table v-if="record.HPStabilityList.length > 0 || showHPStabTemplate" class="table table-bordered table-hover table-responsive" id="HPStabTable">
           <thead class="thead-dark">
             <tr>
               <th v-for="(column, index) in HPColumnNames" :key="index">{{column}}</th>
@@ -320,12 +306,13 @@
               </td>
               <td></td>
             </tr>
-            <tr class="table-secondary">
-              <td></td>
-              <td></td>
-              <td></td>
+            <tr v-if="record.HPStabilityList.length > 0" class="table-secondary">
               <td><strong>PH</strong></td>
               <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.number="record.experimentRecord.hp_stab_ph" class="form-control"/></strong></td>
+              <td></td>
+              <td><strong>Average H2O2</strong></td>
+              <td><strong>{{averageHPStab}}</strong></td>
+              <!-- <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.number="record.experimentRecord.hp_stab_h2o2_avg" class="form-control"/></strong></td> -->
               <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.trim="record.experimentRecord.hp_stab_ph_accepted_range" class="form-control"/></strong></td>
               <td></td>
               <td></td>
@@ -337,7 +324,7 @@
           <button type="button" :disabled="isEditingDisabled" v-show="showAddHPStab" @click="addHPStab" class="btn btn-primary mr-2">Add Hydrogen Peroxide Stability Data</button>
           <button type="button" :disabled="isEditingDisabled" v-show="showEditHPStabBtn" @click="editHPStab" class="btn btn-info">Edit Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showUpdateHPStabBtn" @click="updateRows(2)" class="btn btn-success mr-2">Update Hydrogen Peroxide Stability Data</button>
-          <button type="button" v-show="showSaveHPStab" @click="saveHP(2)" class="btn btn-success mr-2">Save Hydrogen Peroxide Stability Data</button>
+          <button type="button" v-show="showSaveHPStab" @click="saveHP(2, record.experimentRecord.hp_stab_ph)" class="btn btn-success mr-2">Save Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showCancelHPStab" @click="cancelHPStab(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
@@ -401,12 +388,6 @@ export default {
       isHPNameInvalid: false,
       isNInvalid: false,
       isH2O2Invalid: false,
-
-      HP_PH: 0,
-      HPStab_PH: 0,
-
-      HP_PH_acceptedRange: '',
-      HP_Stab_PH_acceptedRange: '',
 
       record: {
         experimentRecord: {},
@@ -598,7 +579,7 @@ export default {
       if(revertCached) {
         if(this.tempList.length > 0) {
           this.record.HPList = this.tempList;
-          this.HP_PH = this.tempPH;
+          this.record.experimentRecord.hp_ph = this.tempPH;
         }
       }
     },
@@ -611,7 +592,7 @@ export default {
 
       //Caching HPList data
       this.tempList = [];
-      this.tempPH = this.HP_PH;
+      this.tempPH = this.record.experimentRecord.hp_ph;
       for(var i = 0; i < this.record.HPList.length; i++) {
         this.tempList.push({...this.record.HPList[i]});
       }
@@ -644,7 +625,7 @@ export default {
       if(revertCached) {
         if(this.tempList.length > 0) {
           this.record.HPStabilityList = this.tempList;
-          this.HPStab_PH = this.tempPH;
+          this.record.experimentRecord.hp_stab_ph = this.tempPH;
         }
       }
     },
@@ -656,14 +637,14 @@ export default {
       this.showCancelHPStab = true;
 
       //Caching HPStabilityList
-      this.tempPH = this.HPStab_PH;
+      this.tempPH = this.record.experimentRecord.hp_stab_ph;
       this.tempList = [];
       for(var i = 0; i < this.record.HPStabilityList.length; i++) {
         this.tempList.push({...this.record.HPStabilityList[i]});
       }
     },
 
-    saveHP(type) {
+    saveHP(type, ph) {
       this.checkValidityHP();
       if(this.isHPValid) {
         //Building JSON object to send
@@ -675,7 +656,7 @@ export default {
           m: this.hpTemplate.m,
           vol_change: this.hpTemplate.vol_change,
           h2o2: this.hpTemplate.h2o2,
-          ph: this.HP_PH,
+          ph: ph,
           accepted_range: this.hpTemplate.accepted_range,
           date: this.hpTemplate.date,
           initials: this.hpTemplate.initials
@@ -711,12 +692,12 @@ export default {
         this.postGetRequest(baseURL + '/updateData', this.record.RMList, 'RAW_MATERIALS', 0, {});
       } else if(type == 1) {
         this.record.HPList.forEach(HP => {
-          HP.ph = this.HP_PH;
+          HP.ph = this.record.experimentRecord.hp_ph;
         });
         this.postGetRequest(baseURL + '/updateData', this.record.HPList, 'HYDROGEN_PEROXIDE_DATA', type, {});
       } else {
         this.record.HPStabilityList.forEach(HPStab => {
-          HPStab.ph = this.HPStab_PH;
+          HPStab.ph = this.record.experimentRecord.hp_stab_ph;
         });
         this.postGetRequest(baseURL + '/updateData', this.record.HPStabilityList, 'HYDROGEN_PEROXIDE_DATA', type, {});
       }
@@ -875,13 +856,7 @@ export default {
       } else {
         this.isARInvalid = false;
       }
-      if(this.rmTemplate.ad === "") {
-        this.isADInvalid = true;
-        this.isRMValid = false;
-      } else {
-        this.isADInvalid = false;
-      }
-      if(!this.isRMNameInvalid && !this.isPercentWInvalid && !this.isARInvalid && !this.isADInvalid) {
+      if(!this.isRMNameInvalid && !this.isPercentWInvalid && !this.isARInvalid) {
         this.isRMValid = true;
       }
     },
@@ -917,6 +892,30 @@ export default {
         element.ar = newAR.toFixed(3);
         // console.log(element);
       });
+    },
+    getAvgHP() {
+      let totalH2O2 = 0
+      this.record.HPList.forEach(element => {
+        totalH2O2 += element.h2o2;
+      })
+      let length = this.record.HPList.length;
+      if(length > 0){
+        return (totalH2O2/length).toFixed(3);
+      } else {
+        return 0;
+      }
+    },
+    getAvgHPStab() {
+      let totalH2O2 = 0
+      this.record.HPStabilityList.forEach(element => {
+        totalH2O2 += element.h2o2;
+      })
+      let length = this.record.HPStabilityList.length;
+      if(length > 0){
+        return (totalH2O2/length).toFixed(3);
+      } else {
+        return 0;
+      }
     }
   },
   beforeCreate() {
@@ -929,16 +928,6 @@ export default {
         this.formatRecord();
         this.calculateAR();
         console.log(this.record);
-        if(this.record.HPList.length > 0) {
-          this.HP_PH = this.record.HPList[0].ph;
-          this.record.experimentRecord.hp_ph = this.HP_PH
-        }
-
-        if(this.record.HPStabilityList.length > 0) {
-          this.HPStab_PH = this.record.HPStabilityList[0].ph;
-          this.record.experimentRecord.hp_stab_ph = this.HPStab_PH
-        }
-
         //Enable editing for new records
         if (this.record.experimentRecord.lot_no == "") {
           this.editRecord();
@@ -956,6 +945,12 @@ export default {
     },
     totalAD: function() {
       return this.calculateTotalAD();
+    },
+    averageHP: function() {
+      return this.getAvgHP();
+    },
+    averageHPStab: function() {
+      return this.getAvgHPStab();
     }
   },
 };
