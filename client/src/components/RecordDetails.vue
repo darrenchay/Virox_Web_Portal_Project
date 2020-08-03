@@ -143,7 +143,7 @@
         </div>
         <div>
           <button type="button" :disabled="isEditingDisabled" v-show="showAddRM" @click="addRM" class="btn btn-primary mr-2">Add Raw Material</button>
-          <button type="button" :disabled="isEditingDisabled" v-show="showEditRMBtn" @click="editRM" class="btn btn-info">Edit Raw Materials</button>
+          <button type="button" v-if="record.RMList.length > 0" :disabled="isEditingDisabled" v-show="showEditRMBtn" @click="editRM" class="btn btn-info">Edit Raw Materials</button>
           <button type="button" v-show="showUpdateRMBtn" @click="updateRows(0)" class="btn btn-success mr-2">Update Raw Materials</button>
           <button type="button" v-show="showSaveRM" @click="saveRM" class="btn btn-success mr-2">Save Raw Material</button>
           <button type="button" v-show="showCancelRM" @click="cancelRM(true)" class="btn btn-secondary">Cancel</button>
@@ -241,7 +241,7 @@
         </table>
         <div>
           <button type="button" :disabled="isEditingDisabled" v-show="showAddHP" @click="addHP" class="btn btn-primary mr-2">Add Hydrogen Peroxide Data</button>
-          <button type="button" :disabled="isEditingDisabled" v-show="showEditHPBtn" @click="editHP" class="btn btn-info">Edit Hydrogen Peroxide Data</button>
+          <button type="button"  v-if="record.HPList.length > 0" :disabled="isEditingDisabled" v-show="showEditHPBtn" @click="editHP" class="btn btn-info">Edit Hydrogen Peroxide Data</button>
           <button type="button" v-show="showUpdateHPBtn" @click="updateRows(1)" class="btn btn-success mr-2">Update Hydrogen Peroxide Data</button>
           <button type="button" v-show="showSaveHP" @click="saveHP(1, record.experimentRecord.hp_ph)" class="btn btn-success mr-2">Save Hydrogen Peroxide Data</button>
           <button type="button" v-show="showCancelHP" @click="cancelHP(true)" class="btn btn-secondary">Cancel</button>
@@ -322,7 +322,7 @@
         </table>
         <div>
           <button type="button" :disabled="isEditingDisabled" v-show="showAddHPStab" @click="addHPStab" class="btn btn-primary mr-2">Add Hydrogen Peroxide Stability Data</button>
-          <button type="button" :disabled="isEditingDisabled" v-show="showEditHPStabBtn" @click="editHPStab" class="btn btn-info">Edit Hydrogen Peroxide Stability Data</button>
+          <button type="button"  v-if="record.HPStabilityList.length > 0" :disabled="isEditingDisabled" v-show="showEditHPStabBtn" @click="editHPStab" class="btn btn-info">Edit Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showUpdateHPStabBtn" @click="updateRows(2)" class="btn btn-success mr-2">Update Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showSaveHPStab" @click="saveHP(2, record.experimentRecord.hp_stab_ph)" class="btn btn-success mr-2">Save Hydrogen Peroxide Stability Data</button>
           <button type="button" v-show="showCancelHPStab" @click="cancelHPStab(true)" class="btn btn-secondary">Cancel</button>
@@ -888,7 +888,6 @@ export default {
         // console.log(this.record.experimentRecord.quantity);
         let newAR = this.record.experimentRecord.quantity/100 * element.percentage_w;
         element.ar = newAR.toFixed(3);
-        // console.log(element);
       });
     },
     getAvgHP() {
