@@ -1,19 +1,16 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import firebase from 'firebase'
-import LoginPage from '../components/LoginPage'
-import RecordDetails from '../components/RecordDetails'
-import RecordsLoggingPage from '../components/RecordsLoggingPage'
-import Search from '../components/Search'
+import { auth } from '../firebaseConfig'
+import LoginPage from '../views/LoginPage'
+import RecordDetails from '../views/RecordDetails'
+import RecordsLoggingPage from '../views/RecordsLoggingPage'
+import Search from '../views/Search'
 
 Vue.use(Router)
+
 const router = new Router({
     mode: 'history',
     routes: [
-        {
-            path: '*',
-            redirect: 'records'
-        },
         {
             path: '/login',
             name: 'Login',
@@ -28,7 +25,7 @@ const router = new Router({
             }
         },
         {
-            path: '/records',
+            path: '/',
             name: 'records',
             component: RecordsLoggingPage,
             meta: {
@@ -48,18 +45,13 @@ const router = new Router({
 
 });
 
-//Check for authentication
+// Check for authentication
 router.beforeEach((to, from, next) => {
     const requiresAuth = to.matched.some(x => x.meta.requiresAuth)
-    const currentUser = firebase.auth().currentUser
-
-    //Not authenticated
-    if (requiresAuth && !currentUser) {
-        //console.log("not autheticated")
+    let test = false;
+    //if (requiresAuth && !auth.currentUser) {
+    if (test && requiresAuth && !auth.currentUser) {
         next('/login')
-    } else if (requiresAuth && currentUser) {
-        //console.log("autheticated")
-        next()
     } else {
         next()
     }

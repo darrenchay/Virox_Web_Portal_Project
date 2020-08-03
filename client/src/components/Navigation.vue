@@ -14,17 +14,16 @@
 </template>
 
 <script>
-    const fb = require('../firebaseConfig.js')
-
     export default {
         methods: {
             logout() {
-                fb.auth.signOut().then(() => {
-                    this.$store.dispatch('clearData')
-                    this.$router.push('/login')
-                }).catch(err => {
-                    console.log(err)
-                })
+                this.$store.dispatch('logout');
+                // fb.auth.signOut().then(() => {
+                //     this.$store.dispatch('clearData')
+                //     this.$router.push('/login')
+                // }).catch(err => {
+                //     console.log(err)
+                // })
             },
             redirect() {
                 //console.log(this.$route)

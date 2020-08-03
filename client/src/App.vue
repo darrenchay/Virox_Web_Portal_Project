@@ -1,6 +1,6 @@
 <template>
   <div id="app" class="container-fluid" style="width: 90%;">
-    <Navigation v-if="currentUser"></Navigation>
+    <Navigation v-if="showNav"></Navigation>
     <div class="card">
       <router-view/>
     </div>
@@ -18,13 +18,19 @@
 
 <script>
   import { mapState } from 'vuex'
-  import Navigation from './components/Navigation.vue'
+  import Navigation from '@/components/Navigation.vue'
   export default {
-    components: {Navigation},
+    components: {
+      Navigation
+    },
     computed: {
-      ...mapState(['currentUser'])
+      ...mapState(['userProfile']),
+      showNav() {
+        // console.log(this.userProfile)
+        return Object.keys(this.userProfile).length > 0
+      }
     }
-    }
+  }
 </script>
 
 <style>
