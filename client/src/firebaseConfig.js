@@ -1,4 +1,5 @@
-import firebase from 'firebase'
+import * as firebase from 'firebase/app'
+import 'firebase/auth'
 import 'firebase/firestore'
 
 // firebase init goes here
@@ -14,6 +15,13 @@ const config = {
 }
 
 firebase.initializeApp(config)
+// firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+//     .catch(function (error) {
+//         // Handle Errors here.
+//         // var errorCode = error.code;
+//         // var errorMessage = error.message;
+//         console.log(error)
+//     });
 
 // firebase utils
 const db = firebase.firestore()

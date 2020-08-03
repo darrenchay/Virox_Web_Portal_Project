@@ -332,3 +332,10 @@ header {
         margin-top: 2rem;
     }
 }
+
+#recordDetails {
+    .success {
+        color: $success;
+        margin: 0.5rem 0 -2rem;
+    }
+}

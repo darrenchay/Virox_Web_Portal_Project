@@ -1,9 +1,9 @@
 <template>
   <div class="card-body container">
     <transition name="fade">
-            <div v-if="performingRequest" class="loading">
-                <p>Loading...</p>
-            </div>
+      <div v-if="performingRequest" class="loading">
+          <p>Loading...</p>
+      </div>
     </transition>
     <div class="alert alert-success alert-dismissible fade" v-show="showSuccess" :class="{'show': showSuccess}" role="alert">
       <strong>Success!</strong> Changes saved successfully.
@@ -76,7 +76,7 @@
       <div class="form-group">
         <label for="rmTable"><strong>Raw Materials</strong></label>
         <div class="table-scrollable">
-          <table v-if="record.RMList.length > 0 || showRMTemplate" class="table table-bordered table-hover d-table table-responsive" id="rmTable">
+          <table v-if="record.RMList.length > 0 || showRMTemplate" class="table table-bordered table-hover table-responsive" id="rmTable">
             <thead class="thead-dark">
               <tr>
                 <th v-for="(column, index) in RMColumnNames" :key="index">{{column}}</th>
@@ -149,6 +149,9 @@
           <button type="button" v-show="showCancelRM" @click="cancelRM(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
+      <transition name="fade">
+        <p v-if="showSaveSuccessfulRM" style="color: #1abc9c">Changes saved successfully</p>
+      </transition>
       <hr>
 
       <!-- Notes and preparation reason section -->
@@ -247,6 +250,9 @@
           <button type="button" v-show="showCancelHP" @click="cancelHP(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
+      <transition name="fade">
+        <p v-if="showSaveSuccessfulHP" style="color: #1abc9c">Changes saved successfully</p>
+      </transition>
       <hr>
       <!-- Hydrogen Peroxide Stability Table -->
       <div class="form-group">
@@ -328,7 +334,9 @@
           <button type="button" v-show="showCancelHPStab" @click="cancelHPStab(true)" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
-      
+      <transition name="fade">
+        <p v-if="showSaveSuccessfulHPStab" style="color: #1abc9c">Changes saved successfully</p>
+      </transition>
       
     </form>
 
@@ -339,6 +347,7 @@
 const axios = require("axios");
 const baseURL = "https://virox-server.herokuapp.com/api";
 //const baseURL = "http://localhost:3000/API"
+
 export default {
   name: "RecordDetails",
   template: "#general-input-form",
@@ -347,6 +356,9 @@ export default {
     return {
       performingRequest: true,
       showSuccess: false,
+      showSaveSuccessfulRM: false,
+      showSaveSuccessfulHPStab: false,
+      showSaveSuccessfulHP: false,
 
       isEditingDisabled: true,
       showSubmit: false,
@@ -506,7 +518,6 @@ export default {
         }
         record.push(this.rmTemplate);
         record[0]['experiment_record_id'] = this.$store.state.currentRecordID;
-        //console.log(record.RMList);
 
         this.postGetRequest(baseURL + '/addData', record, 'RAW_MATERIALS', 0, {});
       }
@@ -729,21 +740,33 @@ export default {
               this.formatRecord();
               this.cancelRM(false);
               this.calculateAR();
+              this.showSaveSuccessfulRM = true;
+              setTimeout(() => {
+                  this.showSaveSuccessfulRM = false
+              }, 3000)
             } else if (type == 1) {
               this.record.HPList = response.data.rows;
               this.formatRecord();
               this.cancelHP(false);
+              this.showSaveSuccessfulHP = true;
+              setTimeout(() => {
+                  this.showSaveSuccessfulHP = false
+              }, 3000)
             } else if (type == 2) {
               this.record.HPStabilityList = response.data.rows;
               this.formatRecord();
               this.cancelHPStab(false);
+              this.showSaveSuccessfulHPStab = true;
+              setTimeout(() => {
+                  this.showSaveSuccessfulHPStab = false
+              }, 3000)
             }
             console.log(response.data.message);
             postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {}); //To update current date
-            this.showSuccess = true;
-            setTimeout( () => {
-              this.showSuccess = false
-            }, 3000);
+            // this.showSuccess = true;
+            // setTimeout( () => {
+            //   this.showSuccess = false
+            // }, 3000);
           });
         });
     },
