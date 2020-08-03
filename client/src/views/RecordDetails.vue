@@ -76,7 +76,7 @@
       <div class="form-group">
         <label for="rmTable"><strong>Raw Materials</strong></label>
         <div class="table-scrollable">
-          <table v-if="record.RMList.length > 0 || showRMTemplate" class="table table-bordered table-hover d-table table-responsive" id="rmTable">
+          <table v-if="record.RMList.length > 0 || showRMTemplate" class="table table-bordered table-hover table-responsive" id="rmTable">
             <thead class="thead-dark">
               <tr>
                 <th v-for="(column, index) in RMColumnNames" :key="index">{{column}}</th>
