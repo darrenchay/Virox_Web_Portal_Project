@@ -2,10 +2,11 @@
     <header>
         <section>
             <div class="col1">
-                <button type="button" class="btn mr-4" @click="redirect"><h3>Experiment Records</h3></button>
-                <button type="button" class="btn btn-outline-secondary" @click="search">Search Records</button>
+                <button type="button" class="btn mr-4" @click="redirect('records')"><h3>Experiment Records</h3></button>
+                <button type="button" class="btn btn-outline-secondary" @click="redirect('search')">Search Records</button>
                 <ul class="inline">
                     <li><a @click="logout">logout</a></li>
+                    <li><a @click="redirect('settings')">settings</a></li>
                 </ul>
             </div>
         </section>
@@ -25,17 +26,17 @@
                 //     console.log(err)
                 // })
             },
-            redirect() {
+            redirect(routeName) {
                 //console.log(this.$route)
-                if(this.$route.name != 'records') {
-                    this.$router.push({ name: 'records'})
+                if(this.$route.name != routeName) {
+                    this.$router.push({ name: routeName})
                 }
             },
-            search() {
-                if(this.$route.name != 'search') {
-                    this.$router.push({ name: 'search'})
-                }
-            }
+            // search() {
+            //     if(this.$route.name != 'search') {
+            //         this.$router.push({ name: 'search'})
+            //     }
+            // }
         }
     }
 </script>

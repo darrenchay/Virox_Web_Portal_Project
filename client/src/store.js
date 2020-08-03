@@ -44,6 +44,7 @@ export default new Vuex.Store({
                 // create user profile object in userCollections
                 await fb.usersCollection.doc(user.uid).set({
                     name: form.name,
+                    email: form.email
                 })
 
                 // fetch user profile and set in state
@@ -73,6 +74,15 @@ export default new Vuex.Store({
             commit('setUserProfile', {})
             // commit('setCurrentUser', null)
             router.push('/login')
+        },
+        async updateProfile({ dispatch }, user) {
+            const userId = fb.auth.currentUser.uid
+            // update user object
+            await fb.usersCollection.doc(userId).update({
+              name: user.name,
+            })
+          
+            dispatch('fetchUserProfile', { uid: userId })
         },
         setError({ commit }, error) {
             console.log(error)
