@@ -242,7 +242,7 @@
               <td></td>
               <td><strong>Average H2O2</strong></td>
               <td><strong>{{averageHP}}</strong></td>
-              <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.trim="record.experimentRecord.hp_ph_accepted_range" class="form-control"/></strong></td>
+              <td><strong><input type="text" placeholder="Notes" :disabled="isHPRowDisabled" v-model.trim="record.experimentRecord.hp_ph_accepted_range" class="form-control"/></strong></td>
               <td></td>
               <td><strong>S.G</strong></td>
               <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.number="record.experimentRecord.sg" class="form-control"/></strong></td>
@@ -333,7 +333,7 @@
               <td><strong>Average H2O2</strong></td>
               <td><strong>{{averageHPStab}}</strong></td>
               <!-- <td><strong><input type="text" :disabled="isHPRowDisabled" v-model.number="record.experimentRecord.hp_stab_h2o2_avg" class="form-control"/></strong></td> -->
-              <td><strong><input type="text" :disabled="isHPStabRowDisabled" v-model.trim="record.experimentRecord.hp_stab_ph_accepted_range" class="form-control"/></strong></td>
+              <td><strong><input type="text" placeholder="Notes" :disabled="isHPStabRowDisabled" v-model.trim="record.experimentRecord.hp_stab_ph_accepted_range" class="form-control"/></strong></td>
               <td></td>
               <td></td>
               <td></td>
