@@ -114,7 +114,7 @@
                     this.currentSort = col
                 } 
                 //console.log(this.records)
-                console.log(this.sortedRecords[0]);
+                // console.log(this.sortedRecords[0]);
             },
             paginateCallback(pageNum) {
                 this.performingRequest = true;

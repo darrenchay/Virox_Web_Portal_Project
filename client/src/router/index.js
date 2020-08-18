@@ -12,6 +12,10 @@ const router = new Router({
     mode: 'history',
     routes: [
         {
+            path: '*',
+            redirect: 'records'
+        },
+        {
             path: '/login',
             name: 'Login',
             component: LoginPage
@@ -25,7 +29,7 @@ const router = new Router({
             }
         },
         {
-            path: '/',
+            path: '/records',
             name: 'records',
             component: RecordsLoggingPage,
             meta: {
@@ -56,9 +60,9 @@ const router = new Router({
 // Check for authentication
 router.beforeEach((to, from, next) => {
     const requiresAuth = to.matched.some(x => x.meta.requiresAuth)
-    let test = false;
+    // let test = false;
     //if (requiresAuth && !auth.currentUser) {
-    if (test && requiresAuth && !auth.currentUser) {
+    if (requiresAuth && !auth.currentUser) {
         next('/login')
     } else {
         next()
