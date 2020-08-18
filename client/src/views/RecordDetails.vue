@@ -360,8 +360,8 @@
 
 <script>
 const axios = require("axios");
-const baseURL = "https://virox-server.herokuapp.com/api";
-// const baseURL = "http://localhost:3000/API"
+// const baseURL = "https://virox-server.herokuapp.com/api";
+const baseURL = "http://localhost:3000/API"
 
 export default {
   name: "RecordDetails",
@@ -1042,12 +1042,35 @@ function formatDate(date) {
 }
 
 function createJSONObject(tableName, data, identifiers) {
+  // console.log("creating JSON object")
+  // Creating a copy of the data to be sent
+  let dataToSend = [];
+  for(var i = 0; i < data.length; i++) {
+    dataToSend.push({...data[i]});
+  }
+  // console.log("ORIGINAL DATA: ")
+  // console.log(data)
+  dataToSend.forEach(element => {
+    // Converting all "" to nulls
+    Object.keys(element).forEach(variable => {
+      if(element[variable] === "") {
+        element[variable] = null;
+        // console.log("for element: " + element.experiment_name)
+        // console.log(variable)
+        // console.log(element[variable])
+      }
+    })
+    // console.log(element)
+  })
+  console.log("COPY DATA: ")
+  console.log(dataToSend)
+
   let JSONData = {
     tableName: tableName,
     identifiers: identifiers,
-    data: data
+    data: dataToSend
   };
-  console.log(JSONData);
+  // console.log(JSONData);
   return JSONData;
 }
 </script>
