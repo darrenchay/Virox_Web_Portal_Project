@@ -16,6 +16,7 @@ Vue.use(Vuex)
 // })
 
 export default new Vuex.Store({
+    // State variables 
     state: {
         currentUser: null,
         userProfile: {},
@@ -23,6 +24,7 @@ export default new Vuex.Store({
         errorMsg: ''
     },
     actions: {
+        // Fetches user data when logging in and authenticating user
         async login({ dispatch }, form) {
             try {
                 // sign user in
@@ -32,10 +34,12 @@ export default new Vuex.Store({
                 dispatch('fetchUserProfile', user)
                 dispatch('setError', '')
             } catch (err) {
+                // Sending error message if there is any
                 dispatch('setError', err.message)
             }
 
         },
+        // Signing up user and saving user data in users collection
         async signup({ dispatch }, form) {
             try {
                 // sign user up
@@ -89,6 +93,7 @@ export default new Vuex.Store({
             commit('setErrorMsg', error)
         }
     },
+    // Changing data in state
     mutations: {
         setCurrentUser(state, val) {
             state.currentUser = val

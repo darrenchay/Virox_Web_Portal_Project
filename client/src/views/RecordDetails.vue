@@ -151,6 +151,7 @@
       </div>
       <transition name="fade">
         <p v-if="showSaveSuccessfulRM" style="color: #1abc9c">Changes saved successfully</p>
+        <p v-else-if="errorMsgRM" style="color: red">Make sure all Raw material and %w/w columns are not empty and properly formatted before saving</p>
       </transition>
       <hr>
 
@@ -203,14 +204,20 @@
               <td>
                 <input type="text" :class="{'is-invalid': isNInvalid}" v-model.trim="hpTemplate.n" class="form-control"/>
                 <small class="invalid-feedback" v-show="isNInvalid">
-                    Field cannot be empty.
+                    All 3 fields cannot be empty.
                 </small>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.m" class="form-control"/>
+                <input type="text" :class="{'is-invalid': isNInvalid}" v-model.trim="hpTemplate.m" class="form-control"/>
+                <small class="invalid-feedback" v-show="isNInvalid">
+                    All 3 fields cannot be empty.
+                </small>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
+                <input type="text" :class="{'is-invalid': isNInvalid}" v-model.trim="hpTemplate.vol_change" class="form-control"/>
+                <small class="invalid-feedback" v-show="isNInvalid">
+                    All 3 fields cannot be empty.
+                </small>
               </td>
               <td>
                 <input type="text" :class="{'is-invalid': isH2O2Invalid}" v-model.trim="hpTemplate.h2o2" class="form-control"/>
@@ -252,6 +259,7 @@
       </div>
       <transition name="fade">
         <p v-if="showSaveSuccessfulHP" style="color: #1abc9c">Changes saved successfully</p>
+        <p v-else-if="errorMsgHP" style="color: red">Make sure all Hydrogen Peroxide, either one of N, Ms, or ∆V columns and H202 columns are not empty and properly formatted before saving</p>
       </transition>
       <hr>
       <!-- Hydrogen Peroxide Stability Table -->
@@ -286,14 +294,20 @@
               <td>
                 <input type="text" :class="{'is-invalid': isNInvalid}" v-model.trim="hpTemplate.n" class="form-control"/>
                 <small class="invalid-feedback" v-show="isNInvalid">
-                    Field cannot be empty.
+                    All 3 fields cannot be empty.
                 </small>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.m" class="form-control"/>
+                <input type="text" :class="{'is-invalid': isNInvalid}" v-model.trim="hpTemplate.m" class="form-control"/>
+                <small class="invalid-feedback" v-show="isNInvalid">
+                    All 3 fields cannot be empty.
+                </small>
               </td>
               <td>
-                <input type="text" v-model.trim="hpTemplate.vol_change" class="form-control"/>
+                <input type="text" :class="{'is-invalid': isNInvalid}" v-model.trim="hpTemplate.vol_change" class="form-control"/>
+                <small class="invalid-feedback" v-show="isNInvalid">
+                    All 3 fields cannot be empty.
+                </small>
               </td>
               <td>
                 <input type="text" :class="{'is-invalid': isH2O2Invalid}" v-model.trim="hpTemplate.h2o2" class="form-control"/>
@@ -336,6 +350,7 @@
       </div>
       <transition name="fade">
         <p v-if="showSaveSuccessfulHPStab" style="color: #1abc9c">Changes saved successfully</p>
+        <p v-else-if="errorMsgHPStab" style="color: red">Make sure all Hydrogen Peroxide, either one of N, Ms, or ∆V columns and H202 columns are not empty and properly formatted before saving</p>
       </transition>
       
     </form>
@@ -345,8 +360,8 @@
 
 <script>
 const axios = require("axios");
-const baseURL = "https://virox-server.herokuapp.com/api";
-//const baseURL = "http://localhost:3000/API"
+// const baseURL = "https://virox-server.herokuapp.com/api";
+const baseURL = "http://localhost:3000/API"
 
 export default {
   name: "RecordDetails",
@@ -359,6 +374,9 @@ export default {
       showSaveSuccessfulRM: false,
       showSaveSuccessfulHPStab: false,
       showSaveSuccessfulHP: false,
+      errorMsgRM: false,
+      errorMsgHP: false,
+      errorMsgHPStab: false,
 
       isEditingDisabled: true,
       showSubmit: false,
@@ -695,17 +713,21 @@ export default {
       } 
     },
     updateRows(type){
-      //Update the PH of each HP record
       if(type == 0) {
+        // Updating Raw materials
         console.log(this.record.RMList)
         this.postGetRequest(baseURL + '/updateData', this.record.RMList, 'RAW_MATERIALS', 0, {});
       } else if(type == 1) {
+        // Updating Hydrogen peroxide
         this.record.HPList.forEach(HP => {
+          // Update the PH of each HP record
           HP.ph = this.record.experimentRecord.hp_ph;
         });
         this.postGetRequest(baseURL + '/updateData', this.record.HPList, 'HYDROGEN_PEROXIDE_DATA', type, {});
       } else {
+        // Updating Hydrogen peroxide stability
         this.record.HPStabilityList.forEach(HPStab => {
+          // Update the PH of each HP record
           HPStab.ph = this.record.experimentRecord.hp_stab_ph;
         });
         this.postGetRequest(baseURL + '/updateData', this.record.HPStabilityList, 'HYDROGEN_PEROXIDE_DATA', type, {});
@@ -713,6 +735,7 @@ export default {
       
     },
 
+    // Performs a post request then a get request
     postGetRequest(url, data, tableName, type, identifiers) {
       let getIdentifiers = {};
       getIdentifiers['experiment_record_id'] = this.$store.state.currentRecordID;
@@ -763,11 +786,26 @@ export default {
             }
             console.log(response.data.message);
             postRequest(baseURL + "/updateData", new Array(this.record.experimentRecord), 'EXPERIMENT_RECORDS', {}); //To update current date
-            // this.showSuccess = true;
-            // setTimeout( () => {
-            //   this.showSuccess = false
-            // }, 3000);
           });
+        }).catch( err => {
+          console.log(err)
+          if (type == 0) {
+            this.errorMsgRM = true
+            setTimeout(() => {
+              this.errorMsgRM = false
+            }, 5000)
+          } else if (type == 1) {
+            this.errorMsgHP = true
+            setTimeout(() => {
+              this.errorMsgHP = false
+            }, 5000)
+          } else {
+            this.errorMsgHPStab = true
+            setTimeout(() => {
+              this.errorMsgHPStab = false
+            }, 5000)
+          }
+          
         });
     },
     //Converts all the dates in record from string to date format  
@@ -889,7 +927,7 @@ export default {
       } else {
         this.isHPNameInvalid = false;
       }
-      if(this.hpTemplate.n === "") {
+      if(this.hpTemplate.n === "" && this.hpTemplate.m === "" && this.hpTemplate.vol_change === "") {
         this.isNInvalid = true;
         this.isHPValid = false;
       } else {

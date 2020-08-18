@@ -2,7 +2,7 @@ import * as firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 
-// firebase init goes here
+// firebase init 
 const config = {
     apiKey: "AIzaSyBAhOCi3iNNWBnp1GLprImdS7nWSAIvXyg",
     authDomain: "virox-db.firebaseapp.com",

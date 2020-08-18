@@ -25,6 +25,7 @@
     },
     computed: {
       ...mapState(['userProfile']),
+      // Show nav if the user is logged in
       showNav() {
         // console.log(this.userProfile)
         return Object.keys(this.userProfile).length > 0

@@ -8,6 +8,8 @@
         <div class="card-head">
             <label for="recordsTable"><strong>Experiment Records</strong></label>
         </div>
+
+        <!-- Experiment Records table -->
         <div class="card-body">
             <table class="table table-hover table-responsive" data-pagination="true" id="recordsTable">
                 <thead class="thead-dark">
@@ -23,6 +25,7 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- Pagination -->
             <nav>
                 <paginate
                     :page-count="pageCount"
@@ -39,7 +42,6 @@
                     :next-link-class="'next-link-item'">
                 </paginate>
             </nav>
-
 
             <button type="button" @click="createNewRecord" class="btn btn-primary">Create New Record</button>
         </div>
@@ -74,6 +76,7 @@
             createNewRecord() {
                 let JSONData = {
                     tableName: 'EXPERIMENT_RECORDS',
+                    // Dummy data when creating new record
                     data: [{
                         LOT_NO: 11111,
                         project_title: "",
@@ -109,28 +112,28 @@
                     this.currentSortDir = this.currentSortDir === 'desc' ? 'asc' : 'desc'
                 } else{
                     this.currentSort = col
-                    //console.log( 'Col name: ' + col )
-                } // end if
+                } 
                 //console.log(this.records)
                 console.log(this.sortedRecords[0]);
             },
             paginateCallback(pageNum) {
                 this.performingRequest = true;
                 axios.get(baseURL + '/getRecords?page=' + pageNum).then(response => {
-                console.log(response.data)
-                this.records = response.data.records;
-                this.pageCount = response.data.pageCount;
-                this.records.forEach(record => {
-                    record.formulation_date = formatDate(record.formulation_date, 2);
-                    record.preparation_date = formatDate(record.preparation_date, 2);
-                    record.date_created = formatDate(record.date_created, 1);
-                    record.date_updated = formatDate(record.date_updated, 1);
-                })
-                //this.pageCount = response.data.pageCount;
-                this.performingRequest = false;
-            }).catch(e => {
-                this.errors.push(e)
-            });
+                    console.log(response.data)
+                    this.records = response.data.records;
+                    this.pageCount = response.data.pageCount;
+                    // Formatting dates
+                    this.records.forEach(record => {
+                        record.formulation_date = formatDate(record.formulation_date, 2);
+                        record.preparation_date = formatDate(record.preparation_date, 2);
+                        record.date_created = formatDate(record.date_created, 1);
+                        record.date_updated = formatDate(record.date_updated, 1);
+                    })
+                    //this.pageCount = response.data.pageCount;
+                    this.performingRequest = false;
+                }).catch(e => {
+                    this.errors.push(e)
+                });
             }
         },
         computed: {
@@ -167,22 +170,3 @@ function formatDate(date, type) {
     }
 }
 </script>
-
-<style lang="css">
-.page-item {
-}
-.page-link-item {
-}
-.prev-item {
-}
-.prev-link-item {
-}
-.next-item {
-}
-.next-link-item {
-}
-.break-view {
-}
-.break-view-item {
-}
-</style>
