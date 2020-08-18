@@ -1,11 +1,15 @@
 # virox_web_portal
 
+## Description
+
+This is a web portal which helps in visualizing, editing, inserting or deleting data from a database. 
+The user will login/signup first then will be able to access the database and perform any necessary actions which will be saved in the server-side back-end. 
+The user can also search for specific items using the search records function.
+
 ### Client Side Portal
 ```
 
-For a demo of the portal go to to virox-portal.herokuapp.com.
-Use login info test@gmail.com // 123456 to login
-
+For a demo of the portal go to to virox-portal.herokuapp.com and sign up using your email
 ```
 ### Portal Features
 ```
@@ -18,4 +22,5 @@ Use login info test@gmail.com // 123456 to login
 Sever side found on virox-server.herokuapp.com/api
 - Using PostgreSQL as RDMS
 - Using express and node.js for RESTful API
+- Handles all database communication from front-end 
 ```
