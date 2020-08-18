@@ -11,6 +11,7 @@ app.use(morgan('tiny'));
 app.use(cors());
 app.use(bodyParser.json());
 
+/* Status codes when performing GET/POST requests */
 const status = {
     success: 200,
     error: 500,
@@ -22,18 +23,23 @@ const status = {
     nocontent: 204,
 }
 
-//Get all the records to display on table
+/** 
+ *  Retrieves 10 records (Paginated) from experiment records table 
+ * ----------------------
+ *  @returns records -> list of 10 paginated records 
+ */
 router.get('/getRecords', (req, res) => {
     const page = parseInt(req.query.page);
     const limit = 10;
 
+    // Setting indexes for pagination
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-
     let previous, next;
     if (startIndex > 0) {
         previous = page - 1;
     };
+
     (async function () {
         try {
             let result = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], []), []);
@@ -55,7 +61,13 @@ router.get('/getRecords', (req, res) => {
     })();
 });
 
-//Get a single complete record data based off record id
+/** 
+ *  Get a single complete record data based off record id
+ * ----------------------
+ *  @params id -> ID of the record being retrieved
+ * 
+ *  @returns records -> a full record (experiment record, RM list, HP and HPStab List)
+ */
 router.get('/getRecord', (req, res) => {
     const id = req.query.id;
     let record = {
@@ -67,10 +79,13 @@ router.get('/getRecord', (req, res) => {
 
     (async function () {
         try {
+            // Retrieving data from database
             const expRecData = await DBRunner(queryStringBuilder('SELECT', 'EXPERIMENT_RECORDS', [], { record_id: id }), []);
             const RMData = await DBRunner(queryStringBuilder('SELECT', 'RAW_MATERIALS', [], { experiment_record_id: id }), []);
             const HPData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: id, hp_type: 1 }), []);
             const HPStabData = await DBRunner(queryStringBuilder('SELECT', 'HYDROGEN_PEROXIDE_DATA', [], { experiment_record_id: id, hp_type: 2 }), []);
+
+            // Saving data to object
             record.experimentRecord = expRecData.rows[0];
             record.RMList = RMData.rows;
             record.HPList = HPData.rows;
@@ -88,6 +103,7 @@ router.get('/getRecord', (req, res) => {
 
 /** Retrieves all data from the specified table using the specified identifier
  * Used for getting/searching from a table
+ * ----------------------
  * @params data {table, identifier}
  */
 router.get('/getData', (req, res) => {
@@ -110,21 +126,23 @@ router.get('/getData', (req, res) => {
 });
 
 /** Inserts rows to the specified table
+ * ----------------------
  * @params data {tableName, data[]}
  */
 router.post('/addData', (req, res) => {
-    let JSONObject = req.body.data
-    //console.log(flattenArray(JSONObject.data));
-    console.log(JSONObject);
+    let JSONObject = req.body.data;
+    // console.log(JSONObject);
     (async function () {
         try {
+            // Setting the current date to the date_created and date_updated fields
             for (var i = 0; i < JSONObject.data.length; i++) {
                 let record = JSONObject.data[i];
                 record.date_created = getCurrDate();
                 record.date_updated = getCurrDate();
             }
+
             const returnData = await DBRunner(queryStringBuilder('INSERT', JSONObject.tableName, JSONObject.data, {}), flattenArray(JSONObject.data));
-            console.log(returnData.rows);
+            // console.log(returnData.rows);
             res.status(status.success).send({
                 message: "Successfully inserted " + returnData.rowCount + " record(s) to " + JSONObject.tableName,
                 rows: returnData.rows
@@ -137,6 +155,7 @@ router.post('/addData', (req, res) => {
 });
 
 /** Updates rows to the specified table using the specified identifier (generally the ID)
+ * ----------------------
  * @params data {tableName, data[] (with identifiers)}
  */
 router.post('/updateData', (req, res) => {
@@ -163,7 +182,7 @@ router.post('/updateData', (req, res) => {
                 console.log(colValues); */
                 const returnData = await DBRunner(queryStringBuilder('UPDATE', JSONObject.tableName, colNames, identifiers), colValues);
                 count += returnData.rowCount;
-                console.log(returnData);
+                // console.log(returnData);
             }
             res.status(status.success).send({
                 message: "Successfully updated " + count + " record(s) from " + JSONObject.tableName,
@@ -174,19 +193,21 @@ router.post('/updateData', (req, res) => {
         }
     })();
 });
+
+
 /** Deletes rows from the specified table (including tables with related foreign keys) using the specified identifier (generally the ID)
+ * ----------------------
  * @params data {tableName, identifiers}
  */
 router.post('/deleteData', (req, res) => {
     let JSONObject = req.body.data;
-    console.log(JSONObject);
-    console.log(JSONObject);
-
+    // console.log(JSONObject);
 
     (async function () {
         try {
+            // Cascade deleting if deleting an experiment record (delete all related rows from RM and HP tables then the experiment record)
             if (JSONObject.tableName == 'EXPERIMENT_RECORDS') {
-                let changes = {};
+                let changes = {}; // To log the status messages after each DB query
                 let returnData = await DBRunner(queryStringBuilder('DELETE', 'RAW_MATERIALS', [], { experiment_record_id: JSONObject.identifiers.record_id }), []);
                 //console.log(returnData);
                 changes.RM = returnData.rowCount;
@@ -200,6 +221,7 @@ router.post('/deleteData', (req, res) => {
                     message: `successfully deleted ${changes.ER} record(s) from experiment_records, ${changes.RM} from raw_materials and ${changes.HP} from hydrogen_peroxide_data `,
                 });
             } else {
+                // Deleting from RM or HP table
                 returnData = await DBRunner(queryStringBuilder('DELETE', JSONObject.tableName, [], JSONObject.identifiers), []);
                 res.status(status.success).send({
                     message: `successfully deleted ${returnData.rowCount} record(s) from ${JSONObject.tableName}`,
@@ -212,7 +234,12 @@ router.post('/deleteData', (req, res) => {
 
 });
 
-//Gets current date in the appropriate format
+
+/**
+ * Gets current date in the appropriate format
+ * ----------------------
+ * @returns curDate -> current date in YYYY-MM-DD HH:MM:SS format
+ */
 function getCurrDate() {
     var today = new Date();
     //var curDate = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear() + " " + today.getHours() + ":" + today.getMinutes()
@@ -220,8 +247,13 @@ function getCurrDate() {
     return curDate;
 }
 
-
-//Helper function which flattens a 2D array into a 1D array
+/**
+ * Helper function which flattens a 2D array into a 1D array
+ * ----------------------
+ * @param array 2D array to be flattened
+ * 
+ * @returns newArr -> flattened 2D array
+ */
 function flattenArray(array) {
     var newArr = [];
     array.forEach(element => Object.values(element).forEach(value => {
@@ -231,7 +263,16 @@ function flattenArray(array) {
 }
 
 
-//Dynamic query string builder
+/**
+ * Helper function which dynamically builds the SQL query string
+ * ----------------------
+ * @param operation type of operation being done (SELECT, INSERT, UPDATE, DELETE)
+ * @param tableName name of the table the operation is being done
+ * @param parameters any parameters that is needed when building the query (for e.g column names)
+ * @param identifiers any identifiers that is needed when building the query (anything after the where clause)
+ * 
+ * @returns queryString -> completed query string
+ */
 function queryStringBuilder(operation, tableName, parameters, identifiers) {
     let queryString = [];
     queryString.push(setCommand(operation, tableName, identifiers)); //Creating command section of string
@@ -239,7 +280,16 @@ function queryStringBuilder(operation, tableName, parameters, identifiers) {
     return queryString.join(' ');
 }
 
-//Builds the command section of the query string
+
+/**
+ * Helper function which builds the command section of the query string
+ * ----------------------
+ * @param operation type of operation being done (SELECT, INSERT, UPDATE, DELETE)
+ * @param tableName name of the table the operation is being done
+ * @param identifiers any identifiers that is needed when building the query
+ * 
+ * @returns commandSectionString -> completed command section of the query string
+ */
 function setCommand(operation, tableName, identifiers) {
     let commandSectionString = [operation];
     if (operation == 'SELECT') {
@@ -260,7 +310,15 @@ function setCommand(operation, tableName, identifiers) {
     return commandSectionString.join(' ');
 }
 
-//Builds the values/identifiers section of the query string
+/**
+ * Helper function which builds the values/identifiers section of the query string
+ * ----------------------
+ * @param operation type of operation being done (SELECT, INSERT, UPDATE, DELETE)
+ * @param parameters any parameters that is needed when building the query
+ * @param identifiers any identifiers that is needed when building the query
+ * 
+ * @returns valueSectionString -> completed value section of the query string
+ */
 function setValues(operation, parameters, identifiers) {
     let valueSectionString = [];
     if (operation == 'UPDATE') {
@@ -299,7 +357,14 @@ function setValues(operation, parameters, identifiers) {
     return valueSectionString.join(' ');
 }
 
-//Query runner for database
+/**
+ * Query runner for database
+ * ----------------------
+ * @param queryString the query string of the SQL command to be executed
+ * @param params any parameters that is needed when executing the query
+ * 
+ * @returns result -> the result output of the SQL command
+ */
 function DBRunner(queryString, params) {
     console.log(queryString);
     return new Promise((resolve, reject) => {

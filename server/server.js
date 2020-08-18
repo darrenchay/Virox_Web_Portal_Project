@@ -9,6 +9,7 @@ const cors = require('cors');
 app.use(morgan('short'));
 app.use(cors());
 
+// Running the API on heroku
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api', router);

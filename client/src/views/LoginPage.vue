@@ -139,55 +139,6 @@
                     this.errorMsg = err.message
                 })
             },
-            // login() {
-            //     this.performingRequest = true
-            //     fb.auth.signInWithEmailAndPassword(this.loginForm.email, this.loginForm.password).then(user => {
-            //     // this.$store.commit('setCurrentUser', credential.user)
-            //     // console.log(credential.user.uid)
-            //     this.$store.dispatch('fetchUserProfile', user)
-            //     this.performingRequest = false
-            //     this.$router.push('/')
-            //     }).catch(err => {
-            //         console.log(err)
-            //         this.errorMsg = err.message
-            //         this.performingRequest = false
-            //     })
-            // },
-            // signup() {
-            //     this.performingRequest = true
-            //     fb.auth.createUserWithEmailAndPassword(this.signupForm.email, this.signupForm.password).then(credential => {
-            //         this.$store.commit('setCurrentUser', credential.user) //Make this user the current user
-            //         console.log(credential.user.email)
-            //         console.log(credential.user.displayName)
-            //         console.log(credential.user.uid)
-            //         console.log(this.signupForm.name)
-
-            //         console.log("Rerouting")
-            //         this.$store.dispatch('fetchUserProfile') //set that user's profile in store
-            //         this.performingRequest = false
-            //         this.$router.push('/records')
-                    
-            //         // create user profile in firebase NOT WORKING
-            //         fb.usersCollection.add({
-            //             name: this.signupForm.name,
-            //             email: this.signupForm.email,
-            //             uid: credential.user.uid
-            //         }).then(() => {
-                        
-            //         }).catch(err => {
-            //             console.log("SETTING ERROR")
-            //             console.log(err.message)
-            //             this.performingRequest = false
-            //             this.errorMsg = err.message
-            //         })
-            //         console.log("here")
-            //     }).catch(err => {
-            //         console.log("CREATE ERROR")
-            //         this.performingRequest = false
-            //         this.errorMsg = err.message
-            //         console.log(err.message)
-            //     })
-            // },
             togglePasswordReset() {
                 if (this.showPasswordReset) {
                     this.showLogin = true
