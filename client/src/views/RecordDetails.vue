@@ -606,6 +606,8 @@ export default {
       if(revertCached) {
         if(this.tempList.length > 0) {
           this.record.HPList = this.tempList;
+          this.record.experimentRecord.hp_ph_accepted_range = this.tempNotes;
+          this.record.experimentRecord.sg = this.tempSG;
           this.record.experimentRecord.hp_ph = this.tempPH;
         }
       }
@@ -620,6 +622,8 @@ export default {
       //Caching HPList data
       this.tempList = [];
       this.tempPH = this.record.experimentRecord.hp_ph;
+      this.tempNotes = this.record.experimentRecord.hp_ph_accepted_range;
+      this.tempSG = this.record.experimentRecord.sg;
       for(var i = 0; i < this.record.HPList.length; i++) {
         this.tempList.push({...this.record.HPList[i]});
       }
@@ -652,6 +656,7 @@ export default {
       if(revertCached) {
         if(this.tempList.length > 0) {
           this.record.HPStabilityList = this.tempList;
+          this.record.experimentRecord.hp_stab_ph_accepted_range = this.tempNotes;
           this.record.experimentRecord.hp_stab_ph = this.tempPH;
         }
       }
@@ -665,6 +670,7 @@ export default {
 
       //Caching HPStabilityList
       this.tempPH = this.record.experimentRecord.hp_stab_ph;
+      this.tempNotes = this.record.experimentRecord.hp_stab_ph_accepted_range;
       this.tempList = [];
       for(var i = 0; i < this.record.HPStabilityList.length; i++) {
         this.tempList.push({...this.record.HPStabilityList[i]});
@@ -1062,8 +1068,8 @@ function createJSONObject(tableName, data, identifiers) {
     })
     // console.log(element)
   })
-  console.log("COPY DATA: ")
-  console.log(dataToSend)
+  // console.log("COPY DATA: ")
+  // console.log(dataToSend)
 
   let JSONData = {
     tableName: tableName,
