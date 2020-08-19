@@ -42,16 +42,32 @@
         </form>
 
         <!-- Results Table -->
-        <div id="resultsTable" v-show="receivedSearchResults">
-            <table v-if="record.length > 0" class="table table-bordered table-hover table-responsive">
+        <div id="resultsTable" class="table-responsive" v-show="receivedSearchResults">
+            <table v-if="record.length > 0" class="table table-bordered table-hover">
                 <thead class="thead-dark">
-                    <tr>
-                        <th v-for="column in Object.keys(record[0])" :key="column">{{column}}</th>
+                    <tr v-if="currentSelected == 'Experiment Record' ">
+                        <th v-for="(column, index) in recordColumnNames" :key="index">{{column}}</th>
+                    </tr>
+                    <tr v-else-if="currentSelected == 'Raw Materials'">
+                        <th v-for="(column, index) in RMColumnNames" :key="index">{{column}}</th>
+                    </tr>
+                    <tr v-else-if="currentSelected == 'Hydrogen Peroxide Data' || currentSelected == 'Hydrogen Peroxide Stability Data'">
+                        <th v-for="(column, index) in HPColumnNames" :key="index">{{column}}</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody v-if="currentSelected == 'Experiment Record'">
                     <tr v-for="(record, index) in record" :key="index">
-                        <td v-for="(data, index) in Object.values(record)" :key="index">{{data}}</td>
+                        <td v-for="(data, index) in recordColumns" :key="index">{{record[data]}}</td>
+                    </tr>
+                </tbody>
+                <tbody v-else-if="currentSelected == 'Raw Materials'">
+                    <tr v-for="(record, index) in record" :key="index">
+                        <td v-for="(data, index) in RMColumns" :key="index">{{record[data]}}</td>
+                    </tr>
+                </tbody>
+                <tbody v-else-if="currentSelected == 'Hydrogen Peroxide Data' || currentSelected == 'Hydrogen Peroxide Stability Data'">
+                    <tr v-for="(record, index) in record" :key="index">
+                        <td v-for="(data, index) in HPColumns" :key="index">{{record[data]}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -122,6 +138,17 @@
                 selected: "",
                 selectedType: "",
                 searchName: "",
+                currentSelected: "",
+
+                RMColumnNames: ["Experiment Record ID", "Raw Material", "%w/w", "Raw Material lot #", "AR[gr]", "AD[gr]", "Time Added"],
+                RMColumns: ["experiment_record_id","raw_material_name", "percentage_w", "raw_material_lot", "ar", "ad", "time_added"],
+
+                HPColumnNames: ["Experiment Record ID", "H202 Type", "Hydrogen Peroxide", "N", "Ms [gr]", "∆V (ml)", "H2O2", "Accepted Range", "Date", "Initials" ],
+                HPColumns: ["experiment_record_id", "hp_type", "experiment_name", "n", "m", "vol_change", "h2o2", "accepted_range", "date", "initials"],
+
+                recordColumnNames: ["Record ID", 'Project Title', 'LOT NO', 'Prepared By', 'Formulation Date', 'Preparation Date', 'Quantity', 'Total %w/w', 'Total AR', 'Total AD', 'H202 Average', 'H202 Stability Average', 'Date Created', 'Date Updated'],
+                recordColumns: ['record_id', 'project_title', 'lot_no', 'prepared_by', 'formulation_date', 'preparation_date', 'quantity', 'total_percentage_w', 'total_ar', 'total_ad', 'hp_h2o2_avg', 'hp_stab_h2o2_avg', 'date_created', 'date_updated'],
+                
                 record: [],
                 receivedSearchResults: false
                 
@@ -155,6 +182,8 @@
                         JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
                         JSONData.identifiers.hp_type = 2;
                     }
+
+                    this.currentSelected = this.selectedType;
 
                     console.log(JSONData);
 
@@ -202,7 +231,7 @@
             // formats any values that must be in string format by adding quotes in the beginning and the end 
             formatSearchValue() {
                 console.log(this.selected);
-                if (this.selected.includes("pr") || this.selected.includes("name") || this.selected.includes("date") || this.selected.includes("time") || this.selected.includes("initials") || this.selected.includes("accepted")) {
+                if (this.selected.includes("pr") || this.selected.includes("name") || this.selected.includes("date") || this.selected.includes("time") || this.selected.includes("initials") || this.selected.includes("accepted") || this.selected.includes("_lot")) {
                     return "'" + this.searchInput + "'";
                 } else {
                     return this.searchInput;

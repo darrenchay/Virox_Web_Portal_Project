@@ -8,20 +8,22 @@
 
         <!-- Experiment Records table -->
         <label for="recordsTable"><strong>Experiment Records</strong></label>
-        <table class="table table-hover table-responsive" data-pagination="true" id="recordsTable">
-            <thead class="thead-dark">
-                <tr>
-                    <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(record, index) in sortedRecords" :key="index">
-                    <td v-for="(data) in columns" :key="data">{{record[data]}}</td>
-                    <td><button type="button" @click="showRecord(record.record_id)" class="btn btn-secondary" :id="'record' + record.record_id + 'btn'">Show Record</button></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover" data-pagination="true" id="recordsTable">
+                <thead class="thead-dark">
+                    <tr>
+                        <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(record, index) in sortedRecords" :key="index">
+                        <td v-for="(data) in columns" :key="data">{{record[data]}}</td>
+                        <td><button type="button" @click="showRecord(record.record_id)" class="btn btn-secondary" :id="'record' + record.record_id + 'btn'">Show Record</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <!-- Pagination -->
         <nav>
             <paginate
