@@ -20,4 +20,5 @@ Sever side found on virox-server.herokuapp.com/api
 - Using PostgreSQL as RDMS
 - Using express and node.js for RESTful API
 - Handles all database communication from front-end 
+- Firebase is used to handle all user authentication
 ```
