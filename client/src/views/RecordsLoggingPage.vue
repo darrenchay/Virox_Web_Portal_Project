@@ -1,50 +1,46 @@
 <template>
-    <div id="recordsPage" class="card">
+    <div id="recordsPage" class="card-body container">
         <transition name="fade">
             <div v-if="performingRequest" class="loading">
                 <p>Loading...</p>
             </div>
         </transition>
-        <div class="card-head">
-            <label for="recordsTable"><strong>Experiment Records</strong></label>
-        </div>
 
         <!-- Experiment Records table -->
-        <div class="card-body">
-            <table class="table table-hover table-responsive" data-pagination="true" id="recordsTable">
-                <thead class="thead-dark">
-                    <tr>
-                        <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(record, index) in sortedRecords" :key="index">
-                        <td v-for="(data) in columns" :key="data">{{record[data]}}</td>
-                        <td><button type="button" @click="showRecord(record.record_id)" class="btn btn-secondary" :id="'record' + record.record_id + 'btn'">Show Record</button></td>
-                    </tr>
-                </tbody>
-            </table>
-            <!-- Pagination -->
-            <nav>
-                <paginate
-                    :page-count="pageCount"
-                    :margin-pages="0"
-                    :click-handler="paginateCallback"
-                    :prev-text="'&laquo'"
-                    :next-text="'&raquo'"
-                    :container-class="'pagination'"
-                    :page-class="'page-item'"
-                    :page-link-class="'page-link-item'"
-                    :prev-class="'ignore prev-item'"
-                    :prev-link-class="'prev-link-item'"
-                    :next-class="'ignore next-item'"
-                    :next-link-class="'next-link-item'">
-                </paginate>
-            </nav>
+        <label for="recordsTable"><strong>Experiment Records</strong></label>
+        <table class="table table-hover table-responsive" data-pagination="true" id="recordsTable">
+            <thead class="thead-dark">
+                <tr>
+                    <th v-for="(column, index) in column_name" @click="sort(columns[index])" :key="index">{{column}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(record, index) in sortedRecords" :key="index">
+                    <td v-for="(data) in columns" :key="data">{{record[data]}}</td>
+                    <td><button type="button" @click="showRecord(record.record_id)" class="btn btn-secondary" :id="'record' + record.record_id + 'btn'">Show Record</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        <nav>
+            <paginate
+                :page-count="pageCount"
+                :margin-pages="0"
+                :click-handler="paginateCallback"
+                :prev-text="'&laquo'"
+                :next-text="'&raquo'"
+                :container-class="'pagination'"
+                :page-class="'page-item'"
+                :page-link-class="'page-link-item'"
+                :prev-class="'ignore prev-item'"
+                :prev-link-class="'prev-link-item'"
+                :next-class="'ignore next-item'"
+                :next-link-class="'next-link-item'">
+            </paginate>
+        </nav>
 
-            <button type="button" @click="createNewRecord" class="btn btn-primary">Create New Record</button>
-        </div>
+        <button type="button" @click="createNewRecord" class="btn btn-primary">Create New Record</button>
     </div>
 </template>
 
