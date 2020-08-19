@@ -6,11 +6,8 @@ This is a web portal which helps in visualizing, editing, inserting or deleting 
 The user will login/signup first then will be able to access the database and perform any necessary actions which will be saved in the server-side back-end. 
 The user can also search for specific items using the search records function.
 
-### Client Side Portal
-```
+Site: https://virox-portal.herokuapp.com/login
 
-For a demo of the portal go to to virox-portal.herokuapp.com and sign up using your email
-```
 ### Portal Features
 ```
 - Records can be sorted using column names
