@@ -6,6 +6,7 @@
                 <label class="input-group-text" for="searchFilter">Choose search filter</label>
             </div>
 
+            <!-- Search Filter -->
             <select class="custom-select" :class="{'is-invalid': isFilterInvalid}" name="searchFilter" id="searchFilter" @change="setSelected($event)" v-model="selected" required>
                <!--  <option disabled selected>Search Filter</option> -->
                 <optgroup label="Experiment Record">
@@ -22,9 +23,11 @@
                 </optgroup>
             </select>
             
+            <!-- Search Item -->
             <input type="text" class="form-control" :class="{'is-invalid': isInputInvalid}" placeholder="Enter Search Item" v-model.trim="searchInput" required>
             <button type="button" class="btn" @click="search"><span class="fas fa-search"></span></button>
             
+            <!-- Invalid Feedbacks -->
             <small v-if="isBothInvalid" class="invalid-feedback" v-show="isBothInvalid">
                 Please select a search filter and enter a search item.
             </small>
@@ -35,8 +38,10 @@
                 Please select a search filter.
             </small>
         </div>
+            <p v-show="isInvalidFormat" style="color: red">Error: Search item incorrectly formatted.</p>
         </form>
 
+        <!-- Results Table -->
         <div id="resultsTable" v-show="receivedSearchResults">
             <table v-if="record.length > 0" class="table table-bordered table-hover table-responsive">
                 <thead class="thead-dark">
@@ -68,6 +73,7 @@
                 isFilterInvalid: false,
                 isInputInvalid: false,
                 isBothInvalid: false,
+                isInvalidFormat: false,
                 searchFilter: {
                     experiment_records: {
                         record_id: 'Record ID',
@@ -127,6 +133,8 @@
                 if(this.checkValidity()) {
                     this.isFilterInvalid = false;
                     this.isInputInvalid = false;
+
+                    // Building search data 
                     let JSONData = {
                         tableName: '',
                         identifiers: {                   
@@ -135,6 +143,7 @@
                     JSONData.identifiers[this.searchName] = this.formatSearchValue();
                     //let formattedSearch = this.formatSearchValue();
                     //let searchItem = {name: this.selected, value: formattedSearch};
+
                     if(this.selectedType == "Experiment Record") {
                         JSONData.tableName = 'EXPERIMENT_RECORDS';
                     } else if (this.selectedType == "Raw Materials") {
@@ -146,7 +155,10 @@
                         JSONData.tableName = 'HYDROGEN_PEROXIDE_DATA';
                         JSONData.identifiers.hp_type = 2;
                     }
+
                     console.log(JSONData);
+
+                    // Running Query
                     axios.get(baseURL + '/getData', {
                         params: {
                             data: JSON.stringify(JSONData)
@@ -154,7 +166,8 @@
                     }).then(response => {
                             console.log(response.data.message);
                             this.record = response.data.rows;
-
+                            this.isInvalidFormat = false;
+                            
                             //Formats any dates in search results
                             this.record.forEach(row => {
                                 Object.keys(row).forEach(key => {
@@ -166,8 +179,10 @@
                             this.receivedSearchResults = true;
                             //console.log(this.record);
                     }).catch(err => {
+                        // Improper format was probably inputted if it catches an error
                         console.log(err);
-                        this.record = [];
+                        this.receivedSearchResults = false;
+                        this.isInvalidFormat = true;
                     }) 
                 }
             },
@@ -183,32 +198,33 @@
                 const recordType = optgroup.getAttribute('label');
                 this.selectedType = recordType;
             },
+
+            // formats any values that must be in string format by adding quotes in the beginning and the end 
             formatSearchValue() {
                 console.log(this.selected);
                 if (this.selected.includes("pr") || this.selected.includes("name") || this.selected.includes("date") || this.selected.includes("time") || this.selected.includes("initials") || this.selected.includes("accepted")) {
-                    console.log('formatting');
                     return "'" + this.searchInput + "'";
                 } else {
                     return this.searchInput;
                 }
             },
             checkValidity() {
+                // Checking if both are not selected
                 if(this.selected === "" && this.searchInput === "") {
-                    //console.log("both");
                     this.isFilterInvalid = true;
                     this.isInputInvalid = true;
                     this.isBothInvalid = true;
                     return false;
                 }
+                // Checking if filter was selected
                 if(this.selected === "") {
-                    //console.log("filter");
                     this.isBothInvalid = false;
                     this.isInputInvalid = false;
                     this.isFilterInvalid = true;
                     return false;
                 }
+                // Checking if search item was input
                 if (this.searchInput === "") {
-                    //console.log("name");
                     this.isBothInvalid = false;
                     this.isInputInvalid = true;
                     this.isFilterInvalid = false;
@@ -218,6 +234,7 @@
             }
         },
         computed: {
+            // Converts list of search filters into the filter names
             searchExpList: function() {
                 return Object.keys(this.searchFilter.experiment_records);
             },
@@ -233,6 +250,8 @@
 
         }
     }
+
+// Formats date to the appropriate format
 function formatDate(date) {
     return new Date(date).toString().substring(3, 21);
 }
