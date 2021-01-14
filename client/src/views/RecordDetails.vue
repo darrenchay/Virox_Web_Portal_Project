@@ -952,7 +952,7 @@ export default {
       this.record.RMList.forEach(element => {
         // console.log(element.percentage_w);
         // console.log(this.record.experimentRecord.quantity);
-        let newAR = this.record.experimentRecord.quantity/100 * element.percentage_w;
+        let newAR = this.record.experimentRecord.quantity + element.percentage_w;
         element.ar = newAR.toFixed(3);
       });
     },
